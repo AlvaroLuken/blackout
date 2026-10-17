@@ -141,9 +141,10 @@ const server = http.createServer(async (req, res) => {
     if (running || !fs.existsSync(src)) { res.writeHead(409); return res.end("{}"); }
     const rec = JSON.parse(fs.readFileSync(src, "utf8"));
     running = true; replaying = true; history = [];
-    broadcast({ type: "replay", recorded_at: rec.recorded_at }, false);
-    for (const ev of rec.events) setTimeout(() => broadcast(ev.msg, false), ev.t);
-    const end = (rec.events.at(-1)?.t ?? 0) + 200;
+    const speed = Number(url.searchParams.get("speed") ?? 2);
+    broadcast({ type: "replay", recorded_at: rec.recorded_at, speed }, false);
+    for (const ev of rec.events) setTimeout(() => broadcast(ev.msg, false), ev.t / speed);
+    const end = (rec.events.at(-1)?.t ?? 0) / speed + 200;
     setTimeout(() => { running = false; replaying = false; }, end);
     res.writeHead(202, { "content-type": "application/json" });
     return res.end("{}");

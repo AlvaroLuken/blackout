@@ -304,7 +304,7 @@ function handle(msg) {
     case "replay":
       history_isReplay = true;
       $("replaybar").className = "replaybar on";
-      $("replaybar").textContent = `RECORDED REPLAY of a live run from ${new Date(msg.recorded_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Not live.`;
+      $("replaybar").textContent = `RECORDED REPLAY of a live run from ${new Date(msg.recorded_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}, played at ${msg.speed ?? 1}× speed. Not live.`;
       break;
     case "start":
       running = true; reset();
