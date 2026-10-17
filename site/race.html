@@ -187,19 +187,12 @@ body.presenter .status { font-size: 15px; }
   <header>
     <div class="brand">
       <h1>BLACK<span>OUT</span></h1>
-      <p><b>Agents say done. Code decides.</b></p>
     </div>
     <div class="chips">
       <span class="chip live">● live · real agents · real crash</span>
     </div>
   </header>
   <div class="crusoe" id="crusoe"><span class="ck">Crusoe metrics · snapshot from a live run</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
-
-  <div class="promise-strip" aria-label="Blackout's three promises">
-    <div class="pp p1"><span>1</span><b>Every action happens once.</b></div>
-    <div class="pp p2"><span>2</span><b>"Done" is decided by code.</b></div>
-    <div class="pp p3"><span>3</span><b>When it can't tell, a human decides.</b></div>
-  </div>
 
   <p class="brief1"><b>The setup:</b> a bad config breaks a notification sender with <b>10 messages</b> queued. Both agents are told: <i>"fix it, finish the jobs, don't send duplicates."</i> Then we <b>kill each agent mid-delivery</b>.</p>
 
@@ -220,7 +213,7 @@ body.presenter .status { font-size: 15px; }
     <section class="lane j" id="lane-journal">
       <div class="lane-head"><h2>BLACKOUT</h2><small id="hash-journal">with journal</small></div>
       <div class="phases" id="ph-journal"></div>
-      <div class="inf" id="inf-journal" title="Each pulse is one real Nemotron call through Crusoe, read from the journal's usage table"><svg class="i-nv" aria-hidden="true"><use href="#i-nv"/></svg><span class="inf-model" id="infm-journal">Nemotron 3.5 Lightning</span><span class="inf-via">on</span><svg class="i-cr" aria-hidden="true"><use href="#i-cr"/></svg><span class="inf-who" id="infw-journal">waiting for the first call</span><span class="inf-n" id="infn-journal">0 calls</span></div>
+      <div class="inf" id="inf-journal" title="Each pulse is one real Nemotron call through Crusoe, read from the journal's usage table"><svg class="i-nv" aria-hidden="true"><use href="#i-nv"/></svg><span class="inf-model" id="infm-journal">Nemotron 3.5 Lightning</span><span class="inf-via">on</span><svg class="i-cr" aria-hidden="true"><use href="#i-cr"/></svg><span class="inf-who" id="infw-journal" hidden></span><span class="inf-n" id="infn-journal" hidden></span></div>
       <div class="meters">
         <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-journal">–</span><div class="cells" id="cells-journal"></div></div>
         <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span><span class="src" id="extra-journal"></span></div>
@@ -234,7 +227,7 @@ body.presenter .status { font-size: 15px; }
     <section class="lane b" id="lane-baseline">
       <div class="lane-head"><h2>PLAIN AGENT</h2><small id="hash-baseline">same model · no journal</small></div>
       <div class="phases" id="ph-baseline"></div>
-      <div class="inf" id="inf-baseline" title="Each pulse is one real Nemotron call through Crusoe, read from the journal's usage table"><svg class="i-nv" aria-hidden="true"><use href="#i-nv"/></svg><span class="inf-model" id="infm-baseline">Nemotron 3.5 Lightning</span><span class="inf-via">on</span><svg class="i-cr" aria-hidden="true"><use href="#i-cr"/></svg><span class="inf-who" id="infw-baseline">waiting for the first call</span><span class="inf-n" id="infn-baseline">0 calls</span></div>
+      <div class="inf" id="inf-baseline" title="Each pulse is one real Nemotron call through Crusoe, read from the journal's usage table"><svg class="i-nv" aria-hidden="true"><use href="#i-nv"/></svg><span class="inf-model" id="infm-baseline">Nemotron 3.5 Lightning</span><span class="inf-via">on</span><svg class="i-cr" aria-hidden="true"><use href="#i-cr"/></svg><span class="inf-who" id="infw-baseline" hidden></span><span class="inf-n" id="infn-baseline" hidden></span></div>
       <div class="meters">
         <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-baseline">–</span><div class="cells" id="cells-baseline"></div></div>
         <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span><span class="src" id="extra-baseline"></span></div>
