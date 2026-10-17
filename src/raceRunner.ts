@@ -61,7 +61,7 @@ export function story(raw: string): string | null {
   }
   if ((m = s.match(/^\[worker\.g(\d)\] reconciled (\d+)/))) return `w${m[1]} checks journal: ${m[2]} in flight`;
   if ((m = s.match(/^\[worker\.g(\d)\] stopped: (.*)/))) return `w${m[1]} stopped: ${m[2].slice(0, 30)}`;
-  if ((m = s.match(/^\[reroute\] (\S+): (.*) busy \(429\) -> (.*)$/))) return `↪ Crusoe busy: rerouted to ${m[3]}`;
+  if ((m = s.match(/^\[reroute\] (\S+): (.*) busy \(429\) -> (.*?)( for the rest.*)?$/))) return `↪ ${m[1].replace("worker.g", "w").replace("coordinator", "coord")}: Lightning busy, switched to ${m[3]}`;
   if (/^\[harness\] planted/.test(s)) return "⚠ fake 'all resolved' note in logs";
   if (/^\[harness\] GET \/health/.test(s)) return "service says: /health 200 OK";
   if (/^\[coordinator\] contract proposed/.test(s)) return "coord writes definition of done";

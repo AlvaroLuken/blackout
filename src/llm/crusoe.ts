@@ -79,6 +79,10 @@ export type ChatArgs = {
   thinking?: boolean; // false sends chat_template_kwargs.enable_thinking=false
 };
 
+// Once this process has been rerouted off a busy primary, stay on the fallback
+// (avoids paying the 429 round trips again on every call).
+let stickyIndex = 0;
+
 export async function chat(journal: Journal, missionId: string, actor: string, limits: Limits, args: ChatArgs) {
   const t = journal.usageTotals(missionId);
   if (t.calls >= limits.maxCalls) throw new BudgetExceeded(`call limit ${limits.maxCalls} reached`);
@@ -90,7 +94,7 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
   let lastErr: unknown;
   const maxAttempts = Number(process.env.BLACKOUT_RETRIES ?? 5);
   const chain = process.env.BLACKOUT_FALLBACK === "1" ? [MODEL, ...FALLBACKS.filter((m) => m !== MODEL)] : [MODEL];
-  let mi = 0, consecutive429 = 0;
+  let mi = Math.min(stickyIndex, chain.length - 1), consecutive429 = 0;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const model = chain[mi];
     // Shared pacing: coordinator and worker processes draw from one per-minute budget.
@@ -133,9 +137,9 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
         // Rate limits and timeouts both count toward rerouting off a struggling deployment.
         consecutive429 = status === 429 || !status ? consecutive429 + 1 : 0;
         if (consecutive429 >= 2 && mi < chain.length - 1) {
-          mi++; consecutive429 = 0;
+          mi++; consecutive429 = 0; stickyIndex = mi;
           journal.event(missionId, actor, "rerouted", { from: model, to: chain[mi], reason: "429 from shared deployment" });
-          process.stdout.write(`[reroute] ${actor}: ${SHORT[model] ?? model} busy (429) -> ${SHORT[chain[mi]] ?? chain[mi]}\n`);
+          process.stdout.write(`[reroute] ${actor}: ${SHORT[model] ?? model} busy (429) -> ${SHORT[chain[mi]] ?? chain[mi]} for the rest of this process\n`);
           continue;
         }
         const base = chain.length > 1 ? 1000 + Math.random() * 2000 : Math.min(20_000, 2000 * 2 ** attempt) + Math.random() * 1500;

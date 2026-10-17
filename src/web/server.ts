@@ -18,6 +18,7 @@ let recording: { t: number; msg: unknown }[] = [];
 let raceStart = 0;
 let replaying = false;
 const RECORDING = path.join(ROOT, "results", "race", "last-race.json");
+const BACKUP = path.join(ROOT, "results", "race", "replay-backup.json"); // a chosen clean live run
 
 function broadcast(msg: unknown, record = true) {
   history.push(msg);
@@ -128,8 +129,9 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "POST" && url.pathname === "/replay") {
     // Backup if live inference degrades on stage. Clearly labelled in the page.
-    if (running || !fs.existsSync(RECORDING)) { res.writeHead(409); return res.end("{}"); }
-    const rec = JSON.parse(fs.readFileSync(RECORDING, "utf8"));
+    const src = fs.existsSync(BACKUP) ? BACKUP : RECORDING;
+    if (running || !fs.existsSync(src)) { res.writeHead(409); return res.end("{}"); }
+    const rec = JSON.parse(fs.readFileSync(src, "utf8"));
     running = true; replaying = true; history = [];
     broadcast({ type: "replay", recorded_at: rec.recorded_at }, false);
     for (const ev of rec.events) setTimeout(() => broadcast(ev.msg, false), ev.t);
