@@ -1,6 +1,6 @@
 {
   "name": "blackout-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "target": "NODE_NO_WARNINGS=1 tsx src/target/supervisor.ts",
     "reset": "NODE_NO_WARNINGS=1 tsx src/cli.ts reset",
