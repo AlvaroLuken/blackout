@@ -24,7 +24,7 @@ Blackout lets AI agents act on their own without doing anything twice. Agents ar
 
 We built it two ways today. The full runtime: a Nemotron coordinator writes and freezes a definition of done, a Nemotron repair worker diagnoses and fixes a broken service, we SIGKILL it mid-delivery, and its replacement reconciles from receipts. In 10 paired live runs on a service that can't report job status, Blackout finished cleanly 10/10; the same agent without it 0/10 (16 duplicate deliveries). And a drop-in MCP gateway, published on npm as blackout-mcp, that any MCP agent (including Claude Code) can put in front of its tools. Measured: a Nemotron agent told not to send duplicates, restarted mid-job, duplicated emails in 6 of 10 runs because it re-invented its idempotency key each time; through Blackout, 0 of 10.
 
-All agents run on NVIDIA Nemotron 3.5 Lightning via Crusoe Managed Inference, about half a cent per mission. Site with a 3D explainer and recorded live race: https://blackout-woad.vercel.app. Everything in the repo was built during the event.
+All agents run on NVIDIA Nemotron 3.5 Lightning via Crusoe Managed Inference, about half a cent per mission. Site with a 3D explainer and recorded live race: https://blackout.black. Everything in the repo was built during the event.
 
 **Public GitHub Repository**
 https://github.com/AlvaroLuken/blackout

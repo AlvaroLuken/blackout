@@ -59,7 +59,7 @@
     "type": "git",
     "url": "git+https://github.com/AlvaroLuken/blackout.git"
   },
-  "homepage": "https://blackout-woad.vercel.app",
+  "homepage": "https://blackout.black",
   "engines": {
     "node": ">=22.5"
   },

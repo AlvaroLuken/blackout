@@ -2,7 +2,7 @@
 
 **Let agents act on their own. Never twice.** Blackout sits between AI agents and the real world: every side effect happens once, even when the agent crashes mid-job; "done" is decided by code, not by the agent; and when it can't tell what happened, it escalates to a human instead of guessing.
 
-[Site and 3D explainer](https://blackout-woad.vercel.app) · [`npx blackout-mcp`](https://www.npmjs.com/package/blackout-mcp) · [Measured results](results/RESULTS.md) · [Demo plan](docs/DEMO.md)
+[Site and 3D explainer](https://blackout.black) · [`npx blackout-mcp`](https://www.npmjs.com/package/blackout-mcp) · [Measured results](results/RESULTS.md) · [Demo plan](docs/DEMO.md)
 
 | Measured live on Oct 17 (Nemotron 3.5 Lightning on Crusoe, n = 10 per arm) | With Blackout | Same agent without |
 |---|---|---|

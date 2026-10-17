@@ -6,7 +6,7 @@
 2. One warm-up race a few minutes before your slot (also checks Crusoe is answering).
 3. Backup: "Replay last run" plays the 2:28pm live run (both lanes about 92 s, all Lightning) at 2× under a purple "RECORDED REPLAY, not live" banner.
 4. Have a terminal ready with `npm run gateway:demo` output from earlier, for Q&A only.
-5. The public site (https://blackout-woad.vercel.app) goes in the submission. Don't demo it live.
+5. The public site (https://blackout.black) goes in the submission. Don't demo it live.
 
 ## Three-minute run of show (≈2:45)
 
