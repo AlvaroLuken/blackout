@@ -168,6 +168,17 @@ p { margin: 0; max-width: 68ch; }
 .pdanger b { color: #fff; }
 .pwhere { font-family: var(--mono); font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 @media (max-width: 900px) { .pgrid { grid-template-columns: 1fr; } }
+.promise-bullets { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.promise-bullets li { display: flex; gap: 12px; align-items: baseline; font-size: 17.5px; color: var(--soft); }
+.promise-bullets b { color: var(--fg); font-weight: 600; }
+.pb { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-family: var(--mono); font-size: 12px; font-weight: 700; color: #0b0d11; transform: translateY(-2px); }
+.pb.p1 { background: var(--ok); } .pb.p2 { background: var(--blue); } .pb.p3 { background: var(--amber); }
+.install { border: 1px solid var(--amber); border-radius: 12px; overflow: hidden; background: var(--panel); }
+.install-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.install-head button { font: inherit; font-size: 12px; cursor: pointer; background: var(--amber); color: #1a1205; border: 0; border-radius: 6px; padding: 5px 12px; font-weight: 700; text-transform: none; letter-spacing: 0; }
+.install-head button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.install pre { border: 0; border-radius: 0; margin: 0; font-size: 14px; padding: 14px 16px; white-space: pre; overflow-x: auto; }
+.hero-text { gap: 20px; }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
@@ -246,17 +257,26 @@ nav { gap: 16px; }
     <div class="hero-text">
       <span class="eyebrow">Exactly-once actions for AI agents</span>
       <h1>Let agents act on their own. <em>Never twice.</em></h1>
-      <p class="lede">Blackout sits between your AI agents and the real world. It makes every action happen once, lets only code decide when the job is done, and hands a human the evidence when it can't tell. Drop it in front of your tools today: <code>npx blackout-mcp</code>.</p>
+      <p class="lede">Blackout sits between your AI agents and the real world.</p>
+      <ul class="promise-bullets">
+        <li><span class="pb p1">1</span><span><b>Every action happens once,</b> even when the agent crashes mid-job.</span></li>
+        <li><span class="pb p2">2</span><span><b>"Done" is decided by code,</b> not the agent's word.</span></li>
+        <li><span class="pb p3">3</span><span><b>When it can't tell, a human decides,</b> with the evidence.</span></li>
+      </ul>
+      <div class="install" aria-label="Install the Blackout MCP gateway">
+        <div class="install-head"><span>Install in Claude Code or any MCP agent</span><button type="button" id="copy-install">Copy</button></div>
+<pre id="install-cmd"><span class="c">$</span> npx -y blackout-mcp init
+<span class="c">$</span> claude mcp add blackout -- \
+    npx -y blackout-mcp --config "$PWD/blackout.mcp.json"</pre>
+      </div>
       <div class="ctas">
-        <a class="btn primary" href="#promises">The three promises</a>
-        <a class="btn ghost" href="#watch">▶ Watch how it works</a>
-        <a class="btn ghost" href="#use">Use it today</a>
+        <a class="btn primary" href="#watch">▶ Watch how it works</a>
         <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
       </div>
       <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
     </div>
     <figure class="hero-flow" aria-label="How Blackout works: an AI agent wants to act. Blackout writes the action down first, checks the system's receipts so nothing happens twice, and lets only code decide the job is done. Your systems receive each action once. A repeat after a crash is blocked. When Blackout can't tell what happened, a human decides.">
-      <svg viewBox="0 0 440 470" role="img" aria-hidden="true">
+      <svg viewBox="0 0 480 470" role="img" aria-hidden="true">
         <defs><marker id="hf-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hf-arrowhead"/></marker></defs>
         <rect x="120" y="8" width="200" height="62" rx="12" class="hf-box"/>
         <text x="220" y="34" class="hf-t" text-anchor="middle">AI agent</text>
@@ -273,11 +293,11 @@ nav { gap: 16px; }
         <rect x="120" y="356" width="200" height="62" rx="12" class="hf-box"/>
         <text x="220" y="382" class="hf-t" text-anchor="middle">Your systems</text>
         <text x="220" y="402" class="hf-s" text-anchor="middle">email · payments · infra</text>
-        <path d="M400 190 H428" class="hf-line hf-bad"/>
-        <text x="436" y="160" class="hf-s hf-badt" text-anchor="end">repeat after</text>
-        <text x="436" y="176" class="hf-s hf-badt" text-anchor="end">a crash</text>
-        <text x="424" y="212" class="hf-x" text-anchor="middle">✕</text>
-        <text x="436" y="232" class="hf-s hf-badt" text-anchor="end">blocked</text>
+        <path d="M400 190 H470" class="hf-line hf-bad"/>
+        <text x="476" y="160" class="hf-s hf-badt" text-anchor="end">repeat after</text>
+        <text x="476" y="176" class="hf-s hf-badt" text-anchor="end">a crash</text>
+        <text x="452" y="212" class="hf-x" text-anchor="middle">✕</text>
+        <text x="476" y="232" class="hf-s hf-badt" text-anchor="end">blocked</text>
         <path d="M40 260 H12 V452 H120" class="hf-line hf-warn" marker-end="url(#hf-ar)"/>
         <text x="126" y="448" class="hf-s hf-warnt">can't tell → a human decides, with evidence</text>
         <circle r="6" class="hf-dot"><animateMotion dur="3.2s" repeatCount="indefinite" path="M220 40 V116 H384 V298 H220 V386"/></circle>
@@ -518,6 +538,18 @@ nav { gap: 16px; }
       sync(); window.dispatchEvent(new Event("themechange"));
     });
     sync();
+  })();
+</script>
+<script>
+  (function () {
+    var b = document.getElementById("copy-install");
+    if (!b) return;
+    b.addEventListener("click", function () {
+      var t = 'npx -y blackout-mcp init\nclaude mcp add blackout -- npx -y blackout-mcp --config "$PWD/blackout.mcp.json"';
+      var done = function () { b.textContent = "Copied ✓"; setTimeout(function () { b.textContent = "Copy"; }, 1600); };
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function () { window.getSelection().selectAllChildren(document.getElementById("install-cmd")); });
+      else window.getSelection().selectAllChildren(document.getElementById("install-cmd"));
+    });
   })();
 </script>
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
