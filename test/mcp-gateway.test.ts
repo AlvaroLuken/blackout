@@ -96,3 +96,14 @@ test("read-only tools pass straight through, and different emails are not merged
   assert.equal(inbox(), 2);
   assert.doesNotMatch(textOf(list), /blackout/);
 });
+
+test("tools with strict schemas: no idempotency arg configured, the journal alone still suppresses repeats", async () => {
+  const rules = { send_email: {} };
+  const { agent, inbox, mailer } = await setup(tmp(), ":memory:", rules as any);
+  await agent.callTool({ name: "send_email", arguments: EMAIL });
+  const again = await agent.callTool({ name: "send_email", arguments: EMAIL });
+  assert.equal(inbox(), 1);
+  assert.match(textOf(again), /duplicate suppressed/);
+  const keys = mailer.db.prepare("SELECT idempotency_key FROM sent").all() as { idempotency_key: string | null }[];
+  assert.equal(keys[0].idempotency_key, null); // nothing extra was sent to the tool
+});

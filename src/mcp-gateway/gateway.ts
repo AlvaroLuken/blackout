@@ -17,7 +17,7 @@ import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export type SideEffectRule = {
-  idempotencyArg: string;                      // argument the server uses as its idempotency key
+  idempotencyArg?: string;                     // argument the server uses as its idempotency key (optional: without it, the journal alone suppresses repeats)
   receipt?: { tool: string; arg: string };     // "did op X happen?" lookup; not-found = isError
 };
 export type GatewayConfig = {
@@ -33,7 +33,7 @@ function canonical(v: unknown): string {
 }
 
 export function opIdFor(mission: string, tool: string, args: Record<string, unknown>, rule: SideEffectRule) {
-  const { [rule.idempotencyArg]: _ignored, ...rest } = args;
+  const { [rule.idempotencyArg ?? "\u0000"]: _ignored, ...rest } = args;
   return "bo-" + createHash("sha256").update(`${mission}\n${tool}\n${canonical(rest)}`).digest("hex").slice(0, 24);
 }
 
@@ -92,7 +92,8 @@ export function createGateway(downstream: Client, cfg: GatewayConfig) {
       db.prepare("INSERT INTO ops (op_id, mission, tool, args, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'intent', ?, ?)").run(op, cfg.mission, name, JSON.stringify(args), now(), now());
     }
 
-    const result = (await downstream.callTool({ name, arguments: { ...args, [rule.idempotencyArg]: op } })) as CallToolResult;
+    const sent = rule.idempotencyArg ? { ...args, [rule.idempotencyArg]: op } : args;
+    const result = (await downstream.callTool({ name, arguments: sent })) as CallToolResult;
     if (result.isError) { db.prepare("DELETE FROM ops WHERE op_id = ?").run(op); return result; } // nothing happened; allow a clean retry
     set(op, "done", result);
     return note(result, `exactly-once: journaled as op ${op} before sending.`);

@@ -171,7 +171,7 @@ Then ask Claude to send the same email twice, or restart it and ask again: the s
 
 Any MCP client works the same way: run `npx -y blackout-mcp --config /path/to/blackout.mcp.json` as a stdio server. Requires Node 22.5+.
 
-- Each side-effect call gets a stable op ID from (mission, tool, arguments), journaled before the call and passed as the tool's idempotency key.
+- Each side-effect call gets a stable op ID from (mission, tool, arguments), journaled before the call and, if `idempotencyArg` is set, passed as the tool's idempotency key. Leave `idempotencyArg` out for tools with strict schemas: the journal alone still suppresses repeats (recovery from a gateway crash mid-call then needs a `receipt` tool, or the gateway escalates).
 - A repeat of the same side effect, from a retry or a restarted agent, returns the original result instead of running again.
 - If the gateway itself dies mid-call, the next attempt asks the receipt tool first. No receipt tool and an interrupted call means it refuses and escalates.
 - Read-only tools pass straight through.
