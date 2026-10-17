@@ -114,3 +114,8 @@ Task: send a "your order shipped" email to 3 customers, "Do not send anyone a du
 What happened in the direct arm: the agent did try to protect itself. It used the mailer's optional idempotency_key, but it invented the key, and the restarted session usually invented a different one (`ana@example.com` in session 1, `order_shipped_ana` in session 2), so the mailer sent again. In the 4 clean direct runs both sessions happened to pick the same key. Agents checked the inbox before sending in only 3 of 10 runs. An idempotency key only protects you if it is stable across restarts; the gateway derives it from the call and journals it before the call.
 
 Source: `results/gateway-eval-2026-10-17T22-10-22-015Z.json`, log `results/gateway-eval-n10.log`. Small sample, one synthetic tool server.
+
+## Third-party agents (Oct 17, 3:30 to 3:48 PT)
+
+- **Claude Code** (`claude -p`, non-interactive, `--mcp-config` pointing at `npx -y blackout-mcp@0.1.1`): session 1 sent 3 emails, each journaled ("exactly-once"); session 2, a fresh process with no memory given the same job, had its repeats suppressed and then checked the inboxes itself. Mailer DB: 1 email per customer. Claude Code passed its own idempotency keys; the gateway replaced them with stable ones derived from the call. Single run.
+- **Hermes Agent** (the author's own, on a separate Linux machine, isolated `blackout-test` profile): `hermes mcp test blackout` connected and discovered all 3 tools. Hermes's non-interactive modes (`-z`, `chat -q`) did not expose MCP tools to the model, so no end-to-end Hermes run yet; its interactive chat is untested.

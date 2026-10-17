@@ -186,6 +186,7 @@ Any MCP client works the same way: run `npx -y blackout-mcp --config /path/to/bl
 - If the gateway itself dies mid-call, the next attempt asks the receipt tool first. No receipt tool and an interrupted call means it refuses and escalates.
 - Read-only tools pass straight through.
 - Measured live on Oct 17, n = 10 runs per arm (Nemotron 3.5 Lightning, a send task plus a restarted session told "do not send anyone a duplicate", same tools in both arms): **through the gateway 0/10 runs had a duplicate (30 repeats suppressed); direct to the server 6/10 runs had duplicates (18 duplicate emails) and claimed DONE anyway.** The direct agent invented idempotency keys, but a restarted session invented different ones. Details in `results/RESULTS.md`. 8 tests in `test/mcp-gateway.test.ts`.
+- Works with **Claude Code** out of the box (tested: a fresh session's repeats were suppressed, 1 email per customer). Hermes Agent connects and discovers the tools; a full Hermes run is next.
 - Scope: the gateway gives exactly-once side effects. Done-verification (frozen contract, verifier) is in the full runtime, not the gateway. Two identical intended sends in one mission are treated as one; vary an argument if you really mean to send twice.
 
 ## Pointing Blackout at another system
