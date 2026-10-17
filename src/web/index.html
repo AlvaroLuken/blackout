@@ -153,7 +153,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
       <div class="phases" id="ph-journal"></div>
       <div class="meters">
         <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-journal">–</span><div class="cells" id="cells-journal"></div><span class="src">counted from the service's own DB</span></div>
-        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span></div>
+        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span><span class="src" id="extra-journal"></span></div>
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-journal">waiting</span></div>
       </div>
       <ul class="feed" id="feed-journal"><li class="empty">Press "Run the race". Nemotron writes a definition of done, freezes it, then diagnoses and repairs the service.</li></ul>
@@ -164,7 +164,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
       <div class="phases" id="ph-baseline"></div>
       <div class="meters">
         <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-baseline">–</span><div class="cells" id="cells-baseline"></div><span class="src">counted from the service's own DB</span></div>
-        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span></div>
+        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span><span class="src" id="extra-baseline"></span></div>
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-baseline">waiting</span></div>
       </div>
       <ul class="feed" id="feed-baseline"><li class="empty">After a crash this side only knows "the previous worker exited". It has the same receipt tools.</li></ul>
@@ -195,12 +195,15 @@ function pullPlug() { if (!running || plugged || $("plug").disabled) return; plu
 function cells(mode, c) {
   const host = $(`cells-${mode}`);
   host.innerHTML = "";
-  const total = c ? c.total : 10;
-  for (let i = 0; i < total; i++) {
+  // One cell per customer: grey = not messaged, green = messaged once, red = messaged more than once.
+  // Recordings made before per-customer counts existed: approximate from totals.
+  const per = c && c.perJob ? c.perJob : Array.from({ length: c ? c.total : 10 }, (_, i) => (c && i < c.delivered ? (i < c.dup ? 2 : 1) : 0));
+  per.forEach((n, i) => {
     const d = document.createElement("div");
-    d.className = "cell" + (c && i < c.delivered ? " on" : "") + (c && i < c.dup ? " dup" : "");
+    d.className = "cell" + (n === 1 ? " on" : "") + (n > 1 ? " dup" : "");
+    d.title = `customer ${i + 1}: ${n} message${n === 1 ? "" : "s"}`;
     host.appendChild(d);
-  }
+  });
 }
 function setCounters(data) {
   for (const m of MODES) {
@@ -211,6 +214,7 @@ function setCounters(data) {
     const was = dup.textContent;
     dup.textContent = String(c.dup);
     dup.className = "v " + (c.dup ? "bad" : "ok");
+    $(`extra-${m}`).textContent = c.extra ? `customers · ${c.extra} extra messages sent` : c.perJob ? "customers" : "";
     if (c.dup && was !== String(c.dup)) bump(m);
     cells(m, c);
   }

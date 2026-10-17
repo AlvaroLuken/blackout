@@ -46,7 +46,11 @@ export function story(raw: string): string | null {
       case "read_logs": return `${w}reads ${a.level ?? ""} logs`.replace("  ", " ");
       case "list_workspace": return null;
       case "read_workspace_file": return `${w}reads ${a.path}`;
-      case "patch_config": { const o = (out ?? "").match(/"old":("?[^,"]*"?),"new":("?[^,"]*"?)/); return `${w}FIX ${a.field}: ${o ? `${o[1]} → ${o[2]}` : JSON.stringify(a.value)}`.replace(/"/g, ""); }
+      case "patch_config": {
+        const o = (out ?? "").match(/"old":("?[^,"]*"?),"new":("?[^,"]*"?)/);
+        if (o && o[1] === o[2]) return `${w}re-checks ${a.field} (already ${o[1]})`.replace(/"/g, "");
+        return `${w}FIX ${a.field}: ${o ? `${o[1]} → ${o[2]}` : JSON.stringify(a.value)}`.replace(/"/g, "");
+      }
       case "restart_service": return `${w}restarts the service`;
       case "run_test_job": return /"process_status":200/.test(out ?? "") ? `${w}test job ✓ works` : `${w}test job ✗ fails`;
       case "list_jobs": { const c = (out ?? "").match(/"count":(\d+)/); return `${w}lists ${a.status ?? ""} jobs${c ? ` (${c[1]})` : ""}`.replace("  ", " "); }
@@ -70,7 +74,11 @@ export function story(raw: string): string | null {
   if ((m = s.match(/^\[verifier\] before repair: FAIL\s+valid=(\d+)\/(\d+)/))) return `verifier: FAIL  ${m[1]}/${m[2]} jobs done`;
   if (/fresh_job_e2e: process returned 500/.test(s)) return "  real jobs crash (500)";
   if ((m = s.match(/^\[verifier\] after episode \d+: (PASS|FAIL)\s+valid=(\d+)\/(\d+) duplicates=(\d+)/))) return `verifier: ${m[1]}  ${m[2]}/${m[3]} valid  dup=${m[4]}`;
-  if ((m = s.match(/duplicate deliveries for (job-\d+) \(x(\d+)\)/))) return `  ✖ ${m[1]} sent ${m[2]} times: a customer got it twice`;
+  if (/duplicate deliveries for /.test(s)) {
+    const d = [...s.matchAll(/job-\d+ \(x(\d+)\)/g)].map((x) => Number(x[1]));
+    const extra = d.reduce((a, n) => a + n - 1, 0);
+    return d.length === 1 ? `  ✖ a customer got the same message ${d[0]} times` : `  ✖ ${d.length} customers got duplicates (${extra} extra messages)`;
+  }
   if ((m = s.match(/^\[controller\] spawn worker generation (\d+)/))) return `▶ worker ${m[1]} starts`;
   if ((m = s.match(/^\[controller\] worker g(\d) died/))) return `✖ worker ${m[1]} SIGKILLed mid-delivery`;
   if (/worker claimed done, verifier disagrees/.test(s)) return "worker says done → REJECTED";
@@ -86,9 +94,16 @@ export function counters(mode: string) {
   try {
     const db = new DatabaseSync(path.join(varDirFor(mode as Mode), "target", "service.db"), { readOnly: true });
     try {
-      const rows = db.prepare("SELECT d.job_id, COUNT(*) AS n FROM deliveries d JOIN jobs j ON j.id = d.job_id WHERE j.probe = 0 GROUP BY d.job_id").all() as { n: number }[];
-      const total = (db.prepare("SELECT COUNT(*) AS n FROM jobs WHERE probe = 0").get() as { n: number }).n;
-      return { delivered: rows.length, total, dup: rows.reduce((a, r) => a + r.n - 1, 0) };
+      // One entry per customer job, in order: how many deliveries it actually got.
+      const per = db.prepare("SELECT j.id, COUNT(d.id) AS n FROM jobs j LEFT JOIN deliveries d ON d.job_id = j.id WHERE j.probe = 0 GROUP BY j.id ORDER BY j.id").all() as { n: number }[];
+      const perJob = per.map((r) => r.n);
+      return {
+        delivered: perJob.filter((n) => n > 0).length,
+        total: perJob.length,
+        dup: perJob.filter((n) => n > 1).length,          // customers who got it more than once
+        extra: perJob.reduce((a, n) => a + Math.max(0, n - 1), 0), // extra messages sent
+        perJob,
+      };
     } finally { db.close(); }
   } catch { return null; }
 }

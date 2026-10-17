@@ -34,8 +34,8 @@ function draw() {
   out += MODES.map((m) => {
     const c = counters(m);
     if (!c) return " ".repeat(w);
-    const text = ` delivered ${c.delivered}/${c.total}   duplicates ${c.dup}`;
-    return `\x1b[1m delivered ${c.delivered}/${c.total}   ${c.dup ? "\x1b[41;97m" : "\x1b[32m"}duplicates ${c.dup}${RESET}` + " ".repeat(Math.max(0, w - text.length));
+    const text = ` delivered ${c.delivered}/${c.total}   got it twice ${c.dup}`;
+    return `\x1b[1m delivered ${c.delivered}/${c.total}   ${c.dup ? "\x1b[41;97m" : "\x1b[32m"}got it twice ${c.dup}${RESET}` + " ".repeat(Math.max(0, w - text.length));
   }).join(" │ ") + "\n";
   process.stdout.write(out);
 }
