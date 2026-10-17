@@ -178,6 +178,8 @@ async function processOne(jobId: string, ctx: ToolCtx) {
     const prior = ctx.journal.actions(ctx.missionId).filter((x) => x.kind === "process_job" && x.target_ref === jobId);
     const settled = prior.find((x) => x.status === "acked" || x.status === "reconciled_done");
     if (settled) return { job_id: jobId, skipped: "already delivered per journal + receipt", op_id: settled.op_id };
+    const unknown = prior.find((x) => x.status === "unknown");
+    if (unknown) return { job_id: jobId, refused: "an earlier attempt has an unknown outcome; not repeating it", op_id: unknown.op_id };
     const retry = prior.find((x) => x.status === "reconciled_absent" || x.status === "failed");
     opId = retry?.op_id ?? `${ctx.missionId}-${jobId}-${randomUUID().slice(0, 6)}`;
     if (retry) ctx.journal.settleAction(opId, "intent", { retry_generation: ctx.generation });

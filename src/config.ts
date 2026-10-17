@@ -22,7 +22,7 @@ export const PATHS = {
   harnessDir: path.join(VAR, "harness"),
   hooks: path.join(VAR, "harness", "hooks.json"),
   harnessLog: path.join(VAR, "harness", "events.log"),
-  results: path.join(ROOT, "results"),
+  results: process.env.BLACKOUT_RESULTS_DIR ? path.resolve(process.env.BLACKOUT_RESULTS_DIR) : path.join(ROOT, "results"),
 };
 
 export const PORTS = {

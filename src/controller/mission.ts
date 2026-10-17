@@ -125,6 +125,10 @@ export async function runMission(opts: MissionOpts): Promise<MissionOutcome> {
       return escalate(`worker stopped: ${workerReport.message}`, verdict, state.episodes + 1, state.crashes, recoveryMs);
     }
     if (workerReport.believes_done) say(`[controller] worker claimed done, verifier disagrees. Claim rejected.`);
+    const unknown = journal.actions(missionId).filter((a) => a.status === "unknown");
+    if (unknown.length) {
+      return escalate(`outcome of ${unknown.length} action(s) cannot be established from target receipts (${unknown.map((u) => u.target_ref).join(", ")}); not retrying blindly`, verdict, state.episodes + 1, state.crashes, recoveryMs);
+    }
 
     const r = afterEpisode(state, verdict); state = r.state;
     if (r.forced.kind === "escalate") return escalate(r.forced.reason, verdict, state.episodes, state.crashes, recoveryMs);
