@@ -58,6 +58,20 @@ p { margin: 0; max-width: 68ch; }
 .who .card p { font-size: 15px; }
 .who .card b { color: var(--fg); font-weight: 600; }
 .skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 12px; background: var(--amber); color: #1a1205; padding: 8px 12px; border-radius: 6px; z-index: 5; }
+.flow { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #0b0d11; }
+#flow3d { width: 100%; height: 520px; }
+#flow3d canvas { display: block; width: 100%; height: 100%; }
+#flow-labels { position: absolute; inset: 0; pointer-events: none; }
+.flabel { position: absolute; left: 0; top: 0; text-align: center; white-space: nowrap; font-family: var(--mono); font-size: 12px; color: var(--muted); text-shadow: 0 1px 6px #000; transition: opacity 0.3s; }
+.flabel b { display: block; font-family: var(--display); font-stretch: 85%; font-size: 15px; color: var(--fg); }
+.flabel span { display: block; }
+.flow-bar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--panel); }
+#flow-step { font-family: var(--mono); font-size: 13px; color: var(--amber); min-width: 34px; }
+#flow-caption { flex: 1 1 300px; font-size: 17px; color: var(--fg); min-height: 1.5em; }
+.flow-bar button { font: inherit; font-family: var(--mono); font-size: 13px; cursor: pointer; background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 14px; }
+.flow-bar button#flow-mode { border-color: #5a4210; color: var(--amber); }
+.flow-bar button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+@media (max-width: 640px) { #flow3d { height: 420px; } .flabel { font-size: 10px; } .flabel b { font-size: 12px; } }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
@@ -173,8 +187,19 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <div class="head">
       <span class="eyebrow">How it works</span>
       <h2>Three rules, enforced in code.</h2>
-      <p class="lede">No new agent framework. Blackout wraps the actions that touch the outside world and holds the agent to a goal it can't quietly lower.</p>
+      <p class="lede">No new agent framework. Blackout wraps the actions that touch the outside world and holds the agent to a goal it can't quietly lower. Watch one message, one crash, and what happens next.</p>
     </div>
+    <div class="flow" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
+      <div id="flow3d"></div>
+      <div id="flow-labels" aria-hidden="true"></div>
+      <div class="flow-bar">
+        <span id="flow-step">1/7</span>
+        <span id="flow-caption" aria-live="polite">The agent decides to message customer 5.</span>
+        <button type="button" id="flow-play">Pause</button>
+        <button type="button" id="flow-mode" aria-pressed="false">Show it without Blackout</button>
+      </div>
+    </div>
+    <div style="height:28px"></div>
     <div class="grid3">
       <div class="card"><span class="num">01</span><p class="rule">Define done first, then freeze it.</p><p>The model proposes a definition of done from a fixed vocabulary of checks. Blackout adds the checks it is not allowed to skip, hashes the contract and stores it where no agent can touch it.</p></div>
       <div class="card"><span class="num">02</span><p class="rule">Write it down before you do it.</p><p>Every side effect gets a stable operation ID in a durable journal before it happens. If the worker dies, its replacement asks the outside system for that exact receipt instead of guessing. Unknown outcomes are escalated, never retried blindly.</p></div>
@@ -267,5 +292,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <span>All numbers on this page are measured from live runs and listed with caveats in <a href="https://github.com/AlvaroLuken/blackout/blob/main/results/RESULTS.md">results/RESULTS.md</a>. The service is simulated; the agents, crashes and verification are real.</span>
   </footer>
 </div>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+<script type="module" src="flow.js"></script>
 </body>
 </html>
