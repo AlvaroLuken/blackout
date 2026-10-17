@@ -6,7 +6,40 @@ import fs from "node:fs";
 import path from "node:path";
 import { ROOT } from "../config.ts";
 import "../llm/crusoe.ts"; // loads .env
-import { startRace, counters, killWorker, armNextDelivery, MODES, type RaceEvent } from "../raceRunner.ts";
+import { DatabaseSync } from "node:sqlite";
+import { startRace, counters, killWorker, armNextDelivery, varDirFor, MODES, type Mode, type RaceEvent } from "../raceRunner.ts";
+
+function ro(file: string) { return new DatabaseSync(file, { readOnly: true }); }
+const targetDb = (m: Mode) => path.join(varDirFor(m), "target", "service.db");
+const journalDb = (m: Mode) => path.join(varDirFor(m), "blackout", "journal.db");
+
+// What was in flight when the harness killed the worker: the op ID the target committed
+// right before the SIGKILL, from the harness log, joined to the target's own receipt.
+function inflight(m: Mode) {
+  try {
+    const lines = fs.readFileSync(path.join(varDirFor(m), "harness", "events.log"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+    const kill = [...lines].reverse().find((e) => e.event === "worker_sigkilled" && e.op_id);
+    if (!kill) return null;
+    const db = ro(targetDb(m));
+    try {
+      const r = db.prepare("SELECT op_id, job_id, committed_at FROM receipts WHERE op_id = ?").get(kill.op_id) as any;
+      return r ? { op: r.op_id, job: r.job_id, committed_at: r.committed_at } : null;
+    } finally { db.close(); }
+  } catch { return null; }
+}
+
+// Facts for the proof-of-done record, read from Blackout's journal (not from the model).
+function journalFacts(m: Mode, missionId: string) {
+  try {
+    const db = ro(journalDb(m));
+    try {
+      const models = (db.prepare("SELECT model, COUNT(*) AS n FROM usage WHERE mission_id = ? GROUP BY model").all(missionId) as any[]).map((r) => ({ model: r.model, calls: r.n }));
+      const reconciled = (db.prepare("SELECT op_id, target_ref, status FROM actions WHERE mission_id = ? AND status LIKE 'reconciled_%'").all(missionId) as any[]);
+      const mission = db.prepare("SELECT goal FROM missions WHERE id = ?").get(missionId) as any;
+      return { models, reconciled, goal: mission?.goal ?? null };
+    } finally { db.close(); }
+  } catch { return { models: [], reconciled: [], goal: null }; }
+}
 
 const PORT = Number(process.env.BLACKOUT_WEB_PORT ?? 7400);
 const page = () => fs.readFileSync(path.join(ROOT, "src/web/index.html"), "utf8");
@@ -91,6 +124,20 @@ const server = http.createServer(async (req, res) => {
     req.on("close", () => clients.delete(res));
     return;
   }
+  if (req.method === "GET" && url.pathname === "/inbox") {
+    // Every delivery the service committed for one customer job, straight from its DB.
+    const m = url.searchParams.get("mode") as Mode;
+    const job = String(url.searchParams.get("job") ?? "");
+    if (!MODES.includes(m) || !/^job-\d{3}$/.test(job)) { res.writeHead(400); return res.end("{}"); }
+    try {
+      const db = ro(targetDb(m));
+      try {
+        const rows = db.prepare("SELECT d.id, d.op_id, d.created_at, d.payload, j.text FROM deliveries d JOIN jobs j ON j.id = d.job_id WHERE d.job_id = ? ORDER BY d.id").all(job);
+        res.writeHead(200, { "content-type": "application/json" });
+        return res.end(JSON.stringify(rows));
+      } finally { db.close(); }
+    } catch { res.writeHead(200, { "content-type": "application/json" }); return res.end("[]"); }
+  }
   if (req.method === "GET" && url.pathname === "/crusoe") {
     res.writeHead(200, { "content-type": "application/json" });
     return res.end(JSON.stringify({ model: MODEL_ALIAS, ...telemetry }));
@@ -118,9 +165,15 @@ const server = http.createServer(async (req, res) => {
           const r = JSON.parse(fs.readFileSync(path.join(ROOT, e.file), "utf8"));
           (e as any).checks = r.final_verdict.results.map((c: any) => ({ kind: c.kind, pass: c.pass, detail: c.detail, source: c.source }));
           (e as any).hash = r.final_verdict.contract_hash;
+          (e as any).mission = r.mission_id;
+          (e as any).facts = journalFacts(e.mode, r.mission_id);
+          (e as any).facts.kills = (r.harness_events ?? []).filter((h: any) => h.event === "worker_sigkilled").length;
         } catch {}
       }
       broadcast(e);
+      if (e.type === "line" && /SIGKILLed/.test(e.text)) {
+        setTimeout(() => { const f = inflight(e.mode); if (f) broadcast({ type: "inflight", mode: e.mode, ...f }); }, 300);
+      }
       if (e.type === "exit" && ++exited === 2) {
         setTimeout(() => {
           clearInterval(tick);

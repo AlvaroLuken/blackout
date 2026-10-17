@@ -63,7 +63,7 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .status.armed { color: var(--bad); }
 
 .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.lane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; grid-template-rows: auto auto auto 1fr auto auto; min-height: 560px; overflow: hidden; position: relative; }
+.lane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; grid-template-rows: auto auto auto auto 1fr auto auto; min-height: 560px; overflow: hidden; position: relative; }
 .lane.flash::after { content: ""; position: absolute; inset: 0; background: rgba(239,68,68,0.28); animation: flash 0.9s ease-out forwards; pointer-events: none; }
 @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
 .lane.shake { animation: shake 0.45s; }
@@ -91,6 +91,29 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .feed .bad { color: var(--bad); } .feed .good { color: var(--ok); } .feed .warn { color: var(--warn); } .feed .info { color: var(--blue); }
 .verdict { padding: 16px 18px; font-family: var(--display); font-weight: 800; font-stretch: 80%; font-size: 30px; letter-spacing: 0.03em; display: none; align-items: baseline; justify-content: space-between; gap: 12px; }
 .verdict small { font-family: var(--mono); font-weight: 400; font-size: 13px; letter-spacing: 0; color: var(--muted); }
+.truth { display: none; margin: 10px 16px 0; border: 1px solid var(--line); border-radius: 10px; background: #10131a; padding: 12px 14px; gap: 6px; font-size: 14.5px; }
+.truth.on { display: grid; }
+.truth .t { font-family: var(--mono); font-size: 11px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.08em; }
+.truth .row { display: grid; grid-template-columns: 22px 1fr; gap: 6px; align-items: start; line-height: 1.4; }
+.truth .row b { font-weight: 600; }
+.truth .mono { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.truth .good { color: var(--ok); } .truth .bad { color: var(--bad); } .truth .wait { color: var(--muted); }
+.truth.resolved-good { border-color: #1d4d3c; } .truth.resolved-bad { border-color: #7f1d1d; background: #1d1012; }
+.checks.cert { border-top: 2px solid #1d4d3c; background: #0f1a16; }
+.checks.report { border-top: 2px solid #5a4210; background: #1a1509; }
+.checks .meta { color: var(--muted); font-size: 12px; }
+.checks .goal { color: var(--fg); font-family: var(--body); font-size: 14px; }
+.cell { cursor: pointer; }
+.modal { position: fixed; inset: 0; background: rgba(5,6,9,0.72); display: none; align-items: center; justify-content: center; z-index: 20; padding: 20px; }
+.modal.on { display: flex; }
+.inbox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; width: min(620px, 100%); max-height: 80vh; overflow: auto; padding: 18px 20px; display: grid; gap: 12px; }
+.inbox h3 { margin: 0; font-family: var(--display); font-stretch: 85%; font-size: 22px; }
+.inbox .sub { color: var(--muted); font-size: 14px; }
+.msg { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; font-family: var(--mono); font-size: 13px; }
+.msg.dupe { border-color: #7f1d1d; background: #1d1012; }
+.msg .h { display: flex; justify-content: space-between; gap: 10px; color: var(--fg); font-weight: 700; }
+.msg .d { color: var(--muted); word-break: break-all; }
+.inbox button { justify-self: end; background: var(--panel2); color: var(--fg); border: 1px solid var(--line); padding: 8px 14px; }
 .checks { list-style: none; margin: 0; padding: 10px 18px 12px; display: none; gap: 4px; font-family: var(--mono); font-size: 13px; border-top: 1px solid var(--line); }
 .checks.on { display: grid; }
 .checks li.pass { color: var(--ok); } .checks li.fail { color: var(--bad); font-weight: 700; }
@@ -160,6 +183,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
         <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span><span class="src" id="extra-journal"></span></div>
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-journal">waiting</span></div>
       </div>
+      <div class="truth" id="truth-journal"></div>
       <ul class="feed" id="feed-journal"><li class="empty">Press "Run the race". Nemotron writes a definition of done, freezes it, then diagnoses and repairs the service.</li></ul>
       <ul class="checks" id="checks-journal"></ul>
       <div class="verdict" id="verdict-journal"></div>
@@ -172,6 +196,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
         <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span><span class="src" id="extra-baseline"></span></div>
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-baseline">waiting</span></div>
       </div>
+      <div class="truth" id="truth-baseline"></div>
       <ul class="feed" id="feed-baseline"><li class="empty">After a crash this side only knows "the previous worker exited". It has the same receipt tools.</li></ul>
       <ul class="checks" id="checks-baseline"></ul>
       <div class="verdict" id="verdict-baseline"></div>
@@ -185,6 +210,8 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
   </section>
 
   <p class="adapter"><b>Pointing Blackout at another system</b> takes an adapter, not new agent logic: a few safe tools for that system, a way to ask "did operation X happen?" by ID, and rules for what correct output looks like. Stripe idempotency keys, SQS FIFO dedup IDs and a Postgres outbox are the shape such adapters would plug into; so far we have built and tested two service profiles. Without that lookup, Blackout marks the outcome unknown and escalates instead of guessing.</p>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="inbox-title"><div class="inbox" id="inbox"></div></div>
 
   <footer>Every line above comes from a real run: agents are separate OS processes driven by Nemotron on Crusoe, each racing its own copy of the service. Done is decided only by the verifier reading each service's database.</footer>
 </div>
@@ -207,7 +234,8 @@ function cells(mode, c) {
   per.forEach((n, i) => {
     const d = document.createElement("div");
     d.className = "cell" + (n === 1 ? " on" : "") + (n > 1 ? " dup" : "");
-    d.title = `customer ${i + 1}: ${n} message${n === 1 ? "" : "s"}`;
+    d.title = `customer ${i + 1}: ${n} message${n === 1 ? "" : "s"} · click to open their inbox`;
+    d.addEventListener("click", () => openInbox(mode, i + 1));
     host.appendChild(d);
   });
 }
@@ -223,6 +251,12 @@ function setCounters(data) {
     $(`extra-${m}`).textContent = c.extra ? `customers · ${c.extra} extra messages sent` : c.perJob ? "customers" : "";
     if (c.dup && was !== String(c.dup)) bump(m);
     cells(m, c);
+    const t = truth[m];
+    if (t && c.perJob && m === "baseline") {
+      const n = c.perJob[Number(t.job.slice(4)) - 1] ?? 0;
+      if (n > 1 && t.result !== "bad") { t.result = "bad"; t.count = n; renderTruth(m); }
+      else if (n > 1 && t.count !== n) { t.count = n; renderTruth(m); }
+    }
   }
 }
 function bump(m) { const l = $(`lane-${m}`); l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); }
@@ -238,6 +272,7 @@ function addLine(m, text, tone) {
   feed.appendChild(li);
   feed.scrollTop = feed.scrollHeight;
   advance(m, text);
+  if (m === "journal" && truth.journal && !truth.journal.result && /receipt for .*DELIVERED/.test(text)) { truth.journal.result = "good"; renderTruth("journal"); }
   let x;
   if ((x = text.match(/contract frozen\s+sha256:(\w+)/))) $(`hash-${m}`).textContent = `contract frozen · sha256:${x[1]}`;
   if (/reports: done/.test(text) && !sending[m]) sawDone[m] = true;
@@ -283,12 +318,29 @@ function advance(m, text) {
   const next = phaseAt[m] >= 4 && p < 6 ? Math.max(phaseAt[m], 5) : Math.max(phaseAt[m], p);
   if (next !== phaseAt[m]) { phaseAt[m] = next; drawPhases(m); }
 }
+// "Moment of truth": what was in flight when the worker died, and what each replacement did about it.
+const truth = { journal: null, baseline: null };
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+function renderTruth(m) {
+  const t = truth[m], el = $(`truth-${m}`);
+  if (!t) { el.className = "truth"; el.innerHTML = ""; return; }
+  el.className = "truth on" + (t.result === "good" ? " resolved-good" : t.result === "bad" ? " resolved-bad" : "");
+  el.innerHTML = "";
+  const head = document.createElement("span"); head.className = "t"; head.textContent = "The moment of truth"; el.appendChild(head);
+  const row = (icon, cls, html) => { const r = document.createElement("div"); r.className = "row"; const i = document.createElement("span"); i.className = cls; i.textContent = icon; const b = document.createElement("div"); b.innerHTML = html; r.append(i, b); el.appendChild(r); };
+  const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  row("✖", "bad", `Killed right after the service delivered <b>${esc(t.job)}</b> at ${esc(fmtTime(t.committed_at))}. The worker never wrote that down.<div class="mono">op ${esc(t.op)}</div>`);
+  if (!t.result) row("…", "wait", m === "journal" ? "Replacement starting. It has the journal: the op ID was recorded before the send." : "Replacement starting. It only knows the previous worker exited.");
+  if (t.result === "good" && m === "journal") row("✓", "good", `Replacement asked the service about that exact op: <b>receipt found, already delivered.</b> Skipped it. Customer messaged once.`);
+  if (t.result === "bad") row("✗", "bad", `No record, so ${esc(t.job)} still looked pending. <b>Sent it again.</b> The customer got it ${t.count} times.`);
+  if (t.result === "good" && m === "baseline") row("✓", "good", `This time the replacement did not resend ${esc(t.job)}.`);
+}
 function addNote(m, text, tone) {
   const li = document.createElement("li"); li.textContent = text; li.className = tone; $(`feed-${m}`).appendChild(li);
 }
 function reset() {
   plugged = false; clearTimeout(autoTimer); autoTimer = null;
-  for (const m of MODES) { sawDone[m] = false; sending[m] = false; phaseAt[m] = -1; drawPhases(m); }
+  for (const m of MODES) { sawDone[m] = false; sending[m] = false; phaseAt[m] = -1; drawPhases(m); truth[m] = null; renderTruth(m); }
   for (const m of MODES) {
     $(`feed-${m}`).innerHTML = "";
     $(`verdict-${m}`).className = "verdict"; $(`verdict-${m}`).innerHTML = "";
@@ -317,6 +369,7 @@ function handle(msg) {
       $("status").textContent = msg.kill === "judge" ? "Running. Pull the plug any time: it fires mid-batch, while a delivery is in flight." : "Running. Workers will be killed right after delivery #2.";
       break;
     case "line": addLine(msg.mode, msg.text, msg.tone); break;
+    case "inflight": truth[msg.mode] = { job: msg.job, op: msg.op, committed_at: msg.committed_at, result: null }; renderTruth(msg.mode); break;
     case "counters": setCounters(msg.data); break;
     case "plug":
       plugged = true; clearTimeout(autoTimer);
@@ -335,13 +388,21 @@ function handle(msg) {
       v.append(t, s);
       if (msg.checks) {
         const NAMES = { fresh_job_e2e: "a brand-new message goes through", all_scope_jobs_valid_output: "all 10 customers got the correct message", no_duplicate_deliveries: "nobody got a message twice", preexisting_outputs_intact: "the 3 already-sent messages are untouched", no_unaccounted_work: "nothing left half-finished", health_ok: "health check (liveness only)", no_errors_since_boot: "no errors since restart", expected_scope_size: "batch size as expected" };
-        const ul = $(`checks-${msg.mode}`); ul.innerHTML = ""; ul.className = "checks on";
-        const h = document.createElement("li"); h.className = "h"; h.textContent = `verifier checks · contract sha256:${(msg.hash ?? "").slice(0, 8)}`; ul.appendChild(h);
+        const ul = $(`checks-${msg.mode}`); ul.innerHTML = ""; ul.className = "checks on " + (ok ? "cert" : "report");
+        const add = (cls, text) => { const li = document.createElement("li"); li.className = cls; li.textContent = text; ul.appendChild(li); };
+        add("h", `${ok ? "Proof of done" : "Escalation report · nothing claimed done"} · mission ${msg.mission ?? ""} · contract sha256:${(msg.hash ?? "").slice(0, 12)}`);
+        if (msg.facts?.goal) add("goal", `Goal: "${msg.facts.goal}"`);
         for (const c of msg.checks) {
           const li = document.createElement("li"); li.className = c.pass ? "pass" : "fail";
           li.textContent = `${c.pass ? "✓" : "✗"} ${NAMES[c.kind] ?? c.kind}${c.pass ? "" : `: ${c.detail}`}`;
           ul.appendChild(li);
         }
+        const f = msg.facts ?? {};
+        for (const a of f.reconciled ?? []) add("meta", `after the crash: op ${a.op_id} (${a.target_ref}) → ${a.status === "reconciled_done" ? "receipt confirmed delivered, not resent" : a.status === "reconciled_absent" ? "no receipt, retried with the same op ID" : "outcome unknown"}`);
+        if (msg.mode === "baseline" && f.kills) add("meta", "after the crash: no journal, so nothing to reconcile");
+        const SHORTM = (x) => x.replace("nvidia/", "").replace("NVIDIA-", "");
+        if (f.models?.length) add("meta", `inference: ${f.models.map((x) => `${SHORTM(x.model)} ×${x.calls}`).join(", ")} on Crusoe · ${msg.usd ?? "?"}`);
+        if (!ok) add("meta", "handed to a human with this evidence");
       }
       const w = $(`w-${msg.mode}`); if (!w.classList.contains("dead") || /running/.test(w.textContent)) { w.textContent = w.textContent.replace("running", "finished"); w.className = "worker"; }
       break;
@@ -359,6 +420,35 @@ $("start").addEventListener("click", async () => {
   const r = await fetch("/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kill: $("judge").checked ? "judge" : "auto", inject: $("inject").checked }) });
   if (!r.ok) $("start").disabled = running;
 });
+async function openInbox(mode, n) {
+  const box = $("inbox"); box.innerHTML = "";
+  const job = `job-${String(n).padStart(3, "0")}`;
+  const h = document.createElement("h3"); h.id = "inbox-title"; h.textContent = `Customer ${n}'s inbox · ${mode === "journal" ? "Blackout" : "Plain agent"}`;
+  const sub = document.createElement("div"); sub.className = "sub";
+  box.append(h, sub);
+  if (history_isReplay) { sub.textContent = "Inboxes are only available for live runs."; }
+  else {
+    const rows = await (await fetch(`/inbox?mode=${mode}&job=${job}`)).json();
+    sub.textContent = rows.length === 0 ? "No message yet." : rows.length === 1 ? "One message. Exactly right." : `${rows.length} copies of the same message. Read straight from the service's database.`;
+    rows.forEach((r, i) => {
+      const p = (() => { try { return JSON.parse(r.payload); } catch { return {}; } })();
+      const d = document.createElement("div"); d.className = "msg" + (i > 0 ? " dupe" : "");
+      const top = document.createElement("div"); top.className = "h";
+      const a = document.createElement("span"); a.textContent = i === 0 ? `Message ${i + 1}` : `Message ${i + 1} · duplicate`;
+      const b = document.createElement("span"); b.textContent = fmtTime(r.created_at);
+      top.append(a, b);
+      const body = document.createElement("div"); body.textContent = `"${r.text}"`;
+      const meta = document.createElement("div"); meta.className = "d"; meta.textContent = `op ${r.op_id} · fingerprint ${String(p.fingerprint ?? "").slice(0, 16)}…`;
+      d.append(top, body, meta); box.appendChild(d);
+    });
+  }
+  const close = document.createElement("button"); close.type = "button"; close.textContent = "Close"; close.addEventListener("click", closeInbox);
+  box.appendChild(close);
+  $("modal").className = "modal on"; close.focus();
+}
+function closeInbox() { $("modal").className = "modal"; }
+$("modal").addEventListener("click", (e) => { if (e.target === $("modal")) closeInbox(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeInbox(); });
 $("plug").addEventListener("click", pullPlug);
 $("replay").addEventListener("click", () => fetch("/replay", { method: "POST" }));
 document.addEventListener("keydown", (e) => { if ((e.key === "p" || e.key === "P") && !e.metaKey && !e.ctrlKey) pullPlug(); });
