@@ -75,7 +75,14 @@ export function freezeContract(missionId: string, goal: string, rawProposal: unk
   const rejected: unknown[] = [];
   for (const c of proposedChecks) {
     const r = CheckSchema.safeParse(c);
-    r.success ? accepted.push(r.data) : rejected.push(c);
+    if (!r.success) { rejected.push({ check: c, reason: "not in the allowed check vocabulary" }); continue; }
+    // A check that is false by construction against the observed scope can never
+    // pass and would only produce a stuck mission. Reject it visibly at freeze.
+    if (r.data.kind === "expected_scope_size" && r.data.count !== scope.job_ids.length) {
+      rejected.push({ check: c, reason: `inconsistent with observed scope (${scope.job_ids.length} jobs)` });
+      continue;
+    }
+    accepted.push(r.data);
   }
   const proposal = ProposalSchema.parse({ ...raw, checks: accepted });
 

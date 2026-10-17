@@ -66,24 +66,25 @@ export async function runMission(opts: MissionOpts): Promise<MissionOutcome> {
 
   // 1. Definition of done, before any repair.
   let proposal: unknown;
+  const scope = snapshotScope();
   try {
-    proposal = opts.policy === "test" ? TEST_PROPOSAL : await proposeContract(journal, missionId, limits, opts.goal);
+    proposal = opts.policy === "test" ? TEST_PROPOSAL : await proposeContract(journal, missionId, limits, opts.goal, { batch_jobs: scope.job_ids.length, already_delivered: new Set(scope.preexisting.map((p) => p.job_id)).size });
   } catch (e) {
     proposal = { goal_summary: opts.goal, assumptions: ["Coordinator proposal unavailable; mandatory checks only."], checks: [] };
     journal.event(missionId, "coordinator", "proposal_failed", { message: (e as Error).message });
     if (e instanceof InferenceUnavailable || e instanceof BudgetExceeded) {
-      const c = freezeContract(missionId, opts.goal, proposal, snapshotScope());
+      const c = freezeContract(missionId, opts.goal, proposal, scope);
       return escalate(`cannot start: ${(e as Error).message}`, await verify(c), 0, 0, null);
     }
   }
-  const contract: FrozenContract = freezeContract(missionId, opts.goal, proposal, snapshotScope());
+  const contract: FrozenContract = freezeContract(missionId, opts.goal, proposal, scope);
   journal.setMission(missionId, { contract_hash: contract.hash, status: "running" });
   journal.event(missionId, "controller", "contract_frozen", { hash: contract.hash, checks: contract.checks, assumptions: contract.assumptions, rejected: contract.rejected_checks });
   say(`[coordinator] contract proposed: "${contract.goal_summary}"`);
   for (const a of contract.assumptions) say(`[coordinator]   assumption: ${a}`);
   say(`[controller] contract frozen sha256:${contract.hash.slice(0, 12)}  scope=${contract.scope.job_ids.length} jobs, ${contract.scope.preexisting.length} pre-existing deliveries`);
   say(`[controller]   checks: ${contract.checks.map((c) => `${c.kind}${c.source === "model" ? "(model)" : ""}`).join(", ")}`);
-  if (contract.rejected_checks.length) say(`[controller]   rejected unsupported checks: ${JSON.stringify(contract.rejected_checks)}`);
+  for (const r of contract.rejected_checks as { check: unknown; reason: string }[]) say(`[controller]   rejected proposed check ${JSON.stringify(r.check)}: ${r.reason}`);
 
   let verdict = await verify(contract);
   journal.recordVerdict(missionId, verdict);

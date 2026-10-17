@@ -15,7 +15,7 @@ test("mandatory checks are always present even if the model proposes none", () =
 
 test("unsupported model checks are rejected, supported ones added", () => {
   const c = freezeContract("t2", "g", { goal_summary: "g", checks: [{ kind: "rm_rf" }, { kind: "health_ok" }, { kind: "expected_scope_size", count: 1 }] }, scope);
-  assert.deepEqual(c.rejected_checks, [{ kind: "rm_rf" }]);
+  assert.deepEqual(c.rejected_checks, [{ check: { kind: "rm_rf" }, reason: "not in the allowed check vocabulary" }]);
   assert.ok(c.checks.some((x) => x.kind === "health_ok" && x.source === "model"));
   assert.ok(c.checks.some((x) => x.kind === "expected_scope_size"));
 });
@@ -28,4 +28,10 @@ test("a tampered frozen contract is refused", () => {
   fs.writeFileSync(file, JSON.stringify(tampered));
   assert.throws(() => loadFrozenContract("t3"), /hash mismatch/);
   assert.notEqual(contractHash(tampered), c.hash);
+});
+
+test("a proposed check that contradicts the observed scope is rejected at freeze", () => {
+  const c = freezeContract("t4", "g", { goal_summary: "g", checks: [{ kind: "expected_scope_size", count: 3 }] }, { job_ids: ["a", "b", "c", "d"], preexisting: [] });
+  assert.equal(c.checks.some((x) => x.kind === "expected_scope_size"), false);
+  assert.match((c.rejected_checks[0] as any).reason, /inconsistent with observed scope/);
 });

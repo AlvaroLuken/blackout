@@ -22,9 +22,10 @@ const SYSTEM = [
   "Reply with a single JSON object and nothing else.",
 ].join("\n");
 
-export async function proposeContract(journal: Journal, missionId: string, limits: Limits, goal: string) {
+export async function proposeContract(journal: Journal, missionId: string, limits: Limits, goal: string, observed: { batch_jobs: number; already_delivered: number }) {
   const user = [
     `User goal: "${goal}"`,
+    `Observed before any action: the batch has ${observed.batch_jobs} jobs; ${observed.already_delivered} of them already have a delivery from before the incident.`,
     "Write the definition of done as a completion contract for this service.",
     `Allowed check kinds (pick any that fit; you cannot invent others): ${CHECK_KINDS.join(", ")}.`,
     "expected_scope_size takes {count:int}; the others take no parameters.",

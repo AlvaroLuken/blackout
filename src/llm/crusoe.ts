@@ -81,7 +81,7 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
   let lastErr: unknown;
   for (let attempt = 0; attempt < 5; attempt++) {
     // Shared pacing: coordinator and worker processes draw from one per-minute budget.
-    const rpm = Number(process.env.BLACKOUT_RPM ?? 24);
+    const rpm = Number(process.env.BLACKOUT_RPM ?? 40);
     for (let w = journal.reserveRequestSlot(rpm); w > 0; w = journal.reserveRequestSlot(rpm)) {
       if (Date.now() + w > limits.deadline) throw new BudgetExceeded("mission time limit reached while rate limited");
       journal.event(missionId, actor, "rate_paced", { wait_ms: w });
