@@ -112,6 +112,14 @@ const server = http.createServer(async (req, res) => {
     let exited = 0;
     const tick = setInterval(() => broadcast({ type: "counters", data: Object.fromEntries(MODES.map((m) => [m, counters(m)])) }), 400);
     startRace({ profile: "outbox", fault, killAfter, inject: !!b.inject, policy: process.env.BLACKOUT_WEB_POLICY ?? "llm" }, (e: RaceEvent) => {
+      // Attach the verifier's per-check results and contract hash from the saved run file.
+      if (e.type === "summary" && e.file) {
+        try {
+          const r = JSON.parse(fs.readFileSync(path.join(ROOT, e.file), "utf8"));
+          (e as any).checks = r.final_verdict.results.map((c: any) => ({ kind: c.kind, pass: c.pass, detail: c.detail, source: c.source }));
+          (e as any).hash = r.final_verdict.contract_hash;
+        } catch {}
+      }
       broadcast(e);
       if (e.type === "exit" && ++exited === 2) {
         setTimeout(() => {

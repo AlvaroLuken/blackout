@@ -63,7 +63,7 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .status.armed { color: var(--bad); }
 
 .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.lane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; grid-template-rows: auto auto auto 1fr auto; min-height: 560px; overflow: hidden; position: relative; }
+.lane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; grid-template-rows: auto auto auto 1fr auto auto; min-height: 560px; overflow: hidden; position: relative; }
 .lane.flash::after { content: ""; position: absolute; inset: 0; background: rgba(239,68,68,0.28); animation: flash 0.9s ease-out forwards; pointer-events: none; }
 @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
 .lane.shake { animation: shake 0.45s; }
@@ -91,6 +91,10 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .feed .bad { color: var(--bad); } .feed .good { color: var(--ok); } .feed .warn { color: var(--warn); } .feed .info { color: var(--blue); }
 .verdict { padding: 16px 18px; font-family: var(--display); font-weight: 800; font-stretch: 80%; font-size: 30px; letter-spacing: 0.03em; display: none; align-items: baseline; justify-content: space-between; gap: 12px; }
 .verdict small { font-family: var(--mono); font-weight: 400; font-size: 13px; letter-spacing: 0; color: var(--muted); }
+.checks { list-style: none; margin: 0; padding: 10px 18px 12px; display: none; gap: 4px; font-family: var(--mono); font-size: 13px; border-top: 1px solid var(--line); }
+.checks.on { display: grid; }
+.checks li.pass { color: var(--ok); } .checks li.fail { color: var(--bad); font-weight: 700; }
+.checks .h { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
 .verdict.ok { display: flex; background: var(--ok-soft); color: var(--ok); border-top: 1px solid #1d4d3c; }
 .verdict.bad { display: flex; background: var(--amber-soft); color: var(--warn); border-top: 1px solid #5a4210; }
 .empty { color: var(--muted); font-family: var(--body); font-size: 15px; padding: 20px 2px; }
@@ -121,10 +125,10 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
     </div>
   </header>
 
-  <div class="crusoe" id="crusoe"><span class="ck">Crusoe telemetry for our model · ~1 min lag · independent of our own logs</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
+  <div class="crusoe" id="crusoe"><span class="ck">Crusoe metrics API · our model · 5-min window, ~1 min lag</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
 
   <section class="brief" aria-label="Mission brief">
-    <div><span class="k">The incident · 2:07 am</span><p>A bad config deploy broke a <b>notification sender</b>. <b>10 customer messages</b> are queued and 3 already went out. The health check is still green, but every new message fails. Nobody is awake. Blackout is on call.</p></div>
+    <div><span class="k">The incident · simulated target · 2:07 am</span><p>A bad config deploy broke a <b>notification sender</b>. <b>10 customer messages</b> are queued and 3 already went out. The health check is still green, but every new message fails. Nobody is awake. Blackout is on call.</p></div>
     <div><span class="k">The only instruction the agents get</span><p class="goal">"Get this service working again, finish its pending jobs, and do not duplicate anything."</p></div>
     <div><span class="k">What "done" means · checked by code, not the model</span><ul>
       <li>A brand-new message goes through end to end</li>
@@ -157,6 +161,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-journal">waiting</span></div>
       </div>
       <ul class="feed" id="feed-journal"><li class="empty">Press "Run the race". Nemotron writes a definition of done, freezes it, then diagnoses and repairs the service.</li></ul>
+      <ul class="checks" id="checks-journal"></ul>
       <div class="verdict" id="verdict-journal"></div>
     </section>
     <section class="lane b" id="lane-baseline">
@@ -168,6 +173,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-baseline">waiting</span></div>
       </div>
       <ul class="feed" id="feed-baseline"><li class="empty">After a crash this side only knows "the previous worker exited". It has the same receipt tools.</li></ul>
+      <ul class="checks" id="checks-baseline"></ul>
       <div class="verdict" id="verdict-baseline"></div>
     </section>
   </div>
@@ -178,7 +184,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
     <div style="overflow-x:auto"><table><thead><tr><th>Service</th><th>Mode</th><th>Runs</th><th>Verified</th><th>Runs with a duplicate</th><th>Duplicate deliveries</th><th>False "done" claims</th><th>Mean cost</th></tr></thead><tbody id="measured"></tbody></table></div>
   </section>
 
-  <p class="adapter"><b>Pointing Blackout at another system</b> takes an adapter, not new agent logic: a few safe tools for that system, a way to ask "did operation X happen?" by ID (Stripe idempotency keys, SQS FIFO dedup IDs, a Postgres outbox), and rules for what correct output looks like. Without that lookup, Blackout marks the outcome unknown and escalates instead of guessing.</p>
+  <p class="adapter"><b>Pointing Blackout at another system</b> takes an adapter, not new agent logic: a few safe tools for that system, a way to ask "did operation X happen?" by ID, and rules for what correct output looks like. Stripe idempotency keys, SQS FIFO dedup IDs and a Postgres outbox are the shape such adapters would plug into; so far we have built and tested two service profiles. Without that lookup, Blackout marks the outcome unknown and escalates instead of guessing.</p>
 
   <footer>Every line above comes from a real run: agents are separate OS processes driven by Nemotron on Crusoe, each racing its own copy of the service. Done is decided only by the verifier reading each service's database.</footer>
 </div>
@@ -286,6 +292,7 @@ function reset() {
   for (const m of MODES) {
     $(`feed-${m}`).innerHTML = "";
     $(`verdict-${m}`).className = "verdict"; $(`verdict-${m}`).innerHTML = "";
+    $(`checks-${m}`).className = "checks"; $(`checks-${m}`).innerHTML = "";
     $(`del-${m}`).textContent = "0/10"; $(`dup-${m}`).textContent = "0"; $(`dup-${m}`).className = "v";
     $(`w-${m}`).textContent = "starting"; $(`w-${m}`).className = "worker";
     cells(m, null);
@@ -326,6 +333,16 @@ function handle(msg) {
       t.title = "Decided by the verifier (plain code, no LLM)";
       const s = document.createElement("small"); s.textContent = `verifier (no LLM) · ${msg.calls ?? "?"} Nemotron calls · ${msg.usd ?? "?"} · ${msg.elapsed ?? ""}`;
       v.append(t, s);
+      if (msg.checks) {
+        const NAMES = { fresh_job_e2e: "a brand-new message goes through", all_scope_jobs_valid_output: "all 10 customers got the correct message", no_duplicate_deliveries: "nobody got a message twice", preexisting_outputs_intact: "the 3 already-sent messages are untouched", no_unaccounted_work: "nothing left half-finished", health_ok: "health check (liveness only)", no_errors_since_boot: "no errors since restart", expected_scope_size: "batch size as expected" };
+        const ul = $(`checks-${msg.mode}`); ul.innerHTML = ""; ul.className = "checks on";
+        const h = document.createElement("li"); h.className = "h"; h.textContent = `verifier checks · contract sha256:${(msg.hash ?? "").slice(0, 8)}`; ul.appendChild(h);
+        for (const c of msg.checks) {
+          const li = document.createElement("li"); li.className = c.pass ? "pass" : "fail";
+          li.textContent = `${c.pass ? "✓" : "✗"} ${NAMES[c.kind] ?? c.kind}${c.pass ? "" : `: ${c.detail}`}`;
+          ul.appendChild(li);
+        }
+      }
       const w = $(`w-${msg.mode}`); if (!w.classList.contains("dead") || /running/.test(w.textContent)) { w.textContent = w.textContent.replace("running", "finished"); w.className = "worker"; }
       break;
     }

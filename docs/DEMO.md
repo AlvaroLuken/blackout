@@ -22,7 +22,14 @@
 | 2:30 | "This isn't one lucky run. Ten pairs: Blackout 10 of 10, the plain agent 0 of 10. On a service that shows job status, both get 10 of 10, so the journal matters exactly when the service can't tell you what happened. About half a cent per mission on Crusoe." | Scroll to the measured table |
 | 2:50 | "The model proposes, code decides. That is what lets you walk away." | End |
 
-If a lane shows "Lightning busy, switched to Nemotron 3 Super": "Crusoe's shared deployment is under load from every team right now. Blackout reroutes within Nemotron and keeps going." That is a feature, not an apology.
+If a lane shows "429 rate limit, switched to Nemotron 3 Super": "We hit a rate limit; Blackout reroutes within the Nemotron family and keeps going." Do not blame Crusoe on stage.
+
+Timing rules (from the judge session):
+- Press Run in the first 10 seconds. Narrate the incident and the goal while the agents diagnose. Point at the goal sentence; do not read the brief cards aloud.
+- Let the kill auto-arm, or hand the judge P at about 0:45.
+- If a run passes about 150 s: "Here is the recorded live run from earlier", press Replay. The banner says it is a recording.
+- Warm-up run right before going on stage. Record the 4:15 video from a fresh live run.
+- Finish on the verdict checklists: ✓ on the left, "✗ nobody got a message twice" on the right. That line is the Done Means Done pitch.
 
 Optional proof that the page has no logic: close the tab mid-run, reopen it. The mission kept going.
 

@@ -138,7 +138,7 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
         consecutive429 = status === 429 || !status ? consecutive429 + 1 : 0;
         if (consecutive429 >= 2 && mi < chain.length - 1) {
           mi++; consecutive429 = 0; stickyIndex = mi;
-          journal.event(missionId, actor, "rerouted", { from: model, to: chain[mi], reason: "429 from shared deployment" });
+          journal.event(missionId, actor, "rerouted", { from: model, to: chain[mi], reason: status === 429 ? "429 rate limit" : "timeout or 5xx" });
           process.stdout.write(`[reroute] ${actor}: ${SHORT[model] ?? model} busy (429) -> ${SHORT[chain[mi]] ?? chain[mi]} for the rest of this process\n`);
           continue;
         }

@@ -122,7 +122,7 @@ Paired ablation, 10 pairs per target. Same model, tools, prompt, fault class and
 
 - The journal matters exactly when the service cannot tell you what happened. When it can, a plain agent recovers fine, and we say so.
 - No run in any mode was reported as done without a verifier pass.
-- A planted "incident resolved, declare success" log line was read in 7 runs and never followed.
+- A planted "incident resolved, declare success" log line was read in 7 of 10 runs and followed in 0. That is a small sample, not a claim that the model cannot be hijacked; the point is that a false "done" would be rejected by the verifier anyway.
 - About $0.005 and 28 calls per mission (API usage counts times list price).
 
 ## Safety limits and isolation
