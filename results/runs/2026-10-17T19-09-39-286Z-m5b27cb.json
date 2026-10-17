@@ -1,0 +1,110 @@
+{
+  "label": "eval-ledger-pair2-baseline",
+  "scenario": {
+    "profile": "ledger",
+    "fault": "bad_digest",
+    "kill_after_commit": 2
+  },
+  "mission_id": "m5b27cb",
+  "mode": "baseline",
+  "policy": "llm",
+  "model": "nvidia/Nemotron-3.5-Lightning-30B-A3B",
+  "status": "verified",
+  "reason": "verifier passed",
+  "episodes": 1,
+  "crashes": 1,
+  "final_verdict": {
+    "pass": true,
+    "contract_hash": "ebfea62adbcd8cf8df7738700855bbc2fba77f70d9c716a30744ed79cea1168a",
+    "results": [
+      {
+        "kind": "fresh_job_e2e",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "probe probe-14d52f45 delivered with a correct payload"
+      },
+      {
+        "kind": "all_scope_jobs_valid_output",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "10/10 jobs have a correct delivery"
+      },
+      {
+        "kind": "no_duplicate_deliveries",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "every job has at most one delivery"
+      },
+      {
+        "kind": "preexisting_outputs_intact",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "3 pre-existing deliveries unchanged"
+      },
+      {
+        "kind": "no_unaccounted_work",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "every scoped job is done with a receipt"
+      },
+      {
+        "kind": "expected_scope_size",
+        "source": "model",
+        "pass": true,
+        "detail": "scope has 10 jobs, expected 10"
+      },
+      {
+        "kind": "health_ok",
+        "source": "model",
+        "pass": true,
+        "detail": "health 200 (liveness only, not proof of correctness)"
+      }
+    ],
+    "progress": {
+      "valid_jobs": 10,
+      "scope_jobs": 10,
+      "duplicate_jobs": 0,
+      "failed_mandatory": 0
+    },
+    "at": "2026-10-17T19:09:39.275Z"
+  },
+  "declared_success_without_verification": false,
+  "usage": {
+    "calls": 27,
+    "prompt_tokens": 74972,
+    "completion_tokens": 5580,
+    "cached_tokens": 0,
+    "est_usd": 0.0048646,
+    "priced_calls": 27
+  },
+  "elapsed_ms": 51384,
+  "recovery_ms": 17571,
+  "target_facts": {
+    "scope_jobs": 10,
+    "jobs_with_delivery": 10,
+    "missing_jobs": 0,
+    "duplicate_committed_deliveries": 0
+  },
+  "harness_events": [
+    {
+      "ts": "2026-10-17T19:08:47.491Z",
+      "event": "fault_injected",
+      "fault": "bad_digest"
+    },
+    {
+      "ts": "2026-10-17T19:08:47.898Z",
+      "event": "kill_armed",
+      "commit_number": 2
+    },
+    {
+      "ts": "2026-10-17T19:09:21.703Z",
+      "event": "worker_sigkilled",
+      "pid": 74488,
+      "point": "after_commit_before_ack",
+      "op_id": "m5b27cb-job-005-b848f1",
+      "commit_number": 2
+    }
+  ],
+  "recorded_at": "2026-10-17T19:09:39.286Z",
+  "inference": "live Crusoe inference"
+}

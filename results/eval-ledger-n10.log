@@ -1,0 +1,67 @@
+
+######## pair 1/10  mode=journal ########
+
+######## pair 1/10  mode=baseline ########
+
+######## pair 2/10  mode=journal ########
+
+######## pair 2/10  mode=baseline ########
+
+######## pair 3/10  mode=journal ########
+
+######## pair 3/10  mode=baseline ########
+
+######## pair 4/10  mode=journal ########
+
+######## pair 4/10  mode=baseline ########
+
+######## pair 5/10  mode=journal ########
+
+######## pair 5/10  mode=baseline ########
+
+######## pair 6/10  mode=journal ########
+
+######## pair 6/10  mode=baseline ########
+
+######## pair 7/10  mode=journal ########
+
+######## pair 7/10  mode=baseline ########
+
+######## pair 8/10  mode=journal ########
+
+######## pair 8/10  mode=baseline ########
+
+######## pair 9/10  mode=journal ########
+
+######## pair 9/10  mode=baseline ########
+
+######## pair 10/10  mode=journal ########
+
+######## pair 10/10  mode=baseline ########
+
+======== ablation results (every run) ========
+┌─────────┬──────────┬───────────────┬────────────┬────────────┬──────────┬───────────────┬─────────┬─────────────────────┬───────┬──────────┬───────┬────────┬────────────┬─────────┬───────────┬────────────┬───────────┐
+│ (index) │ profile  │ fault         │ mode       │ status     │ verified │ false_success │ missing │ duplicate_committed │ kills │ episodes │ calls │ tokens │ cached_pct │ est_usd │ elapsed_s │ recovery_s │ mission   │
+├─────────┼──────────┼───────────────┼────────────┼────────────┼──────────┼───────────────┼─────────┼─────────────────────┼───────┼──────────┼───────┼────────┼────────────┼─────────┼───────────┼────────────┼───────────┤
+│ 0       │ 'ledger' │ 'bad_unicode' │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 28    │ 99490  │ 0          │ 0.00605 │ 54.9      │ 29.5       │ 'm605198' │
+│ 1       │ 'ledger' │ 'bad_unicode' │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 25    │ 71852  │ 0          │ 0.00432 │ 36.4      │ 12.2       │ 'mb5ba42' │
+│ 2       │ 'ledger' │ 'bad_digest'  │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 23    │ 75702  │ 0          │ 0.00467 │ 56        │ 30.5       │ 'mf8a7d9' │
+│ 3       │ 'ledger' │ 'bad_digest'  │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 27    │ 80552  │ 0          │ 0.00486 │ 51.4      │ 17.6       │ 'm5b27cb' │
+│ 4       │ 'ledger' │ 'bad_digest'  │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 28    │ 91676  │ 0          │ 0.00547 │ 48.4      │ 16.7       │ 'm1e8328' │
+│ 5       │ 'ledger' │ 'bad_unicode' │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 23    │ 73559  │ 0          │ 0.0046  │ 48.5      │ 22.9       │ 'me4c971' │
+│ 6       │ 'ledger' │ 'bad_unicode' │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 22    │ 69475  │ 0          │ 0.00437 │ 47.5      │ 25         │ 'm27c7e0' │
+│ 7       │ 'ledger' │ 'bad_unicode' │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 24    │ 69311  │ 0          │ 0.00422 │ 40.1      │ 11.6       │ 'm7ea212' │
+│ 8       │ 'ledger' │ 'bad_digest'  │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 30    │ 104724 │ 0          │ 0.00623 │ 54.8      │ 25         │ 'mc97a23' │
+│ 9       │ 'ledger' │ 'bad_digest'  │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 25    │ 77934  │ 0          │ 0.00475 │ 49.1      │ 19.4       │ 'mef7b1d' │
+│ 10      │ 'ledger' │ 'bad_digest'  │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 30    │ 103622 │ 0          │ 0.0062  │ 65.9      │ 22.2       │ 'm670f9e' │
+│ 11      │ 'ledger' │ 'bad_unicode' │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 22    │ 62295  │ 0          │ 0.00388 │ 49.5      │ 19.3       │ 'm0d6214' │
+│ 12      │ 'ledger' │ 'bad_unicode' │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 22    │ 68189  │ 0          │ 0.00423 │ 45.3      │ 18.1       │ 'mb88091' │
+│ 13      │ 'ledger' │ 'bad_unicode' │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 26    │ 83583  │ 0          │ 0.00512 │ 44.7      │ 15         │ 'mcba438' │
+│ 14      │ 'ledger' │ 'bad_unicode' │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 26    │ 88943  │ 0          │ 0.0054  │ 58.7      │ 38.3       │ 'm59d4b9' │
+│ 15      │ 'ledger' │ 'bad_digest'  │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 30    │ 100149 │ 0          │ 0.00586 │ 52.2      │ 18.4       │ 'md93660' │
+│ 16      │ 'ledger' │ 'bad_unicode' │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 28    │ 85550  │ 0          │ 0.00517 │ 45.9      │ 18.1       │ 'm2b467e' │
+│ 17      │ 'ledger' │ 'bad_unicode' │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 24    │ 70750  │ 0          │ 0.00441 │ 44.8      │ 21.4       │ 'mc8b837' │
+│ 18      │ 'ledger' │ 'bad_digest'  │ 'journal'  │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 28    │ 98254  │ 0          │ 0.00578 │ 41.1      │ 15.7       │ 'mb0111f' │
+│ 19      │ 'ledger' │ 'bad_digest'  │ 'baseline' │ 'verified' │ true     │ false         │ 0       │ 0                   │ 1     │ 1        │ 26    │ 78067  │ 0          │ 0.00474 │ 50.2      │ 21.2       │ 'mbe45e0' │
+└─────────┴──────────┴───────────────┴────────────┴────────────┴──────────┴───────────────┴─────────┴─────────────────────┴───────┴──────────┴───────┴────────┴────────────┴─────────┴───────────┴────────────┴───────────┘
+saved /Users/aluken/Desktop/claude/blackout/results/eval-ledger-2026-10-17T19-23-07-878Z.json  (n=10 pair(s); small sample, no statistical claims)

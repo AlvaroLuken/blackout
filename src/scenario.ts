@@ -121,7 +121,7 @@ function printSummary(say: (s: string) => void, r: MissionOutcome & { target_fac
   say(`committed output:  missing=${r.target_facts.missing_jobs} duplicates=${r.target_facts.duplicate_committed_deliveries}  (counted from the target's own DB)`);
   say(`worker kills:      ${r.harness_events.filter((e) => e.event === "worker_sigkilled").length}  replacements: ${r.crashes}`);
   say(`episodes:          ${r.episodes}`);
-  if (r.usage.prompt_tokens) say(`prompt cache:      ${(r.usage as any).cached_tokens ?? 0} of ${r.usage.prompt_tokens} prompt tokens served from Crusoe's cache (${(((r.usage as any).cached_tokens ?? 0) / r.usage.prompt_tokens * 100).toFixed(0)}%)`);
+  if (r.usage.prompt_tokens) say(`prompt cache:      ${(r.usage as any).cached_tokens ? `${(r.usage as any).cached_tokens} of ${r.usage.prompt_tokens} prompt tokens served from cache` : "no cache hits reported by the API"}`);
   say(`inference:         ${r.policy === "llm" ? `${u.calls} calls, ${u.prompt_tokens} in / ${u.completion_tokens} out tokens, est $${u.est_usd?.toFixed(4) ?? "unknown"} (${r.model})` : "none (deterministic test policy)"}`);
   say(`elapsed:           ${(r.elapsed_ms / 1000).toFixed(1)}s${r.recovery_ms ? `  (crash to verified: ${(r.recovery_ms / 1000).toFixed(1)}s)` : ""}`);
   say(`result file:       ${path.relative(ROOT, file)}`);

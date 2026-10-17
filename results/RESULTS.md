@@ -4,7 +4,39 @@ All runs below are live inference: `nvidia/Nemotron-3.5-Lightning-30B-A3B` on Cr
 for both the coordinator and the repair worker. Cost is estimated from the per-call `usage` returned by the
 API and the catalog price ($0.05 in / $0.20 out per 1M tokens). Raw per-run JSON is in `results/runs/`.
 
-## Paired ablation (predefined), Oct 17 2026, n = 3 pairs
+## Main result: paired ablation, n = 10 pairs per target (Oct 17 2026, 12:05 to 12:23 PT)
+
+40 live missions. Two target profiles, same controller, model, tools and verifier:
+
+- **ledger**: delivering a job marks it done; receipts can be listed per job.
+- **outbox**: delivery commits downstream, but the job is only marked sent when the caller acks
+  afterwards (a common pattern for notification and webhook senders). Receipts are looked up by op ID only.
+
+Each run injects one of two config faults at random (`fingerprint.algorithm` typo or invalid
+`normalize.unicode`), then SIGKILLs the worker right after the 2nd batch delivery commits.
+
+| target | mode | runs | verified | runs with a committed duplicate | duplicate deliveries | missing | false success claims | median calls | mean est. cost |
+|---|---|---|---|---|---|---|---|---|---|
+| outbox | journal | 10 | **10** | 0 | 0 | 0 | 0 | 29 | $0.0057 |
+| outbox | baseline | 10 | **0** | 10 | 16 | 0 | 0 (10 escalated) | 28 | $0.0055 |
+| ledger | journal | 10 | 10 | 0 | 0 | 0 | 0 | 28 | $0.0054 |
+| ledger | baseline | 10 | 10 | 0 | 0 | 0 | 0 | 25 | $0.0047 |
+
+Sources: `results/eval-outbox-2026-10-17T19-06-15-709Z.json`, `results/eval-ledger-2026-10-17T19-23-07-878Z.json`, logs in `results/eval-*-n10.log`, per-run JSON in `results/runs/`.
+
+Reading:
+- When the target can tell you what happened (ledger), the plain agent recovered from the crash every
+  time. The journal added no measurable correctness there.
+- When it cannot (outbox), the plain agent re-sent the delivered-but-unacked job in every run.
+  With the journal, the replacement checked that exact op ID's receipt and finished cleanly every time.
+- No run in either mode was reported as done without a verifier pass. Every duplicate was caught
+  and escalated.
+- Caveats: n = 10 per cell on one synthetic service. In these runs the fault was drawn per run, not per
+  pair, so a pair could have different faults (both faults have the same symptom and the duplicate
+  happens after the fix). Fixed for later runs. Cost uses API usage counts times list prices; the API
+  reported no prompt cache hits for these calls.
+
+## Earlier pilot: paired ablation, n = 3 pairs (ledger target only)
 
 Same model, tools, contract rules, verifier, synthetic inputs, reset state, fault (`bad_digest`),
 kill point (SIGKILL after the 2nd batch delivery commits) and budget. Only one thing changes:
