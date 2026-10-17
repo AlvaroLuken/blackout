@@ -101,6 +101,20 @@ p { margin: 0; max-width: 68ch; }
 
 .flow-bar button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 @media (max-width: 640px) { #flow3d { height: 420px; } .flabel { font-size: 10px; } .flabel b { font-size: 12px; } }
+.proofbar { padding-block: 0 56px; border-top: 0; }
+.proofbar .proof { margin-top: 0; }
+.proof .l b { color: var(--fg); }
+.insight { margin-top: 28px; background: var(--panel); border: 1px solid #5a4210; border-radius: 14px; padding: 24px; display: grid; gap: 14px; }
+.insight h3 { font-size: 26px; }
+.insight p { color: var(--soft); max-width: 72ch; }
+.keys { display: grid; gap: 10px; }
+.krow { display: grid; grid-template-columns: 150px minmax(0,1fr) 24px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 10px; font-size: 15px; }
+.krow.bad { background: #1d1012; border: 1px solid #7f1d1d; } .krow.ok { background: #0f1a16; border: 1px solid #1d4d3c; }
+.krow .who { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.krow .arrow { color: var(--muted); text-align: center; }
+.krow .out { font-family: var(--mono); font-weight: 700; } .krow.bad .out { color: var(--bad); } .krow.ok .out { color: var(--ok); }
+.krow code { font-size: 14px; }
+@media (max-width: 760px) { .krow { grid-template-columns: 1fr; } .krow .arrow { display: none; } }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
@@ -165,6 +179,16 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
     </div>
   </header>
+
+  <section class="proofbar" aria-label="Measured results">
+    <div class="proof">
+      <div><span class="n ok">10/10</span><span class="l">jobs finished clean after a real mid-delivery crash, with Blackout. <b>0/10</b> for the same agent without it.</span></div>
+      <div><span class="n bad">18 → 0</span><span class="l">duplicate emails across 10 restarted MCP agents, once routed through the Blackout gateway.</span></div>
+      <div><span class="n">0</span><span class="l">false "done" claims accepted, in every measured run. The plain agent said DONE 6 times while customers had duplicates.</span></div>
+      <div><span class="n">½¢</span><span class="l">AI inference per mission on Crusoe, measured from real usage. Cheap enough to verify everything.</span></div>
+    </div>
+    <p class="note">All live Nemotron 3.5 Lightning runs on Oct 17, n = 10 per arm. Every run, caveat and raw file: <a href="https://github.com/AlvaroLuken/blackout/blob/main/results/RESULTS.md">results/RESULTS.md</a>.</p>
+  </section>
 
   <section id="watch" aria-labelledby="h-watch">
     <div class="head">
@@ -238,12 +262,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <div class="use"><h3>Data syncs and backfills</h3><p class="r"><b>Without:</b> a rerun duplicates rows downstream.<br><b>With a Blackout adapter:</b> every record moved once, checksums match.</p></div>
       <div class="use"><h3>Coding and ops agents</h3><p class="r"><b>Without:</b> "tests pass" because the agent said so.<br><b>With a Blackout adapter:</b> code runs the checks; the agent's claim doesn't count.</p></div>
     </div>
-    <div class="proof" aria-label="Measured results" style="margin-top:36px">
-      <div><span class="n ok">10/10</span><span class="l">jobs finished correctly with Blackout after a real mid-delivery crash</span></div>
-      <div><span class="n bad">0/10</span><span class="l">for the same AI agent without it: a customer messaged twice every time</span></div>
-      <div><span class="n">0</span><span class="l">false "done" claims accepted, across every measured run</span></div>
-      <div><span class="n">½¢</span><span class="l">AI inference per mission (10 deliveries) on Crusoe, measured from real usage</span></div>
-    </div>
+    
   </section>
 
   <section id="how">
@@ -291,6 +310,16 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 }
 
 <span class="c">$</span> npx -y blackout-mcp --config blackout.mcp.json   <span class="c"># a stdio MCP server; add it to any agent</span></pre>
+    <div class="insight">
+      <span class="eyebrow">The insight</span>
+      <h3>Agents already try to be careful. That's not enough.</h3>
+      <p>Given an optional idempotency key, Nemotron made one up on its own. But after a restart it made up a different one, so the server saw a brand-new request and sent the email again. You can't prompt your way out of this: the key has to survive the agent.</p>
+      <div class="keys">
+        <div class="krow bad"><span class="who">Agent alone</span><span class="k">session 1: <code>ana@example.com</code></span><span class="arrow">→</span><span class="k">restart: <code>order_shipped_ana</code></span><span class="out">new key, sent again ✗</span></div>
+        <div class="krow ok"><span class="who">Through Blackout</span><span class="k">session 1: <code>bo-58f1…</code></span><span class="arrow">→</span><span class="k">restart: <code>bo-58f1…</code></span><span class="out">same op, suppressed ✓</span></div>
+      </div>
+      <p class="note">Blackout derives the key from the call itself and journals it before the call runs. Measured: 6 of 10 direct runs duplicated (18 emails); 0 of 10 through the gateway.</p>
+    </div>
     <div class="grid3" style="margin-top:18px">
       <div class="card"><h3>Repeats are suppressed</h3><p>Every side effect gets a stable ID and is journaled before it runs. A retry or a restarted agent gets the original result back, not a second email.</p></div>
       <div class="card"><h3>Crashes are reconciled</h3><p>If the gateway dies mid-call, it asks your system's receipt tool what happened before allowing a retry. If it can't tell, it refuses and escalates.</p></div>

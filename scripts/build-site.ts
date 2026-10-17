@@ -50,6 +50,15 @@ for (const f of fs.readdirSync(path.join(ROOT, "results")).filter((f) => /^eval-
     });
   }
 }
+
+// MCP gateway eval rows (latest n>=10 run): "verified" = runs where every customer got exactly one email.
+const gwf = fs.readdirSync(path.join(ROOT, "results")).filter((f) => /^gateway-eval-.*\.json$/.test(f)).sort().reverse();
+for (const f of gwf) {
+  const d = JSON.parse(fs.readFileSync(path.join(ROOT, "results", f), "utf8"));
+  if ((d.summary?.[0]?.runs ?? 0) < 10) continue;
+  for (const sm of d.summary) rows.push({ profile: "MCP gateway", mode: sm.arm === "gateway" ? "journal" : "baseline", runs: sm.runs, verified: sm.runs - sm.runs_with_duplicate - (sm.missing > 0 ? 1 : 0), dup_runs: sm.runs_with_duplicate, dup_deliveries: sm.duplicate_emails, false_success: sm.false_done, mean_usd: sm.mean_usd });
+  break;
+}
 fs.writeFileSync(path.join(out, "measured.json"), JSON.stringify(rows));
 // Values measured by the Crusoe metrics API during our live runs (12:31 PT, Oct 17).
 fs.writeFileSync(path.join(out, "crusoe.json"), JSON.stringify({ rpm: 40.4, ttft_ms: 717, tok_s: 141 }));

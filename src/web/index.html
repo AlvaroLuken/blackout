@@ -220,8 +220,8 @@ body.presenter .status { font-size: 15px; }
   </div>
 
   <section class="measured">
-    <h3>Measured over 40 live missions</h3>
-    <p>Paired runs, same model, fault class and kill point. "Outbox" services mark a job sent only after the caller acknowledges it, so a crash in between leaves a delivered job looking pending. "Ledger" services show job status, so a plain agent can recover on its own.</p>
+    <h3>Measured over 60 live missions</h3>
+    <p>Paired runs, same model, fault class and kill point. "Outbox" services mark a job sent only after the caller acknowledges it, so a crash in between leaves a delivered job looking pending. "Ledger" services show job status, so a plain agent can recover on its own. "MCP gateway": a Nemotron agent sends 3 emails, is restarted with no memory and given the same job, told not to send duplicates; "verified" = every customer got exactly one.</p>
     <div style="overflow-x:auto"><table><thead><tr><th>Service</th><th>Mode</th><th>Runs</th><th>Verified</th><th>Runs with a duplicate</th><th>Duplicate deliveries</th><th>False "done" claims</th><th>Mean cost</th></tr></thead><tbody id="measured"></tbody></table></div>
   </section>
 
@@ -500,7 +500,8 @@ es.onmessage = (e) => handle(JSON.parse(e.data));
 
 fetch("/measured").then((r) => r.json()).then((rows) => {
   const tb = $("measured");
-  rows.sort((a, b) => a.profile.localeCompare(b.profile) * -1 || (a.mode === "journal" ? -1 : 1));
+  const ORDER = { outbox: 0, "MCP gateway": 1, ledger: 2 };
+  rows.sort((a, b) => (ORDER[a.profile] ?? 9) - (ORDER[b.profile] ?? 9) || (a.mode === "journal" ? -1 : 1));
   for (const r of rows) {
     const tr = document.createElement("tr");
     const cellsv = [r.profile, r.mode === "journal" ? "Blackout" : "Plain agent", r.runs, `${r.verified}/${r.runs}`, r.dup_runs, r.dup_deliveries, r.false_success, `$${r.mean_usd.toFixed(4)}`];
