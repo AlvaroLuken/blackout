@@ -178,6 +178,8 @@ body.presenter .checks { font-size: 15px; }
 body.presenter .verdict { font-size: 42px; } body.presenter .verdict small { font-size: 15px; }
 body.presenter .status { font-size: 15px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* clean demo: hide secondary text */
+.chips, .toggle, .lane-head small, #extra-journal, #extra-baseline, .measured, .meter .src { display: none !important; }
 #plug, #replay, .toggle { display: none !important; }
 </style>
 </head>
@@ -193,8 +195,6 @@ body.presenter .status { font-size: 15px; }
     </div>
   </header>
   <div class="crusoe" id="crusoe"><span class="ck">Crusoe metrics · snapshot from a live run</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
-
-  <p class="brief1"><b>The setup:</b> a bad config breaks a notification sender with <b>10 messages</b> queued. Both agents are told: <i>"fix it, finish the jobs, don't send duplicates."</i> Then we <b>kill each agent mid-delivery</b>.</p>
 
   <div class="controls">
     <button class="start" id="start" type="button">▶ Play the recorded race</button>
@@ -467,7 +467,7 @@ function handle(msg) {
           ul.appendChild(li);
         }
         const f = msg.facts ?? {};
-        for (const a of f.reconciled ?? []) add("meta", `after the crash: op ${a.op_id} (${a.target_ref}) → ${a.status === "reconciled_done" ? "receipt confirmed delivered, not resent" : a.status === "reconciled_absent" ? "no receipt, retried with the same op ID" : "outcome unknown"}`);
+        for (const a of f.reconciled ?? []) add("meta", `after the crash: ${a.target_ref} → ${a.status === "reconciled_done" ? "receipt confirmed delivered, not resent" : a.status === "reconciled_absent" ? "no receipt, retried with the same op ID" : "outcome unknown"}`);
         if (msg.mode === "baseline" && f.kills) add("meta", "after the crash: no journal, so nothing to reconcile");
         const SHORTM = (x) => x.replace("nvidia/", "").replace("NVIDIA-", "");
         if (f.models?.length) add("meta", `inference: ${f.models.map((x) => `${SHORTM(x.model)} ×${x.calls}`).join(", ")} on Crusoe · ${msg.usd ?? "?"}`);
