@@ -1,8 +1,18 @@
 # Blackout
 
-Blackout keeps a recovery mission accountable to verified outcomes while the workers doing the repair can fail and be replaced.
+**Let agents act on their own. Never twice.** Blackout sits between AI agents and the real world: every side effect happens once, even when the agent crashes mid-job; "done" is decided by code, not by the agent; and when it can't tell what happened, it escalates to a human instead of guessing.
 
-**Site and recorded race:** https://blackout-woad.vercel.app
+[Site and 3D explainer](https://blackout-woad.vercel.app) · [`npx blackout-mcp`](https://www.npmjs.com/package/blackout-mcp) · [Measured results](results/RESULTS.md) · [Demo plan](docs/DEMO.md)
+
+| Measured live on Oct 17 (Nemotron 3.5 Lightning on Crusoe, n = 10 per arm) | With Blackout | Same agent without |
+|---|---|---|
+| Crash right after a message is sent, service can't report job status | **10/10 clean** | 0/10 (16 duplicate deliveries) |
+| MCP agent restarted mid-job, told "don't send duplicates" | **0 duplicate emails** | 18 duplicate emails, said DONE anyway |
+| False "done" claims accepted | **0** | n/a (Blackout's verifier rejects them) |
+
+Two ways to use it:
+- **MCP gateway, today:** `npx -y blackout-mcp init` then `claude mcp add blackout -- npx -y blackout-mcp --config "$PWD/blackout.mcp.json"`. Exactly-once side effects for any MCP agent. [Details](#blackout-mcp-gateway-use-it-with-any-mcp-agent)
+- **Full runtime:** a Nemotron coordinator and repair worker, a frozen definition of done, a durable journal, receipt reconciliation and a verifier with no LLM. `npm run web` shows it racing a plain agent through a real crash.
 
 Built at the Recursive Agents Hackathon (San Francisco, Oct 17 2026) for the **Done Means Done** problem statement. All agent inference runs on **NVIDIA Nemotron 3.5 Lightning** through **Crusoe Managed Inference**.
 
