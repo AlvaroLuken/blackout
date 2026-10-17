@@ -28,10 +28,11 @@ export class Journal {
         ts TEXT NOT NULL, actor TEXT NOT NULL, type TEXT NOT NULL, data TEXT);
       CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY AUTOINCREMENT, mission_id TEXT NOT NULL,
         ts TEXT NOT NULL, actor TEXT NOT NULL, model TEXT NOT NULL, prompt_tokens INTEGER, completion_tokens INTEGER,
-        est_usd REAL, latency_ms INTEGER, finish_reason TEXT);
+        est_usd REAL, latency_ms INTEGER, finish_reason TEXT, cached_tokens INTEGER);
       CREATE TABLE IF NOT EXISTS verdicts (id INTEGER PRIMARY KEY AUTOINCREMENT, mission_id TEXT NOT NULL,
         ts TEXT NOT NULL, pass INTEGER NOT NULL, progress TEXT NOT NULL, results TEXT NOT NULL);
     `);
+    try { this.db.exec("ALTER TABLE usage ADD COLUMN cached_tokens INTEGER"); } catch {} // older journals
   }
   now() { return new Date().toISOString(); }
 
@@ -98,12 +99,12 @@ export class Journal {
   events(missionId: string) {
     return this.db.prepare("SELECT * FROM events WHERE mission_id = ? ORDER BY id").all(missionId) as { ts: string; actor: string; type: string; data: string }[];
   }
-  recordUsage(missionId: string, u: { actor: string; model: string; prompt_tokens: number; completion_tokens: number; est_usd: number | null; latency_ms: number; finish_reason: string }) {
-    this.db.prepare("INSERT INTO usage (mission_id, ts, actor, model, prompt_tokens, completion_tokens, est_usd, latency_ms, finish_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(missionId, this.now(), u.actor, u.model, u.prompt_tokens, u.completion_tokens, u.est_usd, u.latency_ms, u.finish_reason);
+  recordUsage(missionId: string, u: { actor: string; model: string; prompt_tokens: number; completion_tokens: number; cached_tokens?: number; est_usd: number | null; latency_ms: number; finish_reason: string }) {
+    this.db.prepare("INSERT INTO usage (mission_id, ts, actor, model, prompt_tokens, completion_tokens, est_usd, latency_ms, finish_reason, cached_tokens) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(missionId, this.now(), u.actor, u.model, u.prompt_tokens, u.completion_tokens, u.est_usd, u.latency_ms, u.finish_reason, u.cached_tokens ?? 0);
   }
   usageTotals(missionId: string) {
-    return this.db.prepare("SELECT COUNT(*) AS calls, COALESCE(SUM(prompt_tokens),0) AS prompt_tokens, COALESCE(SUM(completion_tokens),0) AS completion_tokens, SUM(est_usd) AS est_usd, COUNT(est_usd) AS priced_calls FROM usage WHERE mission_id = ?").get(missionId) as {
-      calls: number; prompt_tokens: number; completion_tokens: number; est_usd: number | null; priced_calls: number;
+    return this.db.prepare("SELECT COUNT(*) AS calls, COALESCE(SUM(prompt_tokens),0) AS prompt_tokens, COALESCE(SUM(completion_tokens),0) AS completion_tokens, COALESCE(SUM(cached_tokens),0) AS cached_tokens, SUM(est_usd) AS est_usd, COUNT(est_usd) AS priced_calls FROM usage WHERE mission_id = ?").get(missionId) as {
+      calls: number; prompt_tokens: number; completion_tokens: number; cached_tokens: number; est_usd: number | null; priced_calls: number;
     };
   }
   recordVerdict(missionId: string, v: { pass: boolean; progress: unknown; results: unknown }) {

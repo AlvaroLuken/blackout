@@ -45,7 +45,8 @@ async function main() {
       const flag = (n: string, d: string) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
       const kill = flag("kill-after", cmd === "demo" ? "2" : "0");
       const r = await runScenario({
-        fault: flag("fault", "bad_digest") as FaultName | "none",
+        fault: flag("fault", "bad_digest") as FaultName | "none" | "random",
+        profile: flag("profile", "ledger") as "ledger" | "outbox",
         killAfter: Number(kill) || null,
         mode: flag("mode", "journal") as "journal" | "baseline",
         policy: flag("policy", "llm") as "llm" | "test",
@@ -62,26 +63,28 @@ async function main() {
       const flag = (n: string, d: string) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
       const pairs = Number(flag("pairs", "1"));
       const policy = flag("policy", "llm") as "llm" | "test";
+      const profile = flag("profile", "ledger") as "ledger" | "outbox";
+      const fault = flag("fault", "bad_digest") as FaultName | "random";
       const runs: any[] = [];
       for (let i = 0; i < pairs; i++) {
         for (const mode of ["journal", "baseline"] as const) {
           console.log(`\n######## pair ${i + 1}/${pairs}  mode=${mode} ########`);
-          runs.push(await runScenario({ fault: "bad_digest", killAfter: 2, mode, policy, label: `eval-pair${i + 1}-${mode}` }));
+          runs.push(await runScenario({ fault, profile, killAfter: 2, mode, policy, quiet: args.includes("--quiet"), label: `eval-${profile}-pair${i + 1}-${mode}` }));
         }
       }
       const row = (r: any) => ({
-        mode: r.mode, status: r.status, verified: r.final_verdict.pass, false_success: r.declared_success_without_verification,
+        profile: r.scenario.profile, fault: r.scenario.fault, mode: r.mode, status: r.status, verified: r.final_verdict.pass, false_success: r.declared_success_without_verification,
         missing: r.target_facts.missing_jobs, duplicate_committed: r.target_facts.duplicate_committed_deliveries,
         kills: r.harness_events.filter((e: any) => e.event === "worker_sigkilled").length, episodes: r.episodes,
-        calls: r.usage.calls, tokens: r.usage.prompt_tokens + r.usage.completion_tokens, est_usd: r.usage.est_usd,
+        calls: r.usage.calls, tokens: r.usage.prompt_tokens + r.usage.completion_tokens, cached_pct: r.usage.prompt_tokens ? Math.round(100 * r.usage.cached_tokens / r.usage.prompt_tokens) : null, est_usd: r.usage.est_usd == null ? null : +r.usage.est_usd.toFixed(5),
         elapsed_s: +(r.elapsed_ms / 1000).toFixed(1), recovery_s: r.recovery_ms ? +(r.recovery_ms / 1000).toFixed(1) : null, mission: r.mission_id,
       });
       const table = runs.map(row);
       console.log("\n======== ablation results (every run) ========");
       console.table(table);
       fs.mkdirSync(PATHS.results, { recursive: true });
-      const file = `${PATHS.results}/eval-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-      fs.writeFileSync(file, JSON.stringify({ policy, model: runs[0]?.model, pairs, design: "paired; only journal+reconciliation toggled", runs: table }, null, 2));
+      const file = `${PATHS.results}/eval-${profile}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      fs.writeFileSync(file, JSON.stringify({ policy, profile, fault, model: runs[0]?.model, pairs, design: "paired; only journal+reconciliation toggled", runs: table }, null, 2));
       console.log(`saved ${file}  (n=${pairs} pair(s); small sample, no statistical claims)`);
       return;
     }

@@ -19,6 +19,14 @@ function log(level: "info" | "warn" | "error", msg: string, extra: Record<string
 // Config is read once at boot, like most real services. Editing it requires a restart.
 const config: ServiceConfig = JSON.parse(fs.readFileSync(PATHS.targetConfig, "utf8"));
 
+// Service profile (not agent-editable):
+//   ledger: delivery marks the job done; receipts can be listed per job.
+//   outbox: delivery commits downstream, but the job is only marked sent when the
+//           caller acks afterwards; receipts are looked up by op_id only.
+const profile: "ledger" | "outbox" = (() => {
+  try { return JSON.parse(fs.readFileSync(PATHS.targetProfile, "utf8")).profile ?? "ledger"; } catch { return "ledger"; }
+})();
+
 const db = new DatabaseSync(PATHS.targetDb);
 db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
 
@@ -70,13 +78,13 @@ async function processJob(jobId: string, opId: string) {
     const payload = computePayload(job.id, job.text, config);
     const now = new Date().toISOString();
     const d = db.prepare("INSERT INTO deliveries (job_id, op_id, payload, created_at) VALUES (?, ?, ?, ?)").run(job.id, opId, JSON.stringify(payload), now);
-    db.prepare("UPDATE jobs SET status = 'done', updated_at = ? WHERE id = ?").run(now, job.id);
+    if (profile === "ledger") db.prepare("UPDATE jobs SET status = 'done', updated_at = ? WHERE id = ?").run(now, job.id);
     db.prepare("INSERT INTO receipts (op_id, job_id, delivery_id, committed_at) VALUES (?, ?, ?, ?)").run(opId, job.id, Number(d.lastInsertRowid), now);
     db.exec("COMMIT");
     log("info", "job delivered", { job_id: job.id, op_id: opId });
     const receipt = db.prepare("SELECT * FROM receipts WHERE op_id = ?").get(opId);
     await afterCommitHook(opId);
-    return { code: 200, body: { replayed: false, receipt } };
+    return { code: 200, body: { replayed: false, receipt, ack_required: profile === "outbox" } };
   } catch (e) {
     try { db.exec("ROLLBACK"); } catch {}
     const requestId = randomUUID().slice(0, 8);
@@ -91,7 +99,7 @@ const server = http.createServer(async (req, res) => {
   const p = url.pathname;
   try {
     if (req.method === "GET" && p === "/health") {
-      return send(res, 200, { status: "ok", service: config.service, version: config.version, boot_id: bootId, booted_at: bootAt });
+      return send(res, 200, { status: "ok", profile, service: config.service, version: config.version, boot_id: bootId, booted_at: bootAt });
     }
     if (req.method === "GET" && p === "/jobs") {
       const rows = db.prepare("SELECT id, status, probe, created_at, updated_at FROM jobs ORDER BY id").all();
@@ -111,10 +119,21 @@ const server = http.createServer(async (req, res) => {
       const r = await processJob(m[1], b.op_id);
       return send(res, r.code, r.body);
     }
+    const a = p.match(/^\/jobs\/([\w-]+)\/ack$/);
+    if (req.method === "POST" && a) {
+      const b = await readBody(req);
+      const rc = db.prepare("SELECT * FROM receipts WHERE op_id = ? AND job_id = ?").get(String(b.op_id ?? ""), a[1]);
+      if (!rc) return send(res, 404, { error: "no receipt for that op_id and job" });
+      db.prepare("UPDATE jobs SET status = 'done', updated_at = ? WHERE id = ?").run(new Date().toISOString(), a[1]);
+      return send(res, 200, { acked: true });
+    }
     const r = p.match(/^\/receipts\/([\w:-]+)$/);
     if (req.method === "GET" && r) {
       const row = db.prepare("SELECT * FROM receipts WHERE op_id = ?").get(r[1]);
       return row ? send(res, 200, row) : send(res, 404, { error: "no_receipt" });
+    }
+    if (req.method === "GET" && p === "/receipts" && profile === "outbox") {
+      return send(res, 400, { error: "receipts are looked up by op_id only: GET /receipts/{op_id}" });
     }
     if (req.method === "GET" && p === "/receipts") {
       const job = url.searchParams.get("job_id");

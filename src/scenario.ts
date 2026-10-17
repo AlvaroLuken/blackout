@@ -11,7 +11,8 @@ import { runMission, type MissionOutcome } from "./controller/mission.ts";
 import { DatabaseSync } from "node:sqlite";
 
 export type ScenarioOpts = {
-  fault: FaultName | "none";
+  fault: FaultName | "none" | "random";
+  profile?: "ledger" | "outbox";
   killAfter: number | null;
   mode: "journal" | "baseline";
   policy: "llm" | "test";
@@ -56,7 +57,9 @@ export function targetFacts() {
 
 export async function runScenario(o: ScenarioOpts) {
   if (!(await portFree())) throw new Error(`port for ${TARGET_URL} is busy; stop the other target first`);
-  resetTarget();
+  const profile = o.profile ?? "ledger";
+  const fault: FaultName | "none" = o.fault === "random" ? (Math.random() < 0.5 ? "bad_digest" : "bad_unicode") : o.fault;
+  resetTarget(profile);
   fs.rmSync(PATHS.harnessDir, { recursive: true, force: true });
   disarm();
   const say = (s: string) => { if (!o.quiet) console.log(s); };
@@ -65,8 +68,9 @@ export async function runScenario(o: ScenarioOpts) {
   const harness = startProc("src/faults/harness.ts", ["serve"]);
   try {
     await waitHealthy();
-    if (o.fault !== "none") {
-      injectFault(o.fault);
+    say(`[harness] target profile: ${profile}${profile === "outbox" ? " (jobs marked sent only on caller ack; receipts by op_id only)" : ""}`);
+    if (fault !== "none") {
+      injectFault(fault);
       await fetch(`${TARGET_URL}/admin/restart`, { method: "POST" }).catch(() => null);
       await new Promise((r) => setTimeout(r, 400));
       await waitHealthy();
@@ -79,7 +83,7 @@ export async function runScenario(o: ScenarioOpts) {
     const outcome = await runMission({ goal: o.goal ?? DEFAULT_GOAL, mode: o.mode, policy: o.policy, quiet: o.quiet });
     const facts = targetFacts();
     const harnessEvents = fs.existsSync(PATHS.harnessLog) ? fs.readFileSync(PATHS.harnessLog, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
-    const result = { label: o.label ?? null, scenario: { fault: o.fault, kill_after_commit: o.killAfter }, ...outcome, target_facts: facts, harness_events: harnessEvents, recorded_at: new Date().toISOString(), inference: o.policy === "llm" ? "live Crusoe inference" : "none (deterministic test policy)" };
+    const result = { label: o.label ?? null, scenario: { profile, fault, kill_after_commit: o.killAfter }, ...outcome, target_facts: facts, harness_events: harnessEvents, recorded_at: new Date().toISOString(), inference: o.policy === "llm" ? "live Crusoe inference" : "none (deterministic test policy)" };
     fs.mkdirSync(path.join(PATHS.results, "runs"), { recursive: true });
     const file = path.join(PATHS.results, "runs", `${result.recorded_at.replace(/[:.]/g, "-")}-${outcome.mission_id}.json`);
     fs.writeFileSync(file, JSON.stringify(result, null, 2));
@@ -100,6 +104,7 @@ function printSummary(say: (s: string) => void, r: MissionOutcome & { target_fac
   say(`committed output:  missing=${r.target_facts.missing_jobs} duplicates=${r.target_facts.duplicate_committed_deliveries}  (counted from the target's own DB)`);
   say(`worker kills:      ${r.harness_events.filter((e) => e.event === "worker_sigkilled").length}  replacements: ${r.crashes}`);
   say(`episodes:          ${r.episodes}`);
+  if (r.usage.prompt_tokens) say(`prompt cache:      ${(r.usage as any).cached_tokens ?? 0} of ${r.usage.prompt_tokens} prompt tokens served from Crusoe's cache (${(((r.usage as any).cached_tokens ?? 0) / r.usage.prompt_tokens * 100).toFixed(0)}%)`);
   say(`inference:         ${r.policy === "llm" ? `${u.calls} calls, ${u.prompt_tokens} in / ${u.completion_tokens} out tokens, est $${u.est_usd?.toFixed(4) ?? "unknown"} (${r.model})` : "none (deterministic test policy)"}`);
   say(`elapsed:           ${(r.elapsed_ms / 1000).toFixed(1)}s${r.recovery_ms ? `  (crash to verified: ${(r.recovery_ms / 1000).toFixed(1)}s)` : ""}`);
   say(`result file:       ${path.relative(ROOT, file)}`);

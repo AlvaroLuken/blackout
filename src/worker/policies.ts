@@ -30,6 +30,7 @@ export async function testPolicy(ctx: ToolCtx, _brief: Brief): Promise<EpisodeRe
   };
   const cfg = JSON.parse((await call("read_workspace_file", { path: "config.json" })).output);
   if (cfg.fingerprint.algorithm !== "sha256") { await call("patch_config", { field: "fingerprint.algorithm", value: "sha256" }); await call("restart_service"); }
+  if (cfg.normalize.unicode !== "NFC") { await call("patch_config", { field: "normalize.unicode", value: "NFC" }); await call("restart_service"); }
   if (cfg.normalize.lowercase !== true) { await call("patch_config", { field: "normalize.lowercase", value: true }); await call("restart_service"); }
   const jobs = (await call("list_jobs")).parsed as { jobs: { id: string; status: string }[] };
   const todo = jobs.jobs.filter((j) => j.status !== "done").map((j) => j.id);
@@ -37,7 +38,7 @@ export async function testPolicy(ctx: ToolCtx, _brief: Brief): Promise<EpisodeRe
   return { summary: `test policy processed ${todo.length} jobs`, believes_done: true, turns: 0, tool_calls: calls, malformed: 0, ended: "finished" };
 }
 
-const WORKER_TOOLS = ["check_health", "read_logs", "list_workspace", "read_workspace_file", "patch_config", "restart_service", "run_test_job", "list_jobs", "get_receipts", "process_jobs", "finish_assignment"] as const;
+const WORKER_TOOLS = ["check_health", "read_logs", "list_workspace", "read_workspace_file", "patch_config", "restart_service", "run_test_job", "list_jobs", "get_receipts", "get_receipt", "process_jobs", "finish_assignment"] as const;
 
 export async function llmPolicy(ctx: ToolCtx, brief: Brief, limits: Limits, maxTurns = 18): Promise<EpisodeResult> {
   const actor = `worker.g${ctx.generation}`;

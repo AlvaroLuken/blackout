@@ -14,6 +14,7 @@ export const PATHS = {
   targetDb: path.join(VAR, "target", "service.db"),
   targetLog: path.join(VAR, "target", "service.log"),
   targetPid: path.join(VAR, "target", "supervisor.pid"),
+  targetProfile: path.join(VAR, "target", "profile.json"),
   workspace: path.join(VAR, "target", "workspace"),
   targetConfig: path.join(VAR, "target", "workspace", "config.json"),
   blackoutDir: path.join(VAR, "blackout"),

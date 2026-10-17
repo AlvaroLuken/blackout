@@ -20,8 +20,8 @@ loadEnv();
 
 // USD per 1M tokens, from the official hackathon model reference (Oct 2026).
 // Recheck against the live catalog; unknown models are recorded as cost unknown.
-export const PRICING: Record<string, { in: number; out: number }> = {
-  "nvidia/Nemotron-3.5-Lightning-30B-A3B": { in: 0.05, out: 0.2 }, // confirmed in live catalog by the crusoe session, Oct 17
+export const PRICING: Record<string, { in: number; out: number; cached?: number }> = {
+  "nvidia/Nemotron-3.5-Lightning-30B-A3B": { in: 0.05, out: 0.2, cached: 0.03 }, // confirmed in live catalog by the crusoe session, Oct 17
   "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": { in: 0.3, out: 2.4 },
   "nvidia/Nemotron-3-Nano-30B-A3B": { in: 0.05, out: 0.2 },
   "openai/gpt-oss-120b": { in: 0.05, out: 0.2 },
@@ -58,9 +58,12 @@ function getClient() {
   return client;
 }
 
-export function estimateUsd(model: string, pin: number, pout: number): number | null {
+// Cost from the API's own usage counts times catalog list prices.
+export function estimateUsd(model: string, pin: number, pout: number, cached = 0): number | null {
   const p = PRICING[model];
-  return p ? (pin * p.in + pout * p.out) / 1e6 : null;
+  if (!p) return null;
+  const c = Math.min(cached, pin);
+  return ((pin - c) * p.in + c * (p.cached ?? p.in) + pout * p.out) / 1e6;
 }
 
 export type ChatArgs = {
@@ -107,7 +110,8 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
         model: res.model ?? MODEL,
         prompt_tokens: u?.prompt_tokens ?? 0,
         completion_tokens: u?.completion_tokens ?? 0,
-        est_usd: u ? estimateUsd(MODEL, u.prompt_tokens, u.completion_tokens) : null,
+        cached_tokens: (u as any)?.prompt_tokens_details?.cached_tokens ?? 0,
+        est_usd: u ? estimateUsd(MODEL, u.prompt_tokens, u.completion_tokens, (u as any)?.prompt_tokens_details?.cached_tokens ?? 0) : null,
         latency_ms: Date.now() - started,
         finish_reason: choice?.finish_reason ?? "none",
       });

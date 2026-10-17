@@ -145,8 +145,13 @@ export const TOOLS = {
       return { count: jobs.length, jobs: jobs.map((j: any) => ({ id: j.id, status: j.status })) };
     },
   },
+  get_receipt: {
+    description: "Look up one committed operation by op_id. Returns the receipt, or 404 if nothing was committed under that op_id.",
+    schema: z.object({ op_id: z.string().regex(/^[\w:-]{4,80}$/) }).strict(),
+    run: async (a: { op_id: string }) => http("GET", `/receipts/${encodeURIComponent(a.op_id)}`),
+  },
   get_receipts: {
-    description: "List the service's committed receipts for one job (op_id, delivery_id, committed_at).",
+    description: "List the service's committed receipts for one job (op_id, delivery_id, committed_at). Some services only support lookup by op_id.",
     schema: z.object({ job_id: z.string().regex(/^[\w-]{1,40}$/) }).strict(),
     run: async (a: { job_id: string }) => (await http("GET", `/receipts?job_id=${encodeURIComponent(a.job_id)}`)).body,
   },
@@ -188,6 +193,7 @@ async function processOne(jobId: string, ctx: ToolCtx) {
     opId = `${ctx.missionId}-${jobId}-${randomUUID().slice(0, 6)}`;
   }
   const r = await http("POST", `/jobs/${jobId}/process`, { op_id: opId });
+  if (r.status === 200 && r.body?.ack_required) await http("POST", `/jobs/${jobId}/ack`, { op_id: opId });
   if (ctx.useJournal) ctx.journal.settleAction(opId, r.status === 200 ? "acked" : "failed", { status: r.status, body: r.body });
   return { job_id: jobId, op_id: opId, status: r.status, replayed: r.body?.replayed ?? undefined, error: r.status !== 200 ? r.body : undefined };
 }
@@ -202,6 +208,8 @@ export async function reconcile(ctx: ToolCtx) {
       if (a.kind === "process_job") {
         const r = await http("GET", `/receipts/${encodeURIComponent(a.op_id)}`);
         outcome = r.status === 200 ? "reconciled_done" : r.status === 404 ? "reconciled_absent" : "unknown";
+        // Finish the delivery protocol for an effect we now know happened.
+        if (outcome === "reconciled_done") await http("POST", `/jobs/${a.target_ref}/ack`, { op_id: a.op_id });
       } else if (a.kind === "patch_config") {
         const args = JSON.parse((ctx.journal.db.prepare("SELECT args FROM actions WHERE op_id = ?").get(a.op_id) as any).args);
         outcome = getAt(readConfig(), String(args.field).split(".")) === args.value ? "reconciled_done" : "reconciled_absent";

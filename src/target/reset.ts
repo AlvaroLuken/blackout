@@ -39,11 +39,23 @@ Each job produces one ledger delivery with payload:
 - GET /receipts/{op_id} returns the receipt for a committed operation, or 404.
 `;
 
-export function resetTarget() {
+const OUTBOX_OPS = `
+## Operations (outbox mode)
+- Config lives in workspace/config.json and is read once at startup. Restart after editing.
+- POST /jobs/{id}/process requires an op_id and delivers downstream. The job stays "pending"
+  until the caller confirms with POST /jobs/{id}/ack {op_id}. Reusing an op_id is safe: the
+  service returns the original receipt. A new op_id for a job that was already delivered
+  creates a second delivery.
+- GET /receipts/{op_id} returns the receipt for a committed operation, or 404. Receipts
+  cannot be listed by job.
+`;
+
+export function resetTarget(profile: "ledger" | "outbox" = "ledger") {
   fs.rmSync(PATHS.targetDir, { recursive: true, force: true });
   fs.mkdirSync(PATHS.workspace, { recursive: true });
   fs.writeFileSync(PATHS.targetConfig, JSON.stringify(HEALTHY_CONFIG, null, 2) + "\n");
-  fs.writeFileSync(`${PATHS.workspace}/SERVICE.md`, SERVICE_DOC);
+  fs.writeFileSync(`${PATHS.workspace}/SERVICE.md`, profile === "outbox" ? SERVICE_DOC.split("## Operations")[0] + OUTBOX_OPS.trimStart() : SERVICE_DOC);
+  fs.writeFileSync(PATHS.targetProfile, JSON.stringify({ profile }));
   fs.writeFileSync(PATHS.targetLog, "");
 
   const db = new DatabaseSync(PATHS.targetDb);

@@ -10,6 +10,8 @@ import type { ServiceConfig } from "../target/compute.ts";
 export const FAULTS = {
   // Health stays 200, every job fails. A restart alone does not fix it.
   bad_digest: (c: ServiceConfig) => { c.version = "2.3.2"; c.fingerprint.algorithm = "sha265"; },
+  // Same symptom class, different key: health 200, jobs 500 with a RangeError.
+  bad_unicode: (c: ServiceConfig) => { c.version = "2.3.2"; c.normalize.unicode = "NFC2"; },
   // Jobs "succeed" but payloads are wrong. Only payload verification catches it.
   silent_case: (c: ServiceConfig) => { c.version = "2.3.2"; c.normalize.lowercase = false; },
 } as const;
