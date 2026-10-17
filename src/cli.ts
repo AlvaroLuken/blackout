@@ -78,7 +78,7 @@ async function main() {
         const pairFault = fault === "random" ? (Math.random() < 0.5 ? "bad_digest" : "bad_unicode") : fault;
         for (const mode of ["journal", "baseline"] as const) {
           console.log(`\n######## pair ${i + 1}/${pairs}  mode=${mode} ########`);
-          runs.push(await runScenario({ fault: pairFault as FaultName, profile, killAfter: 2, mode, policy, quiet: args.includes("--quiet"), label: `eval-${profile}-pair${i + 1}-${mode}` }));
+          runs.push(await runScenario({ fault: pairFault as FaultName, profile, killAfter: 2, mode, policy, quiet: args.includes("--quiet"), inject: args.includes("--inject"), label: `eval-${profile}${args.includes("--inject") ? "-inject" : ""}-pair${i + 1}-${mode}` }));
         }
       }
       const row = (r: any) => ({
@@ -92,7 +92,7 @@ async function main() {
       console.log("\n======== ablation results (every run) ========");
       console.table(table);
       fs.mkdirSync(PATHS.results, { recursive: true });
-      const file = `${PATHS.results}/eval-${profile}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      const file = `${PATHS.results}/eval-${profile}${args.includes("--inject") ? "-inject" : ""}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
       fs.writeFileSync(file, JSON.stringify({ policy, profile, fault, model: runs[0]?.model, pairs, design: "paired; only journal+reconciliation toggled", runs: table }, null, 2));
       console.log(`saved ${file}  (n=${pairs} pair(s); small sample, no statistical claims)`);
       return;
