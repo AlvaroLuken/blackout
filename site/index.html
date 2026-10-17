@@ -72,22 +72,25 @@ p { margin: 0; max-width: 68ch; }
 @keyframes hfBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 .hf-dot { fill: var(--amber); } .hf-dot.bad { fill: var(--bad); }
 .hfw-with { animation: hfWith 12s linear infinite; } .hfw-without { animation: hfWithout 12s linear infinite; }
-.hf-crash { animation: hfCrash 12s linear infinite; }
+.hf-ov-crash { opacity: 0; animation: hfOvCrash 12s linear infinite; } .hf-ov-restart { opacity: 0; animation: hfOvRestart 12s linear infinite; } .hf-deliv { opacity: 0; animation: hfDeliv 12s linear infinite; }
+.hf-ovr.bad { fill: var(--bad); stroke: var(--bad); stroke-width: 1.5; } .hf-ovr.re { fill: var(--blue); stroke: var(--blue); stroke-width: 1.5; } .hf-ovt { fill: #fff; } .hf-tag.okk { fill: var(--panel); stroke: var(--ok); stroke-width: 1.5; }
 .hf-blocked, .hf-out-with { animation: hfBlocked 12s linear infinite; }
 .hf-dup, .hf-out-without { animation: hfDup 12s linear infinite; }
 @keyframes hfWith { 0%, 48.5% { opacity: 1; } 50%, 98.5% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes hfWithout { 0%, 48.5% { opacity: 0; } 50%, 98.5% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes hfCrash { 0%, 15% { opacity: 0; } 17%, 30% { opacity: 1; } 32%, 61% { opacity: 0; } 62.5%, 72% { opacity: 1; } 74%, 100% { opacity: 0; } }
-@keyframes hfBlocked { 0%, 29.5% { opacity: 0; } 31%, 100% { opacity: 1; } }
-@keyframes hfDup { 0%, 77.5% { opacity: 0; } 79%, 100% { opacity: 1; } }
+@keyframes hfOvCrash { 0%, 11.5% { opacity: 0; } 12.5%, 19.5% { opacity: 1; } 20.5%, 61.5% { opacity: 0; } 62.5%, 69.5% { opacity: 1; } 70.5%, 100% { opacity: 0; } }
+@keyframes hfOvRestart { 0%, 19.5% { opacity: 0; } 20.5%, 27% { opacity: 1; } 28.5%, 69.5% { opacity: 0; } 70.5%, 77% { opacity: 1; } 78.5%, 100% { opacity: 0; } }
+@keyframes hfDeliv { 0%, 10.5% { opacity: 0; } 11.5%, 24% { opacity: 1; } 25%, 59.5% { opacity: 0; } 60.5%, 74% { opacity: 1; } 75%, 100% { opacity: 0; } }
+@keyframes hfBlocked { 0%, 31.5% { opacity: 0; } 33%, 100% { opacity: 1; } }
+@keyframes hfDup { 0%, 85.5% { opacity: 0; } 87%, 100% { opacity: 1; } }
 .hf-face { font-size: 34px; transform-box: fill-box; transform-origin: 50% 60%; }
 .hf-face.happy { animation: hfHappy 1.2s ease-in-out infinite; }
 .hf-face.angry { animation: hfAngry 0.5s ease-in-out infinite; }
 @keyframes hfHappy { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @keyframes hfAngry { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg) scale(1.06); } 75% { transform: rotate(10deg) scale(1.06); } }
 @media (prefers-reduced-motion: reduce) {
-  .hf-dot { display: none; } .hfw-with, .hfw-without, .hf-crash, .hf-blocked, .hf-out-with, .hf-dup, .hf-out-without, .hf-face, .hf-gem { animation: none; }
-  .hfw-without, .hf-crash { opacity: 0; }
+  .hf-dot { display: none; } .hfw-with, .hfw-without, .hf-ov-crash, .hf-ov-restart, .hf-deliv, .hf-blocked, .hf-out-with, .hf-dup, .hf-out-without, .hf-face, .hf-gem { animation: none; }
+  .hfw-without, .hf-ov-crash, .hf-ov-restart, .hf-deliv { opacity: 0; }
 }
 
 .hero-text { display: grid; gap: 24px; min-width: 0; }
@@ -373,14 +376,15 @@ nav { gap: 16px; }
         <text x="143" y="23" class="hf-pt" text-anchor="middle">With Blackout</text>
         <text x="297" y="23" class="hf-pt" text-anchor="middle">Without</text>
         <path d="M220 104 V322" class="hf-line" marker-end="url(#hf-ar)"/>
-        <circle r="7" class="hf-dot" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.02;0.14;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.019;0.02;0.14;0.141;1"/></circle>
-        <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V122" keyPoints="0;0;1;1" keyTimes="0;0.24;0.30;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.239;0.24;0.47;0.471;1"/></circle>
+        <circle r="7" class="hf-dot" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.02;0.11;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.019;0.02;0.11;0.111;1"/></circle>
+        <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V122" keyPoints="0;0;1;1" keyTimes="0;0.27;0.32;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.269;0.27;0.47;0.471;1"/></circle>
         <circle r="7" class="hf-dot" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.51;0.60;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.509;0.51;0.60;0.601;1"/></circle>
-        <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.68;0.78;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.679;0.68;0.78;0.781;1"/></circle>
+        <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.77;0.86;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.769;0.77;0.86;0.861;1"/></circle>
         <rect x="120" y="48" width="200" height="56" rx="12" class="hf-box"/>
         <text x="220" y="72" class="hf-t" text-anchor="middle">AI agent</text>
         <text x="220" y="92" class="hf-s" text-anchor="middle">Nemotron · Claude Code · MCP</text>
-        <g class="hf-crash"><rect x="330" y="58" width="104" height="36" rx="8" class="hf-tag bad solid"/><text x="342" y="73" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">💥 crashed,</text><text x="342" y="87" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">restarted</text></g>
+        <g class="hf-ov-crash"><rect x="120" y="48" width="200" height="56" rx="12" class="hf-ovr bad"/><text x="220" y="73" class="hf-t hf-ovt" text-anchor="middle">✖ Agent crashed</text><text x="220" y="92" class="hf-s hf-ovt" text-anchor="middle">mid-job, killed</text></g>
+        <g class="hf-ov-restart"><rect x="120" y="48" width="200" height="56" rx="12" class="hf-ovr re"/><text x="220" y="73" class="hf-t hf-ovt" text-anchor="middle">↻ New agent</text><text x="220" y="92" class="hf-s hf-ovt" text-anchor="middle">no memory · tries again</text></g>
         <g class="hfw-with">
           <rect x="40" y="128" width="360" height="172" rx="16" class="hf-core"/>
           <g class="hf-guard" aria-hidden="true">
@@ -405,6 +409,7 @@ nav { gap: 16px; }
         <rect x="120" y="326" width="200" height="56" rx="12" class="hf-box"/>
         <text x="220" y="350" class="hf-t" text-anchor="middle">Your systems</text>
         <text x="220" y="370" class="hf-s" text-anchor="middle">email · payments · infra</text>
+        <g class="hf-deliv"><rect x="330" y="342" width="100" height="24" rx="6" class="hf-tag okk"/><text x="340" y="358" class="hf-s hf-okt" textLength="80" lengthAdjust="spacingAndGlyphs" font-weight="700">✓ delivered</text></g>
       </svg>
     </figure>
   </header>
