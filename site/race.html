@@ -277,7 +277,11 @@ function addLine(m, text, tone) {
   feed.appendChild(li);
   feed.scrollTop = feed.scrollHeight;
   advance(m, text);
-  if (m === "journal" && truth.journal && !truth.journal.result && /receipt for .*DELIVERED/.test(text)) { truth.journal.result = "good"; renderTruth("journal"); }
+  const rx = text.match(/receipt for (job-\d+): DELIVERED/);
+  if (rx) {
+    receiptSeen[m] = rx[1];
+    if (truth[m] && !truth[m].result && truth[m].job === rx[1]) { truth[m].result = "good"; renderTruth(m); }
+  }
   let x;
   if ((x = text.match(/contract frozen\s+sha256:(\w+)/))) $(`hash-${m}`).textContent = `contract frozen · sha256:${x[1]}`;
   if (/reports: done/.test(text) && !sending[m]) sawDone[m] = true;
@@ -325,6 +329,8 @@ function advance(m, text) {
 }
 // "Moment of truth": what was in flight when the worker died, and what each replacement did about it.
 const truth = { journal: null, baseline: null };
+// The receipt check can finish before the in-flight report arrives; remember it either way.
+const receiptSeen = { journal: null, baseline: null };
 const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
 function renderTruth(m) {
   const t = truth[m], el = $(`truth-${m}`);
@@ -345,7 +351,7 @@ function addNote(m, text, tone) {
 }
 function reset() {
   plugged = false; clearTimeout(autoTimer); autoTimer = null;
-  for (const m of MODES) { sawDone[m] = false; sending[m] = false; laneLive[m] = false; phaseAt[m] = -1; drawPhases(m); truth[m] = null; renderTruth(m); }
+  for (const m of MODES) { sawDone[m] = false; sending[m] = false; laneLive[m] = false; receiptSeen[m] = null; phaseAt[m] = -1; drawPhases(m); truth[m] = null; renderTruth(m); }
   for (const m of MODES) {
     $(`feed-${m}`).innerHTML = "";
     $(`verdict-${m}`).className = "verdict"; $(`verdict-${m}`).innerHTML = "";
@@ -374,7 +380,10 @@ function handle(msg) {
       $("status").textContent = msg.kill === "judge" ? "Running. Pull the plug any time: it fires mid-batch, while a delivery is in flight." : "Running. Workers will be killed right after delivery #2.";
       break;
     case "line": addLine(msg.mode, msg.text, msg.tone); break;
-    case "inflight": truth[msg.mode] = { job: msg.job, op: msg.op, committed_at: msg.committed_at, result: null }; renderTruth(msg.mode); break;
+    case "inflight":
+      truth[msg.mode] = { job: msg.job, op: msg.op, committed_at: msg.committed_at, result: receiptSeen[msg.mode] === msg.job ? "good" : null };
+      renderTruth(msg.mode);
+      break;
     case "counters": setCounters(msg.data); break;
     case "plug":
       plugged = true; clearTimeout(autoTimer);
