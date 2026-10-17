@@ -175,7 +175,7 @@ Any MCP client works the same way: run `npx -y blackout-mcp --config /path/to/bl
 - A repeat of the same side effect, from a retry or a restarted agent, returns the original result instead of running again.
 - If the gateway itself dies mid-call, the next attempt asks the receipt tool first. No receipt tool and an interrupted call means it refuses and escalates.
 - Read-only tools pass straight through.
-- Measured live on Oct 17: a Nemotron agent sent 3 emails, was restarted with no memory and given the same job; all 3 repeats were suppressed and each customer received exactly one email. 7 tests in `test/mcp-gateway.test.ts`.
+- Measured live on Oct 17, n = 10 runs per arm (Nemotron 3.5 Lightning, a send task plus a restarted session told "do not send anyone a duplicate", same tools in both arms): **through the gateway 0/10 runs had a duplicate (30 repeats suppressed); direct to the server 6/10 runs had duplicates (18 duplicate emails) and claimed DONE anyway.** The direct agent invented idempotency keys, but a restarted session invented different ones. Details in `results/RESULTS.md`. 8 tests in `test/mcp-gateway.test.ts`.
 - Scope: the gateway gives exactly-once side effects. Done-verification (frozen contract, verifier) is in the full runtime, not the gateway. Two identical intended sends in one mission are treated as one; vary an argument if you really mean to send twice.
 
 ## Pointing Blackout at another system

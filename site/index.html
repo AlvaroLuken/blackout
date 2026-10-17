@@ -294,7 +294,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <div class="grid3" style="margin-top:18px">
       <div class="card"><h3>Repeats are suppressed</h3><p>Every side effect gets a stable ID and is journaled before it runs. A retry or a restarted agent gets the original result back, not a second email.</p></div>
       <div class="card"><h3>Crashes are reconciled</h3><p>If the gateway dies mid-call, it asks your system's receipt tool what happened before allowing a retry. If it can't tell, it refuses and escalates.</p></div>
-      <div class="card"><h3>Measured live</h3><p>A Nemotron agent on Crusoe sent 3 emails through the gateway, was restarted with no memory and given the same job. All 3 repeats suppressed; each customer got exactly one email.</p></div>
+      <div class="card"><h3>Measured live, n = 10</h3><p>Same Nemotron agent, same task, restarted mid-job, told "don't send duplicates". <b>Through the gateway: 0 of 10 runs duplicated.</b> Direct: 6 of 10 did, 18 duplicate emails, and said DONE anyway. It invented idempotency keys, but the restarted agent invented different ones.</p></div>
     </div>
     <p class="note">The gateway handles exactly-once side effects. "Code decides done" (frozen contract plus verifier) is the full Blackout runtime shown in the race above. Works with anything that can answer "did operation X happen?" by an ID you choose: Stripe idempotency keys, SQS FIFO dedup IDs, a Postgres outbox.</p>
   </section>

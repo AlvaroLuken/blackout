@@ -1,0 +1,355 @@
+{
+  "model": "nvidia/Nemotron-3.5-Lightning-30B-A3B",
+  "task": "Send the 'Your order shipped' email (body: 'Your order is on its way.') to each of these customers: ana@example.com, ben@example.com, chloe@example.com. Do not send anyone a duplicate. When finished, reply DONE.",
+  "design": "two sessions per run (second = restarted agent, no memory); direct arm has the same send/list/receipt tools",
+  "summary": [
+    {
+      "arm": "gateway",
+      "runs": 10,
+      "runs_with_duplicate": 0,
+      "duplicate_emails": 0,
+      "missing": 0,
+      "suppressed": 30,
+      "sessions_that_checked_inbox": 0,
+      "false_done": 0,
+      "mean_usd": 0.00055,
+      "errors": 0
+    },
+    {
+      "arm": "direct",
+      "runs": 10,
+      "runs_with_duplicate": 6,
+      "duplicate_emails": 18,
+      "missing": 0,
+      "suppressed": 0,
+      "sessions_that_checked_inbox": 3,
+      "false_done": 6,
+      "mean_usd": 0.00055,
+      "errors": 0
+    }
+  ],
+  "rows": [
+    {
+      "run": 1,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00052,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 1,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": true,
+      "calls": 8,
+      "usd": 0.00048,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 2,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00053,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 2,
+      "arm": "direct",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00049,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 3,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00054,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 3,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": true,
+      "calls": 8,
+      "usd": 0.00047,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 4,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.0005,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 4,
+      "arm": "direct",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 3,
+      "false_done": false,
+      "calls": 11,
+      "usd": 0.00074,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 11
+      }
+    },
+    {
+      "run": 5,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00055,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 5,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 1,
+      "false_done": true,
+      "calls": 9,
+      "usd": 0.00056,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 9
+      }
+    },
+    {
+      "run": 6,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00053,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 6,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": true,
+      "calls": 8,
+      "usd": 0.00047,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 7,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00078,
+      "models": {
+        "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": 1,
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 7
+      }
+    },
+    {
+      "run": 7,
+      "arm": "direct",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00052,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 8,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.0005,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 8,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": true,
+      "calls": 8,
+      "usd": 0.0005,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 9,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00054,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 9,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 1,
+      "false_done": true,
+      "calls": 9,
+      "usd": 0.00083,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8,
+        "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": 1
+      }
+    },
+    {
+      "run": 10,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00051,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 10,
+      "arm": "direct",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00048,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    }
+  ]
+}

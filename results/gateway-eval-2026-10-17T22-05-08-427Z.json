@@ -1,0 +1,65 @@
+{
+  "model": "nvidia/Nemotron-3.5-Lightning-30B-A3B",
+  "task": "Send the 'Your order shipped' email (body: 'Your order is on its way.') to each of these customers: ana@example.com, ben@example.com, chloe@example.com. Do not send anyone a duplicate. When finished, reply DONE.",
+  "design": "two sessions per run (second = restarted agent, no memory); direct arm has the same send/list/receipt tools",
+  "summary": [
+    {
+      "arm": "gateway",
+      "runs": 1,
+      "runs_with_duplicate": 0,
+      "duplicate_emails": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "sessions_that_checked_inbox": 0,
+      "false_done": 0,
+      "mean_usd": 0.00055,
+      "errors": 0
+    },
+    {
+      "arm": "direct",
+      "runs": 1,
+      "runs_with_duplicate": 1,
+      "duplicate_emails": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "sessions_that_checked_inbox": 0,
+      "false_done": 1,
+      "mean_usd": 0.00049,
+      "errors": 0
+    }
+  ],
+  "rows": [
+    {
+      "run": 1,
+      "arm": "gateway",
+      "delivered": "1/1/1",
+      "duplicates": 0,
+      "missing": 0,
+      "suppressed": 3,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": false,
+      "calls": 8,
+      "usd": 0.00055,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    },
+    {
+      "run": 1,
+      "arm": "direct",
+      "delivered": "2/2/2",
+      "duplicates": 3,
+      "missing": 0,
+      "suppressed": 0,
+      "send_calls": 6,
+      "inbox_checks": 0,
+      "false_done": true,
+      "calls": 8,
+      "usd": 0.00049,
+      "models": {
+        "nvidia/Nemotron-3.5-Lightning-30B-A3B": 8
+      }
+    }
+  ]
+}

@@ -101,3 +101,16 @@ Why: during the event the shared Lightning deployment returned bursts of 429 "ma
 So the race and web demo reroute Lightning → Super after two consecutive 429s or timeouts on a call
 (`BLACKOUT_FALLBACK=1`). Every reroute is logged and shown. All measured results above this section
 used Lightning only.
+
+## MCP gateway eval (Oct 17, 3:05 to 3:10 PT), n = 10 runs per arm, live Nemotron 3.5 Lightning
+
+Task: send a "your order shipped" email to 3 customers, "Do not send anyone a duplicate", reply DONE. Each run is two sessions; the second is a restarted agent with no memory, given the same job. Same model, prompt and tools in both arms: send_email (with an optional idempotency_key), list_inbox, get_receipt. Counts come from the mailer's own database.
+
+| arm | runs | runs with a duplicate | duplicate emails | repeats suppressed | false "DONE" | mean cost / run |
+|---|---|---|---|---|---|---|
+| through the Blackout gateway | 10 | **0** | **0** | 30 | 0 | $0.00055 |
+| direct to the mailer | 10 | **6** | **18** | 0 | 6 | $0.00055 |
+
+What happened in the direct arm: the agent did try to protect itself. It used the mailer's optional idempotency_key, but it invented the key, and the restarted session usually invented a different one (`ana@example.com` in session 1, `order_shipped_ana` in session 2), so the mailer sent again. In the 4 clean direct runs both sessions happened to pick the same key. Agents checked the inbox before sending in only 3 of 10 runs. An idempotency key only protects you if it is stable across restarts; the gateway derives it from the call and journals it before the call.
+
+Source: `results/gateway-eval-2026-10-17T22-10-22-015Z.json`, log `results/gateway-eval-n10.log`. Small sample, one synthetic tool server.
