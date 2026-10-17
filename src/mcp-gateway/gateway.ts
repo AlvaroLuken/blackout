@@ -15,6 +15,7 @@ import { DatabaseSync } from "node:sqlite";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { createDone, DONE_TOOLS } from "./done.ts";
 
 export type SideEffectRule = {
   idempotencyArg?: string;                     // argument the server uses as its idempotency key (optional: without it, the journal alone suppresses repeats)
@@ -57,13 +58,19 @@ export function createGateway(downstream: Client, cfg: GatewayConfig) {
   const set = (op: string, status: string, result: unknown) =>
     db.prepare("UPDATE ops SET status = ?, result = ?, updated_at = ? WHERE op_id = ?").run(status, result == null ? null : JSON.stringify(result), now(), op);
 
-  const server = new Server({ name: "blackout-gateway", version: "0.1.0" }, { capabilities: { tools: {} } });
+  const server = new Server({ name: "blackout-gateway", version: "0.2.0" }, { capabilities: { tools: {} } });
+  const done = createDone(db, downstream, cfg);
 
-  server.setRequestHandler(ListToolsRequestSchema, async (req) => downstream.listTools(req.params));
+  server.setRequestHandler(ListToolsRequestSchema, async (req) => {
+    const list = await downstream.listTools(req.params);
+    return { ...list, tools: [...list.tools, ...(DONE_TOOLS as any)] };
+  });
 
   server.setRequestHandler(CallToolRequestSchema, async (req): Promise<CallToolResult> => {
     const { name } = req.params;
     const args = (req.params.arguments ?? {}) as Record<string, unknown>;
+    if (name === "blackout_define_done") return done.define(args as any);
+    if (name === "blackout_check_done") return done.check();
     const rule = cfg.sideEffects[name];
     if (!rule) return (await downstream.callTool({ name, arguments: args })) as CallToolResult;
 

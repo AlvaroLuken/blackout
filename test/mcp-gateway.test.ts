@@ -107,3 +107,29 @@ test("tools with strict schemas: no idempotency arg configured, the journal alon
   const keys = mailer.db.prepare("SELECT idempotency_key FROM sent").all() as { idempotency_key: string | null }[];
   assert.equal(keys[0].idempotency_key, null); // nothing extra was sent to the tool
 });
+
+test("done-checks: frozen by caller, verified by code against journal and receipts, immutable", async () => {
+  const { agent } = await setup(tmp());
+  const checks = [{ kind: "exactly_once_per", tool: "send_email", arg: "to", values: ["ana@example.com", "ben@example.com"] }];
+  const d = await agent.callTool({ name: "blackout_define_done", arguments: { goal: "email ana and ben once", checks } });
+  assert.match(textOf(d), /frozen/);
+  const again = await agent.callTool({ name: "blackout_define_done", arguments: { goal: "something easier", checks: [{ kind: "no_unknown_outcomes" }] } });
+  assert.match(textOf(again), /cannot be changed/);
+  await agent.callTool({ name: "send_email", arguments: EMAIL });
+  const notYet = await agent.callTool({ name: "blackout_check_done", arguments: {} });
+  assert.equal(notYet.isError, true);
+  assert.match(textOf(notYet), /NOT DONE[\s\S]*ben@example.com: 0 completed/);
+  await agent.callTool({ name: "send_email", arguments: { ...EMAIL, to: "ben@example.com" } });
+  await agent.callTool({ name: "send_email", arguments: EMAIL }); // a repeat is suppressed, still exactly once
+  const ok = await agent.callTool({ name: "blackout_check_done", arguments: {} });
+  assert.match(textOf(ok), /DONE: verified by code[\s\S]*receipt confirmed/);
+});
+
+test("done-checks: no definition frozen means NOT DONE; invalid checks are rejected", async () => {
+  const { agent } = await setup(tmp());
+  assert.match(textOf(await agent.callTool({ name: "blackout_check_done", arguments: {} })), /NOT DONE/);
+  const bad = await agent.callTool({ name: "blackout_define_done", arguments: { goal: "x", checks: [{ kind: "trust_me" }] } });
+  assert.equal(bad.isError, true);
+  const tools = (await agent.listTools()).tools.map((t) => t.name);
+  assert.ok(tools.includes("blackout_define_done") && tools.includes("blackout_check_done") && tools.includes("send_email"));
+});
