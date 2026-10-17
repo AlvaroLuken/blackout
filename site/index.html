@@ -134,6 +134,10 @@ p { margin: 0; max-width: 68ch; }
 .pcard p { font-size: 15.5px; color: var(--soft); }
 .pproof { font-size: 14.5px; color: var(--soft); background: var(--panel2); border-radius: 8px; padding: 10px 12px; }
 .pproof b { color: var(--fg); font-family: var(--display); font-stretch: 85%; font-size: 17px; }
+.pdanger { background: #1d1012; border: 1px solid #7f1d1d; border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; margin-top: 4px; }
+.pdanger .dl { font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--bad); }
+.pdanger p { font-size: 14.5px; color: #f3c6c6; }
+.pdanger b { color: #fff; }
 .pwhere { font-family: var(--mono); font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 @media (max-width: 900px) { .pgrid { grid-template-columns: 1fr; } }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
@@ -208,6 +212,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
         <p>Before an agent sends, pays or deploys, Blackout writes the action down with an ID. After a crash or restart it asks your system "did this already happen?" and skips it if so.</p>
         <div class="pproof"><b>18 → 0</b> duplicate emails across 10 restarted agents · <b>10/10 vs 0/10</b> clean runs after a real crash</div>
         <span class="pwhere">Runtime + MCP gateway, today · where your system can answer "did operation X happen?"</span>
+        <div class="pdanger"><span class="dl">Without Blackout</span><p><b>A crash or restart repeats the action.</b> Double refunds, double charges, the same email twice. We measured it: a restarted agent sent <b>18 duplicate emails</b> across 10 runs, and after a real crash it re-sent in <b>10 of 10</b> runs.</p></div>
       </div>
       <div class="pcard p2">
         <span class="pnum">2</span>
@@ -215,6 +220,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
         <p>The definition of done is written and frozen before the work starts. When the agent says it's finished, plain code checks the real system against it. A confident agent can't talk its way past a failing check.</p>
         <div class="pproof"><b>0</b> false "done" claims accepted · without it, the agent reported DONE in <b>6 of 10</b> runs while customers had duplicates</div>
         <span class="pwhere">Full runtime, today · coming to the gateway next</span>
+        <div class="pdanger"><span class="dl">Without Blackout</span><p><b>The agent grades its own homework.</b> The health check is green while every job fails, and the agent reports success anyway. We measured it: the agent said <b>DONE in 6 of 10 runs</b> while customers had duplicates.</p></div>
       </div>
       <div class="pcard p3">
         <span class="pnum">3</span>
@@ -222,6 +228,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
         <p>If Blackout can't confirm what happened, it never retries blindly. It stops and hands a person the evidence: what was attempted, what the checks found.</p>
         <div class="pproof">Every duplicate in our tests was caught and escalated, never reported as success</div>
         <span class="pwhere">Runtime + MCP gateway, today</span>
+        <div class="pdanger"><span class="dl">Without Blackout</span><p><b>It guesses, and the guess is usually "try again".</b> An unknown outcome becomes a second charge or a second message, and you hear about it from the customer. In one of our runs the agent re-sent the <b>whole batch, 7 extra messages</b>.</p></div>
       </div>
     </div>
   </section>
