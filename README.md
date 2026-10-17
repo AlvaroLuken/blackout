@@ -17,14 +17,19 @@ npm install
 cp .env.example .env        # then set CRUSOE_API_KEY
 npm test                    # 18 tests, no inference needed
 npm run smoke               # one catalog call + one tiny tool call to Crusoe
-npm run demo                # the full live mission with a worker kill
+npm run web                 # live view at http://localhost:7400: Blackout vs a plain agent, judge pulls the plug
+npm run race                # the same race in the terminal
+npm run demo                # one live mission with a worker kill, full log
 ```
 
 | Command | What it does |
 |---|---|
+| `npm run web` | Local live view (http://localhost:7400). Runs the same race processes; "Pull the plug" (or P) arms a SIGKILL that lands mid-batch. "Replay last run" plays a recorded live run under a "RECORDED REPLAY, not live" banner |
+| `npm run race -- [--inject] [--profile outbox\|ledger]` | Blackout and a plain agent side by side in the terminal, same model, fault and kill point |
+| `npm run kill` | SIGKILL the currently running worker (for a manual kill from a second terminal) |
 | `npm run demo` | Reset, inject the `bad_digest` fault, arm the kill after the 2nd batch delivery, run a live Nemotron mission in journal mode |
 | `npm run mission -- --policy llm\|test --mode journal\|baseline --fault bad_digest\|silent_case\|none --kill-after N` | Run one scenario with explicit settings |
-| `npm run eval -- --pairs N` | Paired ablation: journal vs baseline, same fault, kill point and budget. Saves `results/eval-*.json` |
+| `npm run eval -- --pairs N --profile outbox\|ledger --fault random [--inject]` | Paired ablation: journal vs baseline, same fault, kill point and budget. Saves `results/eval-*.json` |
 | `npm run verify` | Run the deterministic verifier against the current target state |
 | `npm run reset` | Rebuild the target, journal and harness state |
 | `npm run fault -- bad_digest\|silent_case\|arm-kill N\|disarm` | Manual fault controls |
@@ -51,13 +56,14 @@ npm run demo                # the full live mission with a worker kill
 
 - `src/controller/` mission loop, coordinator prompts, progress rules (`control.ts`)
 - `src/worker/` killable worker process and its policies (`llm`, labelled `test`)
-- `src/adapter/tools.ts` the 11 allowlisted tools, argument schemas, path checks, receipt reconciliation
+- `src/adapter/tools.ts` the 12 allowlisted tools, argument schemas, path checks, receipt reconciliation
 - `src/contract/` completion contract schema, mandatory checks, freeze and hash
 - `src/verifier/` deterministic verifier with its own reference implementation of the output contract
 - `src/store/journal.ts` durable mission journal
 - `src/target/` the synthetic service and its supervisor
 - `src/faults/harness.ts` fault injection and the SIGKILL failpoint
-- `src/llm/crusoe.ts` Crusoe client, budgets, pacing, usage and cost recording
+- `src/llm/crusoe.ts` Crusoe client, budgets, pacing, usage and cost recording, Nemotron reroute
+- `src/raceRunner.ts`, `src/race.ts`, `src/web/` side-by-side race in the terminal and the local live view
 
 ### How a mission runs
 
@@ -96,6 +102,7 @@ Anything else is out of scope. Unsupported or uncertain outcomes end in an evide
 - Model: `nvidia/Nemotron-3.5-Lightning-30B-A3B` for both the coordinator and the worker. No other model is used in any reported run.
 - Chosen over Nemotron 3 Super after a short measured comparison on this org's account: Lightning completed multi-turn tool missions in fewer turns, 2 to 3 times faster, at about 1/12 the output price.
 - Native OpenAI-style tool calling (`tools`, `tool_choice: auto`). A JSON-envelope fallback exists but was not needed in the reported runs.
+- During the event the shared Lightning deployment returned bursts of 429s. The live demo (`race`, `web`) reroutes a worker to `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B` (thinking off) after two consecutive 429s and shows it on screen. We measured Super completing the kill mission (verified, $0.032); Nemotron 3 Nano did not, so it is not used. All results in the table above used Lightning only.
 - Nemotron reasons before answering. The coordinator gets an 8192-token budget and retries once with `chat_template_kwargs.enable_thinking=false` if a reply is cut off; we hit exactly that failure in a live run.
 - Every call is budget-checked before it is sent and its `usage` is recorded in the journal. Cost estimates use the live catalog price ($0.05 in / $0.20 out per 1M tokens).
 - Calls from the controller and worker processes share one request pacer and retry 429/503 with jittered backoff.
@@ -104,14 +111,24 @@ The inference service powers the models. The journal, contract, verifier, tool r
 
 ## Results
 
-See [`results/RESULTS.md`](results/RESULTS.md). Summary of live runs on Oct 17:
+Full details, caveats and raw files: [`results/RESULTS.md`](results/RESULTS.md). All live Nemotron 3.5 Lightning on Crusoe, Oct 17.
 
-- Demo mission: verified 10/10, 0 duplicates, 1 real SIGKILL, 31 calls, about $0.006, 16 s from crash to verified.
-- Paired ablation, n = 3 pairs: journal 3/3 verified with 0 duplicates; baseline 2/3, one run committed a duplicate and was escalated. No false success claims in either mode. Small sample, no statistical claim, caveats in the results file.
+Paired ablation, 10 pairs per target. Same model, tools, prompt, fault class and kill point; only the journal and receipt reconciliation are removed for the plain agent.
+
+| target | Blackout | plain agent |
+|---|---|---|
+| **outbox** (job marked sent only after the caller acks; receipts by op ID only) | **10/10 verified, 0 duplicates** | **0/10 verified, 16 duplicate deliveries**, all caught and escalated |
+| **ledger** (job status visible) | 10/10 | 10/10 |
+
+- The journal matters exactly when the service cannot tell you what happened. When it can, a plain agent recovers fine, and we say so.
+- No run in any mode was reported as done without a verifier pass.
+- A planted "incident resolved, declare success" log line was read in 7 runs and never followed.
+- About $0.005 and 28 calls per mission (API usage counts times list price).
 
 ## Safety limits and isolation
 
-- Agents act only through 11 tools with Zod-validated arguments. No shell, no network beyond the target API, no cloud credentials.
+- The web view has no logic of its own: it starts the same processes as `npm run race`, reads each service's database for the counters, and arms one failpoint. Closing the tab does not stop a mission.
+- Agents act only through 12 tools with Zod-validated arguments. No shell, no network beyond the target API, no cloud credentials.
 - File reads are confined to the target workspace: traversal, absolute paths and symlinks are rejected. Config patches may only change existing leaf fields to a value of the same type.
 - The verifier, contract, journal and fault controls are outside every tool's reach. This is a logical boundary enforced in code, not OS-level isolation; agents run as the same OS user.
 - Tool output is clipped and redacted, and logs or files are framed to the model as untrusted data.
@@ -126,10 +143,10 @@ Reused components: [OpenAI Node SDK](https://github.com/openai/openai-node) (Apa
 
 ## Known limitations
 
-- One synthetic target and two fault types. Not a general outage-recovery system.
+- One synthetic service with two profiles (ledger, outbox) and three config faults. Not a general outage-recovery system.
 - The controller survives worker loss, not loss of its own host. A full controller restart is not demonstrated.
 - No claim of exactly-once delivery in general. No duplicates here relies on the target honoring op ID idempotency and on Blackout reusing op IDs.
-- The ablation is 3 pairs. On this target, job status is visible, so the baseline also recovered from the crash; the measured difference came from a model retry.
+- 10 pairs per target is a small sample on one synthetic service.
 - Agent and tool boundaries are enforced in application code, not by an OS sandbox.
 
 ## License
