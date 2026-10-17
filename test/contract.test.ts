@@ -35,3 +35,10 @@ test("a proposed check that contradicts the observed scope is rejected at freeze
   assert.equal(c.checks.some((x) => x.kind === "expected_scope_size"), false);
   assert.match((c.rejected_checks[0] as any).reason, /inconsistent with observed scope/);
 });
+
+test("a malformed proposal still freezes with mandatory checks and the user's goal", () => {
+  const c = freezeContract("t5", "fix it", { checks: "nope", assumptions: [1, "ok"] }, scope);
+  assert.equal(c.goal_summary, "fix it");
+  assert.deepEqual(c.assumptions, ["ok"]);
+  assert.equal(c.checks.filter((x) => x.source === "mandatory").length, MANDATORY.length);
+});

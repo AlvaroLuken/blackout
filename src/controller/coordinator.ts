@@ -32,11 +32,18 @@ export async function proposeContract(journal: Journal, missionId: string, limit
     'Return JSON: {"goal_summary": string, "assumptions": string[], "checks": [{"kind": ...}, ...]}',
     "State any assumption you make about ambiguous parts of the goal.",
   ].join("\n");
-  const { message } = await chat(journal, missionId, "coordinator", limits, {
-    messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }],
-    max_tokens: 3000,
-  });
-  return extractJson(message.content);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    // Nemotron reasons before answering. If a reply is cut off, retry with thinking off.
+    const { message } = await chat(journal, missionId, "coordinator", limits, {
+      messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }],
+      max_tokens: 8192,
+      thinking: attempt === 0 ? undefined : false,
+    });
+    const j = extractJson(message.content);
+    if (j && Array.isArray(j.checks) && typeof j.goal_summary === "string") return j;
+    journal.event(missionId, "coordinator", "malformed_proposal", { attempt, content: (message.content ?? "").slice(0, 400) });
+    if (attempt === 1) return j ?? { checks: [], assumptions: ["Coordinator proposal was malformed twice; mandatory checks only."] };
+  }
 }
 
 export async function decide(journal: Journal, missionId: string, limits: Limits, input: {
@@ -55,9 +62,11 @@ export async function decide(journal: Journal, missionId: string, limits: Limits
     'Return JSON: {"decision": "continue"|"replan"|"escalate", "instructions": "<concrete next assignment for the worker>", "rationale": "<one or two sentences>"}',
   ].filter(Boolean).join("\n");
   for (let attempt = 0; attempt < 2; attempt++) {
+    // Nemotron reasons before answering. If a reply is cut off, retry with thinking off.
     const { message } = await chat(journal, missionId, "coordinator", limits, {
       messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }],
-      max_tokens: 3000,
+      max_tokens: 8192,
+      thinking: attempt === 0 ? undefined : false,
     });
     const parsed = DecisionSchema.safeParse(extractJson(message.content));
     if (parsed.success) return { decision: parsed.data, malformed: attempt > 0 };

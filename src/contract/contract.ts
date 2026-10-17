@@ -84,7 +84,13 @@ export function freezeContract(missionId: string, goal: string, rawProposal: unk
     }
     accepted.push(r.data);
   }
-  const proposal = ProposalSchema.parse({ ...raw, checks: accepted });
+  // Malformed summary or assumptions never block freezing; fall back to the user's goal.
+  const lenient = {
+    goal_summary: typeof raw.goal_summary === "string" && raw.goal_summary.trim() ? raw.goal_summary.slice(0, 400) : goal.slice(0, 400),
+    assumptions: Array.isArray(raw.assumptions) ? raw.assumptions.filter((a): a is string => typeof a === "string").map((a) => a.slice(0, 300)).slice(0, 8) : [],
+    checks: accepted,
+  };
+  const proposal = ProposalSchema.parse(lenient);
 
   const checks: FrozenContract["checks"] = MANDATORY.map((c) => ({ ...c, source: "mandatory" as const }));
   for (const c of proposal.checks) {

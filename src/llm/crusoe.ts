@@ -68,6 +68,7 @@ export type ChatArgs = {
   tools?: OpenAI.ChatCompletionTool[];
   max_tokens?: number;
   json?: boolean;
+  thinking?: boolean; // false sends chat_template_kwargs.enable_thinking=false
 };
 
 export async function chat(journal: Journal, missionId: string, actor: string, limits: Limits, args: ChatArgs) {
@@ -97,7 +98,8 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
         max_tokens: args.max_tokens ?? 4096,
         temperature: 0.2,
         ...(args.json ? { response_format: { type: "json_object" as const } } : {}),
-      });
+        ...(args.thinking === false ? { chat_template_kwargs: { enable_thinking: false } } : {}),
+      } as any);
       const u = res.usage;
       const choice = res.choices[0];
       journal.recordUsage(missionId, {
