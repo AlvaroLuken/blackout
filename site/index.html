@@ -34,19 +34,17 @@ h2 { font-weight: 800; font-stretch: 80%; font-size: clamp(32px, 4.5vw, 48px); l
 h3 { font-weight: 700; font-stretch: 90%; font-size: 21px; }
 p { margin: 0; max-width: 68ch; }
 .lede { font-size: 21px; color: var(--soft); max-width: 46ch; }
-.hero { padding-block: 40px 72px; border-top: 0; display: grid; grid-template-columns: minmax(0, 45fr) minmax(0, 55fr); gap: 40px; align-items: center; }
-.hero-text { display: grid; gap: 22px; min-width: 0; }
+.hero { padding-block: 56px 72px; border-top: 0; display: grid; gap: 0; }
+.hero-text { display: grid; gap: 24px; min-width: 0; }
 .hero-visual { min-width: 0; }
-.hero h1 { font-size: clamp(46px, 5.8vw, 82px); }
+.hero h1 { font-size: clamp(54px, 8vw, 104px); }
 .hero .lede { font-size: 19px; }
-.benefits { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.benefits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; max-width: 980px; }
+@media (max-width: 760px) { .benefits { grid-template-columns: 1fr; } }
 .benefits li { position: relative; padding-left: 30px; font-size: 16.5px; color: var(--soft); line-height: 1.45; }
 .benefits li::before { content: "✓"; position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--amber-soft); color: var(--amber); font-size: 12px; display: grid; place-items: center; font-weight: 700; }
 .benefits b { color: var(--fg); font-weight: 600; }
-.hero #flow3d { height: 470px; }
-.hero .flow-text { min-height: 128px; }
-.hero #flow-caption { font-size: 16px; } .hero #flow-why { font-size: 14px; }
-@media (max-width: 1000px) { .hero { grid-template-columns: 1fr; } }
+#watch #flow3d { height: 560px; }
 .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: 17px; padding: 13px 22px; border-radius: 9px; }
 .btn.primary { background: var(--amber); color: #1a1205; }
@@ -138,7 +136,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 <div class="wrap">
   <nav>
     <a class="logo" href="#">BLACK<span>OUT</span></a>
-    <div class="links"><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+    <div class="links"><a href="#watch">Watch</a><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
   </nav>
 
   <header class="hero">
@@ -153,13 +151,20 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
         <li><b>Drop-in today.</b> An MCP gateway in front of your tools: <code>npx blackout-mcp</code>. Keep your agent.</li>
       </ul>
       <div class="ctas">
-        <a class="btn primary" href="#race">▶ See it handle a crash</a>
+        <a class="btn primary" href="#watch">▶ Watch how it works</a>
         <a class="btn ghost" href="#use">Use it today</a>
         <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
       </div>
       <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
     </div>
-    <div class="hero-visual">
+  </header>
+
+  <section id="watch" aria-labelledby="h-watch">
+    <div class="head">
+      <span class="eyebrow">Watch the idea in 30 seconds</span>
+      <h2 id="h-watch">One message. One crash. What happens next.</h2>
+      <p class="lede">Switch between the tabs to see the same moment with Blackout, without it, and through the MCP gateway.</p>
+    </div>
     <div class="flow" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
       <div id="flow3d"></div>
       <div id="flow-labels" aria-hidden="true"></div>
@@ -177,8 +182,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
         <div class="flow-ctl"><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
       </div>
     </div>
-    </div>
-  </header>
+  </section>
 
   <section id="problem" aria-labelledby="h-problem">
     <div class="head">
