@@ -92,6 +92,7 @@ const c5Label = label(c5, "Customer 5", "", 1.9);
 // --- Packets ---
 const packets = [];
 function packet(from, to, color, ms, onArrive) {
+  if (fast) { onArrive?.(); return null; }
   const m = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), mat(color, color, 2.5));
   const a = from.clone(), b = to.clone(); m.position.copy(a); scene.add(m);
   const p = { m, a, b, t0: performance.now(), ms: reduce ? 1 : ms, onArrive, light: new THREE.PointLight(color, 2.5, 3) };
@@ -111,6 +112,9 @@ function envelope(c, bad) {
 }
 
 // --- Story ---
+// When jumping to a phase, earlier phases are replayed instantly (no flights, no bubbles).
+let fast = false;
+const later = (fn, ms) => (fast ? fn() : setTimeout(fn, ms));
 const phaseEl = document.getElementById("flow-phase");
 const whyEl = document.getElementById("flow-why");
 const tabs = [...document.querySelectorAll("[data-flow-mode]")];
@@ -122,6 +126,7 @@ function look(obj, dx = 0) { if (!obj) { focusGoal.set(0, 1.2, 0.8); return; } o
 // Speech bubbles anchored to actors.
 const bubbles = [];
 function say(obj, text, kind = "", ms = 2600, dy = 3.1) {
+  if (fast) return;
   const el = document.createElement("div"); el.className = `fbubble ${kind}`; el.textContent = text;
   labelsEl.appendChild(el); const b = { obj, el, dy, until: performance.now() + (reduce ? 3200 : ms) }; bubbles.push(b);
 }
@@ -168,7 +173,7 @@ const WITH = [
   ["Crash", "The agent crashes a moment later, before it can note that the message went out.", "This is the dangerous moment every unattended agent eventually hits.",
     () => { look(agent, 2); crash(); }],
   ["Restart", "A fresh agent takes over. It has no memory, so it tries to message customer 5 again.", "Agents get restarted all the time: deploys, timeouts, out-of-memory kills.",
-    () => { look(agent, 2); respawn(); setTimeout(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
+    () => { look(agent, 2); respawn(); later(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
   ["Check the receipt", "Blackout recognises op-005, then asks your system what really happened. The receipt says: already sent.", "It asks the outside world instead of guessing. If the answer were unknown, it would escalate to a human.",
     () => { look(guard, 1.5); say(guard, "op-005 again… checking", "amber"); packet(at(guard, 2.1), at(receipts, 1.6), C.amber, 900, () => { glow(receipts, C.ok); say(receipts, "already sent ✓", "ok", 2400, 2.2); packet(at(receipts, 1.6), at(guard, 2.1), C.ok, 900); }); }],
   ["Blocked, and verified", "Blackout blocks the repeat. Customer 5 got exactly one message, and code checks every inbox before anyone says done.", "Exactly-once actions plus a verdict from code, not from the agent's confidence.",
@@ -180,7 +185,7 @@ const WITHOUT = [
   ["Deliver", "Your system sends it.", "So far so good.", () => { look(service); deliver(false); }],
   ["Crash", "The agent crashes before it can note that the message went out.", "Its memory of the send dies with it.", () => { look(agent, 2); crash(); }],
   ["Restart", "A fresh agent takes over. Customer 5 looks unsent, so it sends again.", "It can't tell 'didn't happen' from 'happened, but nobody wrote it down'.",
-    () => { look(agent, 2); respawn(); setTimeout(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(service, 2), C.blue, 1500); }, 500); }],
+    () => { look(agent, 2); respawn(); later(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(service, 2), C.blue, 1500); }, 500); }],
   ["Duplicate", "Your system sends it again. Customer 5 got the same message twice.", "In real life: a double refund, a double charge, a spammed customer.", () => { look(c5, -2); deliver(true); }],
   ["False 'done'", "And the agent reports \"all done\". Nothing checked it.", "This is what Blackout is for.", () => { look(agent, 3); say(agent, "All done ✓", "bad", 3000); }],
 ];
@@ -194,7 +199,7 @@ const MCP = [
   ["Session ends", "The agent session ends: a crash, a restart, or just a new chat.", "Normal life for agents. The gateway's journal survives it.",
     () => { look(agent, 2); crash(); }],
   ["Same call again", "A new session, with no memory, is given the same job and calls send_email for customer 5 again.", "Retries and repeated jobs are where duplicates come from.",
-    () => { look(agent, 2); respawn(); setTimeout(() => { say(agent, "send_email(customer 5)"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
+    () => { look(agent, 2); respawn(); later(() => { say(agent, "send_email(customer 5)"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
   ["Suppressed", "The gateway recognises the same op and returns the original result: duplicate suppressed. Your server never sees a second send.", "Measured live: 3 sends, restart, 3 suppressed, one email per customer. If the gateway itself crashed mid-call, it would ask get_receipt first.",
     () => { look(null); shield.material.opacity = 0.25; glow(guard, C.amber, 1500); say(guard, "duplicate suppressed", "amber", 3200); }],
 ];
@@ -202,8 +207,8 @@ const MCP = [
 function crash() {
   agent.userData.body.material = mat(0x7f1d1d, C.bad, 1.5);
   glow(agent, C.bad, 1200); say(agent, "✖ crashed", "bad", 1800);
-  setTimeout(() => { agent.rotation.z = -1.35; agent.position.y = 0.3; }, 400);
-  setTimeout(() => { agent.visible = false; }, 1500);
+  later(() => { agent.rotation.z = -1.35; agent.position.y = 0.3; }, 400);
+  later(() => { agent.visible = false; }, 1500);
 }
 function respawn() {
   agent.visible = true; agent.rotation.set(0, 0, 0); agent.position.set(-8.2, 0, 0);
@@ -212,17 +217,41 @@ function respawn() {
 }
 
 function script() { return mode === "with" ? WITH : mode === "without" ? WITHOUT : MCP; }
+const stepsEl = document.getElementById("flow-steps");
+function drawSteps() {
+  const sc = script();
+  stepsEl.innerHTML = "";
+  sc.forEach(([phase], i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "fstep" + (i < stepIdx ? " done" : i === stepIdx ? " on" : "");
+    b.innerHTML = `<span>${i + 1}</span>${phase}`;
+    b.setAttribute("aria-current", i === stepIdx ? "step" : "false");
+    b.addEventListener("click", () => jump(i));
+    stepsEl.appendChild(b);
+  });
+}
+function show(i) {
+  const [phase, text, why, act] = script()[i];
+  stepEl.textContent = `${i + 1}/${script().length}`;
+  phaseEl.textContent = phase; cap.textContent = text;
+  whyEl.innerHTML = `<b>${mode === "without" ? "What goes wrong:" : "What Blackout brings:"}</b> ${why}`;
+  act(); drawSteps();
+}
+// Jump to any phase: rebuild the scene by replaying earlier phases instantly.
+function jump(i, keepPlaying = false) {
+  clearTimeout(timer);
+  if (!keepPlaying) { playing = false; btnPlay.textContent = "Next step ▸"; }
+  resetScene();
+  fast = true; for (let k = 0; k < i; k++) script()[k][3](); fast = false;
+  stepIdx = i; show(i);
+  if (playing) timer = setTimeout(next, 4600);
+}
 function next() {
   const s = script();
   stepIdx = (stepIdx + 1) % (s.length + 1);
   if (stepIdx === s.length) { timer = playing ? setTimeout(() => { stepIdx = -1; resetScene(); next(); }, 2600) : null; return; }
   if (stepIdx === 0) resetScene();
-  const [phase, text, why, act] = s[stepIdx];
-  stepEl.textContent = `${stepIdx + 1}/${s.length}`;
-  phaseEl.textContent = phase;
-  cap.textContent = text;
-  whyEl.innerHTML = `<b>${mode === "without" ? "What goes wrong:" : "What Blackout brings:"}</b> ${why}`;
-  act();
+  show(stepIdx);
   if (playing) timer = setTimeout(next, 4600);
 }
 function restart() { clearTimeout(timer); stepIdx = -1; resetScene(); next(); }
@@ -230,14 +259,19 @@ function restart() { clearTimeout(timer); stepIdx = -1; resetScene(); next(); }
 for (const t of tabs) t.addEventListener("click", () => {
   mode = t.dataset.flowMode;
   for (const x of tabs) x.setAttribute("aria-selected", String(x === t));
-  restart();
+  restart(); drawSteps();
 });
 btnPlay.addEventListener("click", () => {
   if (playing) { playing = false; clearTimeout(timer); btnPlay.textContent = "Next step ▸"; }
-  else next();
+  else jump(Math.min(stepIdx + 1, script().length - 1));
+});
+document.getElementById("flow-prev").addEventListener("click", () => jump(Math.max(0, stepIdx - 1)));
+document.querySelector(".flow").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") { e.preventDefault(); jump(Math.min(stepIdx + 1, script().length - 1)); }
+  if (e.key === "ArrowLeft") { e.preventDefault(); jump(Math.max(0, stepIdx - 1)); }
 });
 btnPlay.textContent = reduce ? "Next step ▸" : "Pause";
-document.getElementById("flow-auto").addEventListener("click", () => { playing = true; btnPlay.textContent = "Pause"; clearTimeout(timer); next(); });
+document.getElementById("flow-auto").addEventListener("click", () => { playing = true; btnPlay.textContent = "Pause"; clearTimeout(timer); timer = setTimeout(next, 600); });
 
 function resize() {
   const w = host.clientWidth, h = host.clientHeight;

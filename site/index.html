@@ -82,7 +82,14 @@ p { margin: 0; max-width: 68ch; }
 #flow-caption { margin: 0; font-size: 18px; color: var(--fg); line-height: 1.4; }
 #flow-why { margin: 0; font-size: 15px; color: var(--soft); }
 #flow-why b { color: var(--amber); font-weight: 600; }
-.flow-ctl { display: flex; gap: 8px; align-self: start; }
+.flow-ctl { display: flex; gap: 8px; align-self: start; flex-wrap: wrap; }
+.flow-steps { display: flex; gap: 6px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--panel); overflow-x: auto; }
+.fstep { flex: 1 0 auto; font: inherit; font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; background: #1c2029; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; gap: 8px; align-items: center; justify-content: center; white-space: nowrap; }
+.fstep span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--line); color: var(--fg); font-size: 11px; }
+.fstep.done { color: #6fcf9f; border-color: #1d4d3c; } .fstep.done span { background: #1b2b26; color: #6fcf9f; }
+.fstep.on { background: var(--amber); color: #1a1205; border-color: var(--amber); font-weight: 700; } .fstep.on span { background: #1a1205; color: var(--amber); }
+.fstep:hover { border-color: var(--amber); }
+.fstep:focus-visible, .flow:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .flow-tabs { display: flex; gap: 6px; padding: 10px 14px 0; position: absolute; top: 0; left: 0; z-index: 2; flex-wrap: wrap; }
 .flow-tabs button { font: inherit; font-family: var(--mono); font-size: 13px; cursor: pointer; background: rgba(18,21,27,0.85); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; }
 .flow-tabs button[aria-selected="true"] { background: var(--amber); color: #1a1205; border-color: var(--amber); font-weight: 700; }
@@ -165,7 +172,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <h2 id="h-watch">One message. One crash. What happens next.</h2>
       <p class="lede">Switch between the tabs to see the same moment with Blackout, without it, and through the MCP gateway.</p>
     </div>
-    <div class="flow" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
+    <div class="flow" tabindex="0" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
       <div id="flow3d"></div>
       <div id="flow-labels" aria-hidden="true"></div>
       <div class="flow-tabs" role="tablist" aria-label="Story">
@@ -173,13 +180,14 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
         <button type="button" role="tab" data-flow-mode="without" aria-selected="false">Without Blackout</button>
         <button type="button" role="tab" data-flow-mode="mcp" aria-selected="false">MCP gateway</button>
       </div>
+      <div class="flow-steps" id="flow-steps" aria-label="Phases"></div>
       <div class="flow-bar">
         <div class="flow-text">
           <div><span id="flow-step">1/7</span> <span id="flow-phase">Ask</span></div>
           <p id="flow-caption" aria-live="polite">The agent decides to message customer 5.</p>
           <p id="flow-why"></p>
         </div>
-        <div class="flow-ctl"><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
+        <div class="flow-ctl"><button type="button" id="flow-prev" aria-label="Previous phase">◀ Back</button><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
       </div>
     </div>
   </section>
