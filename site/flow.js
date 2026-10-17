@@ -6,7 +6,6 @@ const host = document.getElementById("flow3d");
 const cap = document.getElementById("flow-caption");
 const stepEl = document.getElementById("flow-step");
 const labelsEl = document.getElementById("flow-labels");
-const btnMode = document.getElementById("flow-mode");
 const btnPlay = document.getElementById("flow-play");
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -67,16 +66,16 @@ function makeDB(color) {
   g.userData.disks = disks; return g;
 }
 const journal = makeDB(C.amber); journal.position.set(-3.2, 0, 3.6); scene.add(journal);
-label(journal, "Journal", "written before every action", -0.35);
+const journalLabel = label(journal, "Journal", "written before every action", -0.35);
 
 // --- Your system ---
 const service = new THREE.Group(); service.position.set(3, 0, 0); scene.add(service);
 const rack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3, 1.4), mat(C.steel)); rack.position.y = 1.5; service.add(rack);
 const leds = [];
 for (let i = 0; i < 4; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 0.02), mat(0x112, C.ok, 1.5)); l.position.set(0, 0.6 + i * 0.6, 0.71); service.add(l); leds.push(l); }
-label(service, "Your system", "sends the messages", 3.9);
+const serviceLabel = label(service, "Your system", "sends the messages", 3.9);
 const receipts = makeDB(C.ok); receipts.position.set(3, 0, 3.6); scene.add(receipts);
-label(receipts, "Receipts", "what really happened", -0.35);
+const receiptsLabel = label(receipts, "Receipts", "what really happened", -0.35);
 
 // --- Customers ---
 const customers = [];
@@ -99,6 +98,11 @@ function packet(from, to, color, ms, onArrive) {
   const p = { m, a, b, t0: performance.now(), ms: reduce ? 1 : ms, onArrive, light: new THREE.PointLight(color, 2.5, 3) };
   m.add(p.light); packets.push(p); return p;
 }
+const trails = [];
+function trail(pos, color) {
+  const d = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.6 }));
+  d.position.copy(pos); scene.add(d); trails.push(d);
+}
 const at = (obj, dy = 1.6, dx = 0, dz = 0) => obj.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(dx, dy, dz));
 
 function envelope(c, bad) {
@@ -108,77 +112,133 @@ function envelope(c, bad) {
 }
 
 // --- Story ---
-let withBlackout = true, playing = !reduce, stepIdx = -1, timer = null, flash = { obj: null, until: 0, color: 0 };
-function glow(obj, color, ms = 900) { flash = { obj, until: performance.now() + ms, color }; }
-function setCaption(n, total, text) { stepEl.textContent = `${n}/${total}`; cap.textContent = text; }
+const phaseEl = document.getElementById("flow-phase");
+const whyEl = document.getElementById("flow-why");
+const tabs = [...document.querySelectorAll("[data-flow-mode]")];
+let mode = "with", playing = !reduce, stepIdx = -1, timer = null, flash = { obj: null, until: 0 };
+const focus = new THREE.Vector3(0, 1.2, 0.8), focusGoal = new THREE.Vector3(0, 1.2, 0.8);
+function glow(obj, color, ms = 900) { flash = { obj, until: performance.now() + ms }; }
+function look(obj, dx = 0) { if (!obj) { focusGoal.set(0, 1.2, 0.8); return; } obj.getWorldPosition(focusGoal); focusGoal.y = 1.4; focusGoal.x = focusGoal.x * 0.45 + dx; focusGoal.z = 0.8; }
+
+// Speech bubbles anchored to actors.
+const bubbles = [];
+function say(obj, text, kind = "", ms = 2600, dy = 3.1) {
+  const el = document.createElement("div"); el.className = `fbubble ${kind}`; el.textContent = text;
+  labelsEl.appendChild(el); const b = { obj, el, dy, until: performance.now() + (reduce ? 3200 : ms) }; bubbles.push(b);
+}
+function clearBubbles() { for (const b of bubbles.splice(0)) b.el.remove(); }
+
+function setLabels() {
+  const mcp = mode === "mcp";
+  agentLabel.querySelector("b").textContent = mcp ? "Any MCP agent" : "AI agent";
+  agentLabel.querySelector("span").textContent = mcp ? "Claude Code, Nemotron, …" : "Nemotron on Crusoe";
+  guardLabel.querySelector("b").textContent = mcp ? "Blackout MCP gateway" : "Blackout";
+  guardLabel.querySelector("span").textContent = mcp ? "npx blackout-mcp" : "the guardian";
+  journalLabel.querySelector("b").textContent = mcp ? "Gateway journal" : "Journal";
+  serviceLabel.querySelector("b").textContent = mcp ? "Your MCP server" : "Your system";
+  serviceLabel.querySelector("span").textContent = mcp ? "send_email, refunds, …" : "sends the messages";
+  receiptsLabel.querySelector("b").textContent = mcp ? "get_receipt" : "Receipts";
+}
 
 function resetScene() {
+  clearBubbles();
   for (const p of packets.splice(0)) scene.remove(p.m);
   for (const c of customers) { for (const e of c.userData.envs) c.remove(e); c.userData.envs = []; c.userData.count = 0; c.userData.box.material = mat(C.steel2); }
   agent.visible = true; agent.position.set(-8.2, 0, 0); agent.rotation.set(0, 0, 0); agent.userData.body.material = mat(0x4b5a75, 0x4b5a75, 0.15);
-  agentLabel.querySelector("b").textContent = "AI agent";
-  guard.visible = withBlackout; journal.visible = withBlackout; shield.material.opacity = 0;
+  const guarded = mode !== "without";
+  guard.visible = guarded; journal.visible = guarded; shield.material.opacity = 0;
   for (const c of customers.filter((c) => c !== c5)) envelope(c, false);
   c5Label.querySelector("span").textContent = "0 messages";
+  setLabels();
 }
 
+const deliver = (bad) => packet(at(service, 2), at(c5, 1.2), bad ? C.bad : C.ok, 900, () => {
+  envelope(c5, bad);
+  c5Label.querySelector("span").textContent = bad ? "2 messages ✗" : "1 message";
+  if (bad) { glow(c5, C.bad, 1500); say(c5, "Again?!", "bad", 2600, 2.6); } else say(c5, "📩 got it", "ok", 1800, 2.6);
+});
+
+// [phase, what happens, what Blackout brings, action]
 const WITH = [
-  ["The agent decides to message customer 5.", () => packet(at(agent, 2), at(guard, 2.1), C.blue, 1100)],
-  ["Blackout writes it down first, with an ID: op-005.", () => packet(at(guard, 2.1), at(journal, 1.6), C.amber, 900, () => glow(journal, C.amber))],
-  ["Then it lets the message through. Your system sends it and keeps a receipt.", () => packet(at(guard, 2.1), at(service, 2), C.amber, 900, () => {
-    packet(at(service, 2), at(c5, 1.2), C.ok, 900, () => { envelope(c5, false); c5Label.querySelector("span").textContent = "1 message"; });
-    packet(at(service, 1), at(receipts, 1.6), C.ok, 900, () => glow(receipts, C.ok));
-  })],
-  ["The agent crashes before it can note that it was sent.", () => crash()],
-  ["A fresh agent takes over. It has no memory, so it tries to message customer 5 again.", () => { respawn(); setTimeout(() => packet(at(agent, 2), at(guard, 2.1), C.blue, 1100), 500); }],
-  ["Blackout checks the journal, then asks your system about op-005. The receipt says: already sent.", () => packet(at(guard, 2.1), at(receipts, 1.6), C.amber, 900, () => { glow(receipts, C.ok); packet(at(receipts, 1.6), at(guard, 2.1), C.ok, 900); })],
-  ["So Blackout blocks the repeat. Customer 5 got exactly one message, and code confirms it.", () => { shield.material.opacity = 0.22; glow(guard, C.amber, 1500); }],
+  ["Ask", "The agent decides to message customer 5.", "Blackout doesn't change how the agent thinks. It only steps in when the agent touches the real world.",
+    () => { look(agent, 2); say(agent, "Send to customer 5"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }],
+  ["Write it down first", "Before anything happens, Blackout records the intent with a stable ID: op-005.", "A durable memory that lives outside the agent, so a crash can't erase it.",
+    () => { look(guard); say(guard, "op-005 saved", "amber"); packet(at(guard, 2.1), at(journal, 1.6), C.amber, 900, () => glow(journal, C.amber)); }],
+  ["Deliver", "Then it lets the message through. Your system sends it and keeps a receipt for op-005.", "The ID travels with the action, so the outside world can later say whether it happened.",
+    () => { look(service); packet(at(guard, 2.1), at(service, 2), C.amber, 900, () => { deliver(false); packet(at(service, 1), at(receipts, 1.6), C.ok, 900, () => { glow(receipts, C.ok); say(receipts, "receipt: op-005", "ok", 2200, 2.2); }); }); }],
+  ["Crash", "The agent crashes a moment later, before it can note that the message went out.", "This is the dangerous moment every unattended agent eventually hits.",
+    () => { look(agent, 2); crash(); }],
+  ["Restart", "A fresh agent takes over. It has no memory, so it tries to message customer 5 again.", "Agents get restarted all the time: deploys, timeouts, out-of-memory kills.",
+    () => { look(agent, 2); respawn(); setTimeout(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
+  ["Check the receipt", "Blackout recognises op-005, then asks your system what really happened. The receipt says: already sent.", "It asks the outside world instead of guessing. If the answer were unknown, it would escalate to a human.",
+    () => { look(guard, 1.5); say(guard, "op-005 again… checking", "amber"); packet(at(guard, 2.1), at(receipts, 1.6), C.amber, 900, () => { glow(receipts, C.ok); say(receipts, "already sent ✓", "ok", 2400, 2.2); packet(at(receipts, 1.6), at(guard, 2.1), C.ok, 900); }); }],
+  ["Blocked, and verified", "Blackout blocks the repeat. Customer 5 got exactly one message, and code checks every inbox before anyone says done.", "Exactly-once actions plus a verdict from code, not from the agent's confidence.",
+    () => { look(null); shield.material.opacity = 0.25; glow(guard, C.amber, 1500); say(guard, "Blocked: already done", "amber", 3000); }],
 ];
 const WITHOUT = [
-  ["The agent decides to message customer 5. There is no journal.", () => packet(at(agent, 2), at(service, 2), C.blue, 1500)],
-  ["Your system sends it.", () => packet(at(service, 2), at(c5, 1.2), C.ok, 900, () => { envelope(c5, false); c5Label.querySelector("span").textContent = "1 message"; })],
-  ["The agent crashes before it can note that it was sent.", () => crash()],
-  ["A fresh agent takes over. Customer 5 looks unsent, so it sends again.", () => { respawn(); setTimeout(() => packet(at(agent, 2), at(service, 2), C.blue, 1500), 500); }],
-  ["Your system sends it again. Customer 5 got the same message twice.", () => packet(at(service, 2), at(c5, 1.2), C.bad, 900, () => { envelope(c5, true); c5Label.querySelector("span").textContent = "2 messages ✗"; glow(c5, C.bad, 1500); })],
-  ["And the agent reports \"all done\". Nothing checked it.", () => {}],
+  ["Ask", "The agent decides to message customer 5. Nothing writes it down.", "No journal: the only record is in the agent's head.",
+    () => { look(agent, 2); say(agent, "Send to customer 5"); packet(at(agent, 2), at(service, 2), C.blue, 1500); }],
+  ["Deliver", "Your system sends it.", "So far so good.", () => { look(service); deliver(false); }],
+  ["Crash", "The agent crashes before it can note that the message went out.", "Its memory of the send dies with it.", () => { look(agent, 2); crash(); }],
+  ["Restart", "A fresh agent takes over. Customer 5 looks unsent, so it sends again.", "It can't tell 'didn't happen' from 'happened, but nobody wrote it down'.",
+    () => { look(agent, 2); respawn(); setTimeout(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(service, 2), C.blue, 1500); }, 500); }],
+  ["Duplicate", "Your system sends it again. Customer 5 got the same message twice.", "In real life: a double refund, a double charge, a spammed customer.", () => { look(c5, -2); deliver(true); }],
+  ["False 'done'", "And the agent reports \"all done\". Nothing checked it.", "This is what Blackout is for.", () => { look(agent, 3); say(agent, "All done ✓", "bad", 3000); }],
+];
+const MCP = [
+  ["Install", "Put the Blackout gateway between any MCP agent and its tool server, and mark send_email as a side effect.", "One config file. The agent, its model and its prompts don't change.",
+    () => { look(guard); say(guard, "npx blackout-mcp", "amber", 3000); }],
+  ["Call a tool", "The agent calls send_email for customer 5 over MCP.", "The gateway looks like any other MCP server to the agent.",
+    () => { look(agent, 2); say(agent, "send_email(customer 5)"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }],
+  ["Journal + key", "The gateway derives a stable op ID from the call, journals it, and passes it to your server as the idempotency key.", "Exactly-once starts before the side effect, not after.",
+    () => { look(guard); say(guard, "op bo-58f1… journaled", "amber"); packet(at(guard, 2.1), at(journal, 1.6), C.amber, 900, () => { glow(journal, C.amber); packet(at(guard, 2.1), at(service, 2), C.amber, 900, () => deliver(false)); }); }],
+  ["Session ends", "The agent session ends: a crash, a restart, or just a new chat.", "Normal life for agents. The gateway's journal survives it.",
+    () => { look(agent, 2); crash(); }],
+  ["Same call again", "A new session, with no memory, is given the same job and calls send_email for customer 5 again.", "Retries and repeated jobs are where duplicates come from.",
+    () => { look(agent, 2); respawn(); setTimeout(() => { say(agent, "send_email(customer 5)"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
+  ["Suppressed", "The gateway recognises the same op and returns the original result: duplicate suppressed. Your server never sees a second send.", "Measured live: 3 sends, restart, 3 suppressed, one email per customer. If the gateway itself crashed mid-call, it would ask get_receipt first.",
+    () => { look(null); shield.material.opacity = 0.25; glow(guard, C.amber, 1500); say(guard, "duplicate suppressed", "amber", 3200); }],
 ];
 
 function crash() {
   agent.userData.body.material = mat(0x7f1d1d, C.bad, 1.5);
-  glow(agent, C.bad, 1200);
+  glow(agent, C.bad, 1200); say(agent, "✖ crashed", "bad", 1800);
   setTimeout(() => { agent.rotation.z = -1.35; agent.position.y = 0.3; }, 400);
   setTimeout(() => { agent.visible = false; }, 1500);
 }
 function respawn() {
   agent.visible = true; agent.rotation.set(0, 0, 0); agent.position.set(-8.2, 0, 0);
   agent.userData.body.material = mat(0x4b5a75, 0x4b5a75, 0.15);
-  agentLabel.querySelector("b").textContent = "New AI agent";
+  agentLabel.querySelector("b").textContent = mode === "mcp" ? "New MCP session" : "New AI agent";
 }
 
-function script() { return withBlackout ? WITH : WITHOUT; }
+function script() { return mode === "with" ? WITH : mode === "without" ? WITHOUT : MCP; }
 function next() {
   const s = script();
   stepIdx = (stepIdx + 1) % (s.length + 1);
   if (stepIdx === s.length) { timer = playing ? setTimeout(() => { stepIdx = -1; resetScene(); next(); }, 2600) : null; return; }
   if (stepIdx === 0) resetScene();
-  setCaption(stepIdx + 1, s.length, s[stepIdx][0]);
-  s[stepIdx][1]();
-  if (playing) timer = setTimeout(next, 3400);
+  const [phase, text, why, act] = s[stepIdx];
+  stepEl.textContent = `${stepIdx + 1}/${s.length}`;
+  phaseEl.textContent = phase;
+  cap.textContent = text;
+  whyEl.innerHTML = `<b>${mode === "without" ? "What goes wrong:" : "What Blackout brings:"}</b> ${why}`;
+  act();
+  if (playing) timer = setTimeout(next, 4600);
 }
 function restart() { clearTimeout(timer); stepIdx = -1; resetScene(); next(); }
 
-btnMode.addEventListener("click", () => {
-  withBlackout = !withBlackout;
-  btnMode.textContent = withBlackout ? "Show it without Blackout" : "Show it with Blackout";
-  btnMode.setAttribute("aria-pressed", String(!withBlackout));
+for (const t of tabs) t.addEventListener("click", () => {
+  mode = t.dataset.flowMode;
+  for (const x of tabs) x.setAttribute("aria-selected", String(x === t));
   restart();
 });
 btnPlay.addEventListener("click", () => {
-  if (playing) { playing = false; clearTimeout(timer); btnPlay.textContent = "▶ Next step"; }
-  else { next(); }
+  if (playing) { playing = false; clearTimeout(timer); btnPlay.textContent = "Next step ▸"; }
+  else next();
 });
-btnPlay.textContent = reduce ? "▶ Next step" : "Pause";
-btnPlay.addEventListener("dblclick", () => { playing = true; btnPlay.textContent = "Pause"; next(); });
+btnPlay.textContent = reduce ? "Next step ▸" : "Pause";
+document.getElementById("flow-auto").addEventListener("click", () => { playing = true; btnPlay.textContent = "Pause"; clearTimeout(timer); next(); });
 
 function resize() {
   const w = host.clientWidth, h = host.clientHeight;
@@ -194,9 +254,12 @@ function frame(t) {
   if (!reduce) { core.rotation.y = t / 1600; core.rotation.x = t / 2600; ring1.rotation.z = t / 900; ring2.rotation.y = t / 1300; }
   if (!reduce) agent.userData.tip.position.y = 2.9 + Math.sin(t / 300) * 0.04;
   shield.material.opacity *= 0.985;
+  for (let i = trails.length - 1; i >= 0; i--) { const d = trails[i]; d.material.opacity -= 0.02; d.scale.multiplyScalar(0.97); if (d.material.opacity <= 0) { scene.remove(d); trails.splice(i, 1); } }
+  focus.lerp(focusGoal, reduce ? 1 : 0.04); camera.lookAt(focus);
   for (let i = packets.length - 1; i >= 0; i--) {
     const p = packets[i]; const k = Math.min(1, (t - p.t0) / p.ms);
     p.m.position.lerpVectors(p.a, p.b, k); p.m.position.y += Math.sin(k * Math.PI) * 1.2;
+    if (!reduce && Math.random() < 0.5) trail(p.m.position, p.m.material.color);
     if (k >= 1) { scene.remove(p.m); packets.splice(i, 1); p.onArrive?.(); }
   }
   if (flash.obj && t < flash.until) flash.obj.scale.setScalar(1 + Math.sin(t / 60) * 0.04); else if (flash.obj) { flash.obj.scale.setScalar(1); flash.obj = null; }
@@ -207,6 +270,12 @@ function frame(t) {
     l.obj.getWorldPosition(v); v.y += l.dy; v.project(camera);
     l.el.style.opacity = "1";
     l.el.style.transform = `translate(-50%, -100%) translate(${(v.x * 0.5 + 0.5) * r.width}px, ${(-v.y * 0.5 + 0.5) * r.height}px)`;
+  }
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    const b = bubbles[i];
+    if (t > b.until) { b.el.remove(); bubbles.splice(i, 1); continue; }
+    b.obj.getWorldPosition(v); v.y += b.dy; v.project(camera);
+    b.el.style.transform = `translate(-50%, -100%) translate(${(v.x * 0.5 + 0.5) * r.width}px, ${(-v.y * 0.5 + 0.5) * r.height}px)`;
   }
 }
 requestAnimationFrame(frame);

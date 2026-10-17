@@ -66,10 +66,22 @@ p { margin: 0; max-width: 68ch; }
 .flabel b { display: block; font-family: var(--display); font-stretch: 85%; font-size: 15px; color: var(--fg); }
 .flabel span { display: block; }
 .flow-bar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--panel); }
-#flow-step { font-family: var(--mono); font-size: 13px; color: var(--amber); min-width: 34px; }
-#flow-caption { flex: 1 1 300px; font-size: 17px; color: var(--fg); min-height: 1.5em; }
+#flow-step { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+#flow-phase { font-family: var(--mono); font-size: 13px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.08em; margin-left: 6px; }
+.flow-text { flex: 1 1 420px; display: grid; gap: 6px; min-height: 108px; align-content: start; }
+#flow-caption { margin: 0; font-size: 18px; color: var(--fg); line-height: 1.4; }
+#flow-why { margin: 0; font-size: 15px; color: var(--soft); }
+#flow-why b { color: var(--amber); font-weight: 600; }
+.flow-ctl { display: flex; gap: 8px; align-self: start; }
+.flow-tabs { display: flex; gap: 6px; padding: 10px 14px 0; position: absolute; top: 0; left: 0; z-index: 2; flex-wrap: wrap; }
+.flow-tabs button { font: inherit; font-family: var(--mono); font-size: 13px; cursor: pointer; background: rgba(18,21,27,0.85); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; }
+.flow-tabs button[aria-selected="true"] { background: var(--amber); color: #1a1205; border-color: var(--amber); font-weight: 700; }
+.flow-tabs button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.fbubble { position: absolute; left: 0; top: 0; white-space: nowrap; font-family: var(--mono); font-size: 13px; color: var(--fg); background: rgba(23,27,34,0.95); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); animation: pop 0.25s ease-out; }
+.fbubble.amber { border-color: var(--amber); color: #ffd28a; } .fbubble.ok { border-color: #1d4d3c; color: var(--ok); } .fbubble.bad { border-color: #7f1d1d; color: #fecaca; background: rgba(58,20,20,0.95); }
+@keyframes pop { from { opacity: 0; } to { opacity: 1; } }
 .flow-bar button { font: inherit; font-family: var(--mono); font-size: 13px; cursor: pointer; background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 14px; }
-.flow-bar button#flow-mode { border-color: #5a4210; color: var(--amber); }
+
 .flow-bar button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 @media (max-width: 640px) { #flow3d { height: 420px; } .flabel { font-size: 10px; } .flabel b { font-size: 12px; } }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
@@ -192,11 +204,18 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <div class="flow" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
       <div id="flow3d"></div>
       <div id="flow-labels" aria-hidden="true"></div>
+      <div class="flow-tabs" role="tablist" aria-label="Story">
+        <button type="button" role="tab" data-flow-mode="with" aria-selected="true">With Blackout</button>
+        <button type="button" role="tab" data-flow-mode="without" aria-selected="false">Without Blackout</button>
+        <button type="button" role="tab" data-flow-mode="mcp" aria-selected="false">MCP gateway</button>
+      </div>
       <div class="flow-bar">
-        <span id="flow-step">1/7</span>
-        <span id="flow-caption" aria-live="polite">The agent decides to message customer 5.</span>
-        <button type="button" id="flow-play">Pause</button>
-        <button type="button" id="flow-mode" aria-pressed="false">Show it without Blackout</button>
+        <div class="flow-text">
+          <div><span id="flow-step">1/7</span> <span id="flow-phase">Ask</span></div>
+          <p id="flow-caption" aria-live="polite">The agent decides to message customer 5.</p>
+          <p id="flow-why"></p>
+        </div>
+        <div class="flow-ctl"><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
       </div>
     </div>
     <div style="height:28px"></div>
