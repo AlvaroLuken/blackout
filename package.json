@@ -1,14 +1,20 @@
 {
   "name": "blackout",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "target": "NODE_NO_WARNINGS=1 tsx src/target/supervisor.ts",
+    "reset": "NODE_NO_WARNINGS=1 tsx src/cli.ts reset",
+    "fault": "NODE_NO_WARNINGS=1 tsx src/cli.ts fault",
+    "verify": "NODE_NO_WARNINGS=1 tsx src/cli.ts verify",
+    "mission": "NODE_NO_WARNINGS=1 tsx src/cli.ts mission",
+    "demo": "NODE_NO_WARNINGS=1 tsx src/cli.ts demo",
+    "eval": "NODE_NO_WARNINGS=1 tsx src/cli.ts eval",
+    "smoke": "NODE_NO_WARNINGS=1 tsx src/llm/smoke.ts",
+    "test": "NODE_NO_WARNINGS=1 node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc -p ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
+  "description": "Keeps a recovery mission accountable to verified outcomes while repair workers fail and get replaced.",
   "dependencies": {
     "openai": "^7.36.0",
     "zod": "^4.6.7"
@@ -17,5 +23,7 @@
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
-  }
+  },
+  "private": true,
+  "type": "module"
 }
