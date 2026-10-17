@@ -8,7 +8,7 @@
 |---|---|---|
 | Crash right after a message is sent, service can't report job status | **10/10 clean** | 0/10 (16 duplicate deliveries) |
 | MCP agent restarted mid-job, told "don't send duplicates" | **0 duplicate emails** | 18 duplicate emails, said DONE anyway |
-| False "done" claims accepted | **0** | n/a (Blackout's verifier rejects them) |
+| "Done" claimed while customers had duplicates | **0** (only the verifier can say done) | 6 of 10 MCP runs |
 
 Two ways to use it:
 - **MCP gateway, today:** `npx -y blackout-mcp init` then `claude mcp add blackout -- npx -y blackout-mcp --config "$PWD/blackout.mcp.json"`. Exactly-once side effects for any MCP agent. [Details](#blackout-mcp-gateway-use-it-with-any-mcp-agent)
