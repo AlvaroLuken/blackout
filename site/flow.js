@@ -21,9 +21,20 @@ const camera = new THREE.PerspectiveCamera(42, 2, 0.1, 100);
 camera.position.set(0, 6.5, 15.5);
 camera.lookAt(0, 1.2, 0.8);
 
-scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x0b0d11, 0.9));
+const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x0b0d11, 0.9); scene.add(hemi);
 const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(6, 12, 8); scene.add(key);
-const grid = new THREE.GridHelper(60, 60, 0x1c222c, 0x151a22); grid.position.y = -0.01; scene.add(grid);
+let grid = null;
+// Match the page theme: dark control room, or a light studio floor.
+function applyTheme() {
+  const light = document.documentElement.dataset.theme === "light";
+  const bg = light ? 0xeef1f5 : C.bg;
+  renderer.setClearColor(bg); scene.fog.color.setHex(bg);
+  hemi.groundColor.setHex(light ? 0xd9dee6 : 0x0b0d11); hemi.intensity = light ? 1.3 : 0.9;
+  if (grid) scene.remove(grid);
+  grid = new THREE.GridHelper(60, 60, light ? 0xc9d0da : 0x1c222c, light ? 0xdde2ea : 0x151a22); grid.position.y = -0.01; scene.add(grid);
+}
+applyTheme();
+window.addEventListener("themechange", applyTheme);
 
 const mat = (color, emissive = 0x000000, ei = 0) => new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: ei, roughness: 0.45, metalness: 0.25 });
 const labels = [];
@@ -118,7 +129,7 @@ const later = (fn, ms) => (fast ? fn() : setTimeout(fn, ms));
 const phaseEl = document.getElementById("flow-phase");
 const whyEl = document.getElementById("flow-why");
 const tabs = [...document.querySelectorAll("[data-flow-mode]")];
-let mode = "with", playing = !reduce, stepIdx = -1, timer = null, flash = { obj: null, until: 0 };
+let mode = "with", playing = true, stepIdx = -1, timer = null, flash = { obj: null, until: 0 };
 const focus = new THREE.Vector3(0, 1.2, 0.8), focusGoal = new THREE.Vector3(0, 1.2, 0.8);
 function glow(obj, color, ms = 900) { flash = { obj, until: performance.now() + ms }; }
 function look(obj, dx = 0) { if (!obj) { focusGoal.set(0, 1.2, 0.8); return; } obj.getWorldPosition(focusGoal); focusGoal.y = 1.4; focusGoal.x = focusGoal.x * 0.22 + dx * 0.5; focusGoal.z = 0.8; }
@@ -240,7 +251,7 @@ function show(i) {
 // Jump to any phase: rebuild the scene by replaying earlier phases instantly.
 function jump(i, keepPlaying = false) {
   clearTimeout(timer);
-  if (!keepPlaying) { playing = false; btnPlay.textContent = "Next step ▸"; }
+  if (!keepPlaying) setPlaying(false);
   resetScene();
   fast = true; for (let k = 0; k < i; k++) script()[k][3](); fast = false;
   stepIdx = i; show(i);
@@ -261,17 +272,22 @@ for (const t of tabs) t.addEventListener("click", () => {
   for (const x of tabs) x.setAttribute("aria-selected", String(x === t));
   restart(); drawSteps();
 });
+function setPlaying(on) {
+  playing = on;
+  btnPlay.textContent = on ? "❚❚ Pause" : "▶ Play";
+  btnPlay.setAttribute("aria-pressed", String(!on));
+}
 btnPlay.addEventListener("click", () => {
-  if (playing) { playing = false; clearTimeout(timer); btnPlay.textContent = "Next step ▸"; }
-  else jump(Math.min(stepIdx + 1, script().length - 1));
+  if (playing) { clearTimeout(timer); setPlaying(false); }
+  else { setPlaying(true); clearTimeout(timer); timer = setTimeout(next, 900); }
 });
+document.getElementById("flow-auto").addEventListener("click", () => jump(Math.min(stepIdx + 1, script().length - 1)));
 document.getElementById("flow-prev").addEventListener("click", () => jump(Math.max(0, stepIdx - 1)));
 document.querySelector(".flow").addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") { e.preventDefault(); jump(Math.min(stepIdx + 1, script().length - 1)); }
   if (e.key === "ArrowLeft") { e.preventDefault(); jump(Math.max(0, stepIdx - 1)); }
 });
-btnPlay.textContent = reduce ? "Next step ▸" : "Pause";
-document.getElementById("flow-auto").addEventListener("click", () => { playing = true; btnPlay.textContent = "Pause"; clearTimeout(timer); timer = setTimeout(next, 600); });
+setPlaying(true);
 
 function resize() {
   const w = host.clientWidth, h = host.clientHeight;

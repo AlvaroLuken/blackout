@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Blackout · exactly-once actions and verified done for AI agents</title>
 <meta name="description" content="A recovery runtime for AI agents that touch the real world. Built on NVIDIA Nemotron and Crusoe Managed Inference.">
+<script>
+  // Theme: the visitor's saved choice, otherwise their system setting.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("blackout-theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style>
@@ -175,6 +184,34 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 }
 @media (max-width: 560px) { .story li { grid-template-columns: 1fr; gap: 2px; } .proof, .grid3, .uses, .road, .who { grid-template-columns: 1fr; } .facts div { grid-template-columns: 1fr; gap: 4px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Light theme: tokens first, then the few places that use literal dark colours. */
+html[data-theme="light"] {
+  --bg: #f6f7f9; --panel: #ffffff; --panel2: #f0f2f5; --line: #dfe3ea; --fg: #12151b; --muted: #5d6676; --soft: #353c4a;
+  --amber: #d68500; --amber-soft: #fdf0d8; --ok: #0f8a5f; --bad: #d23c3c; --blue: #2563eb; --pink: #a21caf; --green: #4d7c0f;
+  color-scheme: light;
+}
+html[data-theme="light"] .flow { background: #eef1f5; }
+html[data-theme="light"] .flabel { text-shadow: 0 1px 4px #fff; }
+html[data-theme="light"] .flabel b { color: #12151b; }
+html[data-theme="light"] .fstep { background: #eef1f5; }
+html[data-theme="light"] .fstep span { background: #dfe3ea; color: #12151b; }
+html[data-theme="light"] .fstep.done { color: #0f7a52; border-color: #b7e4cf; } html[data-theme="light"] .fstep.done span { background: #dcf5ea; color: #0f7a52; }
+html[data-theme="light"] .flow-tabs button { background: rgba(255,255,255,0.92); }
+html[data-theme="light"] .fbubble { background: #ffffff; color: #12151b; box-shadow: 0 6px 18px rgba(18,21,27,0.15); }
+html[data-theme="light"] .fbubble.amber { color: #8a5200; } html[data-theme="light"] .fbubble.ok { border-color: #b7e4cf; color: #0f7a52; }
+html[data-theme="light"] .fbubble.bad { background: #fdecec; color: #7a1f1f; border-color: #f3b4b4; }
+html[data-theme="light"] .insight { border-color: #f0d39a; }
+html[data-theme="light"] .krow.bad { background: #fdecec; border-color: #f3b4b4; } html[data-theme="light"] .krow.ok { background: #e8f7f0; border-color: #b7e4cf; }
+html[data-theme="light"] .rb.today { background: #dcf5ea; } html[data-theme="light"] .rb.adapter { background: #fdf0d8; color: #8a5200; } html[data-theme="light"] .rb.runtime { background: #e0e9fd; }
+html[data-theme="light"] .pdanger { background: #fdecec; border-color: #f3b4b4; } html[data-theme="light"] .pdanger p { color: #7a1f1f; } html[data-theme="light"] .pdanger b { color: #4a0d0d; } html[data-theme="light"] .pdanger .dl { color: #c22f2f; }
+html[data-theme="light"] pre { background: #f3f5f8; color: #1f2430; } html[data-theme="light"] pre .c { color: #8a93a3; } html[data-theme="light"] pre .s { color: #0f7a52; } html[data-theme="light"] pre .k { color: #a21caf; } html[data-theme="light"] pre .f { color: #1d4ed8; }
+html[data-theme="light"] .road .card.now { border-color: #b7e4cf; }
+html[data-theme="light"] .story li.bad::before { box-shadow: 0 0 0 4px rgba(210,60,60,0.15); }
+html[data-theme="light"] .benefits li::before { color: #8a5200; }
+.theme-toggle { font: inherit; cursor: pointer; background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; width: 36px; height: 36px; display: grid; place-items: center; font-size: 16px; }
+.theme-toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+nav { gap: 16px; }
 </style>
 </head>
 <body>
@@ -183,6 +220,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   <nav>
     <a class="logo" href="#">BLACK<span>OUT</span></a>
     <div class="links"><a href="#promises">Promises</a><a href="#watch">Watch</a><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light or dark mode">☀</button>
   </nav>
 
   <header class="hero">
@@ -264,7 +302,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
           <p id="flow-caption" aria-live="polite">The agent decides to message customer 5.</p>
           <p id="flow-why"></p>
         </div>
-        <div class="flow-ctl"><button type="button" id="flow-prev" aria-label="Previous phase">◀ Back</button><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
+        <div class="flow-ctl"><button type="button" id="flow-prev" aria-label="Previous phase">◀ Back</button><button type="button" id="flow-play">❚❚ Pause</button><button type="button" id="flow-auto" aria-label="Next phase">Next ▶</button></div>
       </div>
     </div>
   </section>
@@ -420,6 +458,19 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <span>All numbers on this page are measured from live runs and listed with caveats in <a href="https://github.com/AlvaroLuken/blackout/blob/main/results/RESULTS.md">results/RESULTS.md</a>. The service is simulated; the agents, crashes and verification are real.</span>
   </footer>
 </div>
+<script>
+  (function () {
+    var b = document.getElementById("theme-toggle");
+    function sync() { var t = document.documentElement.dataset.theme; b.textContent = t === "light" ? "☾" : "☀"; b.setAttribute("aria-label", t === "light" ? "Switch to dark mode" : "Switch to light mode"); }
+    b.addEventListener("click", function () {
+      var t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = t;
+      try { localStorage.setItem("blackout-theme", t); } catch (e) {}
+      sync(); window.dispatchEvent(new Event("themechange"));
+    });
+    sync();
+  })();
+</script>
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
 <script type="module" src="flow.js"></script>
 </body>
