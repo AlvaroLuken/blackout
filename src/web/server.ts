@@ -41,6 +41,19 @@ function journalFacts(m: Mode, missionId: string) {
   } catch { return { models: [], reconciled: [], goal: null }; }
 }
 
+// Every Nemotron call the agents make through Crusoe, as the journal recorded it.
+const llmSeen: Record<string, Set<number>> = {};
+function newLlmCalls(m: Mode, sinceIso: string) {
+  try {
+    const db = ro(journalDb(m));
+    try {
+      const rows = db.prepare("SELECT id, actor, model, latency_ms, prompt_tokens, completion_tokens FROM usage WHERE ts >= ? ORDER BY id").all(sinceIso) as any[];
+      const seen = (llmSeen[m] ??= new Set());
+      return rows.filter((r) => !seen.has(r.id) && seen.add(r.id)).map((r) => ({ type: "llm", mode: m, actor: r.actor, model: r.model, ms: r.latency_ms, tok: (r.prompt_tokens ?? 0) + (r.completion_tokens ?? 0) }));
+    } finally { db.close(); }
+  } catch { return []; }
+}
+
 const PORT = Number(process.env.BLACKOUT_WEB_PORT ?? 7400);
 const page = () => fs.readFileSync(path.join(ROOT, "src/web/index.html"), "utf8");
 
@@ -182,7 +195,12 @@ const server = http.createServer(async (req, res) => {
     const killAfter = b.kill === "judge" ? null : 2;
     broadcast({ type: "start", kill: b.kill === "judge" ? "judge" : "auto", inject: !!b.inject, at: Date.now() });
     let exited = 0;
-    const tick = setInterval(() => broadcast({ type: "counters", data: Object.fromEntries(MODES.map((m) => [m, counters(m)])) }), 400);
+    const sinceIso = new Date(raceStart).toISOString();
+    for (const m of MODES) llmSeen[m] = new Set();
+    const tick = setInterval(() => {
+      broadcast({ type: "counters", data: Object.fromEntries(MODES.map((m) => [m, counters(m)])) });
+      for (const m of MODES) for (const c of newLlmCalls(m, sinceIso)) broadcast(c);
+    }, 400);
     startRace({ profile: "outbox", fault, killAfter, inject: !!b.inject, policy: process.env.BLACKOUT_WEB_POLICY ?? "llm" }, (e: RaceEvent) => {
       // Attach the verifier's per-check results and contract hash from the saved run file.
       if (e.type === "summary" && e.file) {
