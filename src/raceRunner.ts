@@ -107,11 +107,12 @@ export function killWorker(mode: Mode): number | null {
   return pid;
 }
 
-// Arm the after-commit failpoint on one side: SIGKILL right after the next delivery.
+// Arm the after-commit failpoint on one side: SIGKILL right after the 2nd batch delivery
+// from now, i.e. mid-batch with one job acknowledged and one in flight.
 export function armNextDelivery(mode: Mode) {
   const dir = path.join(varDirFor(mode), "harness");
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "hooks.json"), JSON.stringify({ armed: true, kill_on_commit_number: 1, armed_at: new Date().toISOString() }));
+  fs.writeFileSync(path.join(dir, "hooks.json"), JSON.stringify({ armed: true, kill_on_commit_number: 2, armed_at: new Date().toISOString() }));
 }
 
 export function startRace(o: RaceOpts, emit: (e: RaceEvent) => void): { children: ChildProcess[] } {
