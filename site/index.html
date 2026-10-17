@@ -74,11 +74,16 @@ p { margin: 0; max-width: 68ch; }
 .hf-dup, .hf-out-without { animation: hfDup 12s linear infinite; }
 @keyframes hfWith { 0%, 48.5% { opacity: 1; } 50%, 98.5% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes hfWithout { 0%, 48.5% { opacity: 0; } 50%, 98.5% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes hfCrash { 0%, 15% { opacity: 0; } 17%, 30% { opacity: 1; } 32%, 63% { opacity: 0; } 65%, 78% { opacity: 1; } 80%, 100% { opacity: 0; } }
+@keyframes hfCrash { 0%, 15% { opacity: 0; } 17%, 30% { opacity: 1; } 32%, 61% { opacity: 0; } 62.5%, 72% { opacity: 1; } 74%, 100% { opacity: 0; } }
 @keyframes hfBlocked { 0%, 29.5% { opacity: 0; } 31%, 100% { opacity: 1; } }
-@keyframes hfDup { 0%, 81% { opacity: 0; } 82.5%, 100% { opacity: 1; } }
+@keyframes hfDup { 0%, 77.5% { opacity: 0; } 79%, 100% { opacity: 1; } }
+.hf-face { font-size: 34px; transform-box: fill-box; transform-origin: 50% 60%; }
+.hf-face.happy { animation: hfHappy 1.2s ease-in-out infinite; }
+.hf-face.angry { animation: hfAngry 0.5s ease-in-out infinite; }
+@keyframes hfHappy { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes hfAngry { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg) scale(1.06); } 75% { transform: rotate(10deg) scale(1.06); } }
 @media (prefers-reduced-motion: reduce) {
-  .hf-dot { display: none; } .hfw-with, .hfw-without, .hf-crash, .hf-blocked, .hf-out-with, .hf-dup, .hf-out-without { animation: none; }
+  .hf-dot { display: none; } .hfw-with, .hfw-without, .hf-crash, .hf-blocked, .hf-out-with, .hf-dup, .hf-out-without, .hf-face { animation: none; }
   .hfw-without, .hf-crash { opacity: 0; }
 }
 
@@ -206,6 +211,10 @@ p { margin: 0; max-width: 68ch; }
 .install-head button { font: inherit; font-size: 12px; cursor: pointer; background: var(--amber); color: #1a1205; border: 0; border-radius: 6px; padding: 5px 12px; font-weight: 700; text-transform: none; letter-spacing: 0; }
 .install-head button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .install pre { border: 0; border-radius: 0; margin: 0; font-size: 14px; padding: 14px 16px; white-space: pre; overflow-x: auto; }
+html[data-theme="light"] .install { background: #12151b; border: 1.5px solid #12151b; box-shadow: 0 10px 30px rgba(18,21,27,0.18), 0 0 0 4px color-mix(in srgb, var(--amber) 22%, transparent); }
+html[data-theme="light"] .install-head { color: #9aa3b2; border-bottom-color: #262c37; }
+html[data-theme="light"] .install pre { background: #12151b; color: #e8eaef; }
+html[data-theme="light"] .install pre .c { color: #f5a524; }
 .hero-text { gap: 20px; }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -319,20 +328,20 @@ nav { gap: 16px; }
         <path d="M220 104 V322" class="hf-line" marker-end="url(#hf-ar)"/>
         <circle r="7" class="hf-dot" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.02;0.14;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.019;0.02;0.14;0.141;1"/></circle>
         <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V122" keyPoints="0;0;1;1" keyTimes="0;0.24;0.30;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.239;0.24;0.47;0.471;1"/></circle>
-        <circle r="7" class="hf-dot" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.52;0.62;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.519;0.52;0.62;0.621;1"/></circle>
-        <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.72;0.82;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.719;0.72;0.82;0.821;1"/></circle>
+        <circle r="7" class="hf-dot" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.51;0.60;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.509;0.51;0.60;0.601;1"/></circle>
+        <circle r="7" class="hf-dot bad" opacity="0"><animateMotion dur="12s" repeatCount="indefinite" path="M220 76 V354" keyPoints="0;0;1;1" keyTimes="0;0.68;0.78;1" calcMode="linear"/><animate attributeName="opacity" dur="12s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.679;0.68;0.78;0.781;1"/></circle>
         <rect x="120" y="48" width="200" height="56" rx="12" class="hf-box"/>
         <text x="220" y="72" class="hf-t" text-anchor="middle">AI agent</text>
         <text x="220" y="92" class="hf-s" text-anchor="middle">Nemotron · Claude Code · MCP</text>
-        <g class="hf-crash"><rect x="326" y="56" width="110" height="40" rx="8" class="hf-tag bad"/><text x="381" y="73" class="hf-s hf-badt" text-anchor="middle">crashed after</text><text x="381" y="88" class="hf-s hf-badt" text-anchor="middle">sending, restarts</text></g>
+        <g class="hf-crash"><rect x="330" y="58" width="104" height="36" rx="8" class="hf-tag bad solid"/><text x="342" y="73" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">💥 crashed,</text><text x="342" y="87" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">restarted</text></g>
         <g class="hfw-with">
           <rect x="40" y="128" width="360" height="172" rx="16" class="hf-core"/>
           <text x="64" y="158" class="hf-brand">BLACKOUT</text>
           <circle cx="76" cy="188" r="13" class="hf-n1"/><text x="76" y="193" text-anchor="middle" class="hf-num">1</text><text x="100" y="186" class="hf-t2">Write it down first</text><text x="100" y="203" class="hf-s">a stable ID for every action</text>
           <circle cx="76" cy="228" r="13" class="hf-n2"/><text x="76" y="233" text-anchor="middle" class="hf-num">2</text><text x="100" y="226" class="hf-t2">Already happened? Ask the receipts</text><text x="100" y="243" class="hf-s">skip it instead of doing it twice</text>
           <circle cx="76" cy="268" r="13" class="hf-n3"/><text x="76" y="273" text-anchor="middle" class="hf-num">3</text><text x="100" y="266" class="hf-t2">"Done"? Code checks</text><text x="100" y="283" class="hf-s">not the agent's word</text>
-          <g class="hf-blocked"><rect x="234" y="106" width="196" height="20" rx="6" class="hf-tag bad solid"/><text x="332" y="120" class="hf-s hf-tagt" text-anchor="middle">✕ repeat blocked: already sent</text></g>
-          <g class="hf-out-with"><text x="220" y="420" class="hf-t2 hf-okt" text-anchor="middle">✓ Customer gets it once</text><text x="220" y="442" class="hf-s" text-anchor="middle">and "done" is checked by code</text></g>
+          <g class="hf-blocked"><rect x="240" y="105" width="176" height="22" rx="6" class="hf-tag bad solid"/><text x="250" y="120" class="hf-s hf-tagt" textLength="156" lengthAdjust="spacingAndGlyphs">✕ blocked: already sent</text></g>
+          <g class="hf-out-with"><text x="132" y="446" class="hf-face happy" text-anchor="middle">😊</text><text x="166" y="422" class="hf-t2 hf-okt">✓ Customer gets it once</text><text x="166" y="442" class="hf-s">and "done" is checked by code</text></g>
         </g>
         <g class="hfw-without">
           <rect x="40" y="128" width="360" height="172" rx="16" class="hf-empty"/>
@@ -340,8 +349,8 @@ nav { gap: 16px; }
           <text x="62" y="196" class="hf-s">no record of the send</text>
           <text x="62" y="214" class="hf-s">no receipt check</text>
           <text x="62" y="232" class="hf-s">no code check</text>
-          <g class="hf-dup"><rect x="328" y="342" width="104" height="24" rx="6" class="hf-tag bad solid"/><text x="380" y="358" class="hf-s hf-tagt" text-anchor="middle">✕ sent twice</text></g>
-          <g class="hf-out-without"><text x="220" y="420" class="hf-t2 hf-badt" text-anchor="middle">✕ Customer gets it twice</text><text x="220" y="442" class="hf-s" text-anchor="middle">and the agent still says "done"</text></g>
+          <g class="hf-dup"><rect x="330" y="342" width="100" height="24" rx="6" class="hf-tag bad solid"/><text x="340" y="358" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">✕ sent twice</text></g>
+          <g class="hf-out-without"><text x="132" y="446" class="hf-face angry" text-anchor="middle">😡</text><text x="166" y="422" class="hf-t2 hf-badt">✕ Customer gets it twice</text><text x="166" y="442" class="hf-s">and the agent still says "done"</text></g>
         </g>
         <rect x="120" y="326" width="200" height="56" rx="12" class="hf-box"/>
         <text x="220" y="350" class="hf-t" text-anchor="middle">Your systems</text>
