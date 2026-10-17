@@ -194,7 +194,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <div class="proof">
       <div><span class="n ok">10/10</span><span class="l">jobs finished clean after a real mid-delivery crash, with Blackout. <b>0/10</b> for the same agent without it.</span></div>
       <div><span class="n bad">18 → 0</span><span class="l">duplicate emails across 10 restarted MCP agents, once routed through the Blackout gateway.</span></div>
-      <div><span class="n">0</span><span class="l">false "done" claims accepted, in every measured run. The plain agent said DONE 6 times while customers had duplicates.</span></div>
+      <div><span class="n">0</span><span class="l">false "done" claims accepted by Blackout's verifier, in every measured run. Without Blackout, the agent itself reported DONE in 6 runs while customers had duplicates.</span></div>
       <div><span class="n">½¢</span><span class="l">AI inference per mission on Crusoe, measured from real usage. Cheap enough to verify everything.</span></div>
     </div>
     <p class="note">All live Nemotron 3.5 Lightning runs on Oct 17, n = 10 per arm. Every run, caveat and raw file: <a href="https://github.com/AlvaroLuken/blackout/blob/main/results/RESULTS.md">results/RESULTS.md</a>.</p>

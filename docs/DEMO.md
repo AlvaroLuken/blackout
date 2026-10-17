@@ -20,8 +20,9 @@
 | ~1:10 | "Both workers die right after a message goes out, before they can write it down. Left: the replacement asks the service about that exact operation, finds the receipt, skips it. Right: no record, so it looks pending, and it sends it again." | Moment-of-truth cards |
 | ~1:45 | "The verifier is plain code. It passes the left. It catches the duplicate on the right and rejects the agent's 'done'." | Proof of done vs escalation report |
 | ~2:00 | "Here's customer 5's inbox on the right." | Click the red customer cell: same message twice, two op IDs |
-| 2:15 | "Not a lucky run: ten pairs, Blackout 10 of 10, the plain agent 0 of 10. On a service that shows job status, both get 10 of 10, so the journal matters exactly when the system can't tell you what happened. Half a cent per mission on Crusoe." | Scroll to the measured table |
-| 2:35 | "And you can use it today: `npx blackout-mcp`, an MCP gateway in front of any tool server. We told a Nemotron agent not to send duplicates and gave it the tools to check. Restarted, it duplicated in 6 of 10 runs, because it re-invents its idempotency key. Through Blackout: 0 of 10." | Measured table, "MCP gateway" rows |
+| 2:10 | "Here's why prompting doesn't fix this. The agent already makes up idempotency keys. But after a restart it makes up a different one: ana@example.com, then order_shipped_ana. The server sees a new request and sends again." | Site "The insight" (or say it over the table) |
+| 2:25 | "Same agent, same tools, it could check the inbox: 6 of 10 runs duplicated, 18 extra emails, and it said DONE anyway. Through blackout-mcp: 0 of 10. And in the crash race, 10 of 10 versus 0 of 10." | Measured table (10 s) |
+| 2:35 | "The runtime does all three: once, verified done, escalate when unsure. The gateway ships the first and third today, and works with Claude Code: `npx blackout-mcp`." | Gateway section |
 | 2:45 | "The model proposes. Code decides." | End |
 
 ### Replay rule (practice the line)
@@ -45,6 +46,16 @@ Before recording: restart `npm run web`, press **Warm up**, turn on **Presenter 
 | 0:35 | Verdict bars: VERIFIED vs ESCALATED; click the red customer | "Plain code checks every inbox. Customer 5 got it twice on the right. That 'done' is rejected." |
 | 0:45 | Scroll to the measured table | "Ten pairs: Blackout 10 of 10, the plain agent 0 of 10. About half a cent a mission." |
 | 0:53 | Site "Use it today" or README gateway section | "And it ships today as an MCP gateway: npx blackout-mcp. Nemotron 3.5 Lightning runs every agent." |
+
+## Say this out loud
+
+- When you say "never twice" or "every action happens once", add: "whenever the system can answer 'did operation X happen?'. Otherwise Blackout stops and escalates."
+- Don't imply the npm gateway checks "done". Only the full runtime runs the verifier.
+- Claude Code: "works with", not "measured with" (one end-to-end run).
+- Don't mention Hermes unless asked.
+- Rehearse word for word: **"Isn't this just idempotency keys / the outbox pattern / Temporal?"** "Those make your code durable. Here the model generates the side effects, and we measured that a restarted model invents different keys: 6 of 10 runs duplicated. Keys have to be derived outside the model, journaled before the call, reconciled from receipts, and 'done' has to come from code."
+- Replay rule: if the Crash phase hasn't lit by about 60 to 70 s, switch to Replay with the rehearsed line. Warm up right before you walk in.
+- Submit by 4:35, not 4:45.
 
 ## One-sentence answers
 
