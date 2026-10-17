@@ -23,7 +23,8 @@
 | 2:10 | "Here's why prompting doesn't fix this. The agent already makes up idempotency keys. But after a restart it makes up a different one: ana@example.com, then order_shipped_ana. The server sees a new request and sends again." | Site "The insight" (or say it over the table) |
 | 2:25 | "Same agent, same tools, it could check the inbox: 6 of 10 runs duplicated, 18 extra emails, and it said DONE anyway. Through blackout-mcp: 0 of 10. And in the crash race, 10 of 10 versus 0 of 10." | Measured table (10 s) |
 | 2:35 | "The runtime does all three: once, verified done, escalate when unsure. The gateway ships the first and third today, and works with Claude Code: `npx blackout-mcp`." | Gateway section |
-| 2:45 | "The model proposes. Code decides." | End |
+| 2:42 | "Every judgment in Blackout, from writing the definition of done to repairing to reconciling after a crash, runs on Nemotron 3.5 Lightning through Crusoe Managed Inference, at about half a cent per mission, and Crusoe's own telemetry independently confirms our numbers." | Point at the Crusoe telemetry strip |
+| 2:55 | "The model proposes. Code decides." | End |
 
 ### Replay rule (practice the line)
 

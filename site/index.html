@@ -43,10 +43,29 @@ h2 { font-weight: 800; font-stretch: 80%; font-size: clamp(32px, 4.5vw, 48px); l
 h3 { font-weight: 700; font-stretch: 90%; font-size: 21px; }
 p { margin: 0; max-width: 68ch; }
 .lede { font-size: 21px; color: var(--soft); max-width: 46ch; }
-.hero { padding-block: 56px 72px; border-top: 0; display: grid; gap: 0; }
+.hero { padding-block: 48px 72px; border-top: 0; display: grid; grid-template-columns: minmax(0, 57fr) minmax(0, 43fr); gap: 36px; align-items: center; }
+@media (max-width: 1000px) { .hero { grid-template-columns: 1fr; } .hero-flow { max-width: 460px; } }
+.hero-flow { margin: 0; }
+.hero-flow svg { width: 100%; height: auto; display: block; overflow: visible; }
+.hf-box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.hf-core { fill: var(--panel); stroke: var(--amber); stroke-width: 2.5; }
+.hf-t { fill: var(--fg); font-family: var(--display); font-weight: 700; font-size: 18px; }
+.hf-t2 { fill: var(--fg); font-family: var(--body); font-weight: 600; font-size: 15px; }
+.hf-s { fill: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+.hf-brand { fill: var(--amber); font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: 0.04em; }
+.hf-num { fill: #0b0d11; font-family: var(--mono); font-weight: 700; font-size: 13px; }
+.hf-n1, .hf-n2 { fill: var(--ok); } .hf-n3 { fill: var(--blue); }
+.hf-line { stroke: var(--muted); stroke-width: 2; fill: none; }
+.hf-arrowhead { fill: var(--muted); }
+.hf-ok { stroke: var(--ok); } .hf-okt { fill: var(--ok); }
+.hf-bad { stroke: var(--bad); stroke-dasharray: 4 4; } .hf-badt { fill: var(--bad); } .hf-x { fill: var(--bad); font-size: 20px; font-weight: 700; }
+.hf-warn { stroke: var(--amber); stroke-dasharray: 4 4; } .hf-warnt { fill: var(--amber); }
+.hf-dot { fill: var(--amber); }
+@media (prefers-reduced-motion: reduce) { .hf-dot { display: none; } }
+
 .hero-text { display: grid; gap: 24px; min-width: 0; }
 .hero-visual { min-width: 0; }
-.hero h1 { font-size: clamp(54px, 8vw, 104px); }
+.hero h1 { font-size: clamp(48px, 6vw, 86px); }
 .hero .lede { font-size: 19px; }
 .benefits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; max-width: 980px; }
 @media (max-width: 760px) { .benefits { grid-template-columns: 1fr; } }
@@ -219,7 +238,7 @@ nav { gap: 16px; }
 <div class="wrap">
   <nav>
     <a class="logo" href="#">BLACK<span>OUT</span></a>
-    <div class="links"><a href="#promises">Promises</a><a href="#watch">Watch</a><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+    <div class="links"><a href="#promises">Promises</a><a href="#watch">Watch</a><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light or dark mode">☀</button>
   </nav>
 
@@ -236,6 +255,34 @@ nav { gap: 16px; }
       </div>
       <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
     </div>
+    <figure class="hero-flow" aria-label="How Blackout works: an AI agent wants to act. Blackout writes the action down first, checks the system's receipts so nothing happens twice, and lets only code decide the job is done. Your systems receive each action once. A repeat after a crash is blocked. When Blackout can't tell what happened, a human decides.">
+      <svg viewBox="0 0 440 470" role="img" aria-hidden="true">
+        <defs><marker id="hf-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hf-arrowhead"/></marker></defs>
+        <rect x="120" y="8" width="200" height="62" rx="12" class="hf-box"/>
+        <text x="220" y="34" class="hf-t" text-anchor="middle">AI agent</text>
+        <text x="220" y="54" class="hf-s" text-anchor="middle">Nemotron, Claude Code, any MCP agent</text>
+        <path d="M220 70 V108" class="hf-line" marker-end="url(#hf-ar)"/>
+        <text x="232" y="94" class="hf-s">"send this refund"</text>
+        <rect x="40" y="112" width="360" height="190" rx="16" class="hf-core"/>
+        <text x="64" y="142" class="hf-brand">BLACKOUT</text>
+        <circle cx="76" cy="174" r="13" class="hf-n1"/><text x="76" y="179" text-anchor="middle" class="hf-num">1</text><text x="100" y="172" class="hf-t2">Write it down first</text><text x="100" y="190" class="hf-s">a stable ID for every action</text>
+        <circle cx="76" cy="222" r="13" class="hf-n2"/><text x="76" y="227" text-anchor="middle" class="hf-num">2</text><text x="100" y="220" class="hf-t2">Already happened? Ask the receipts</text><text x="100" y="238" class="hf-s">skip it instead of doing it twice</text>
+        <circle cx="76" cy="270" r="13" class="hf-n3"/><text x="76" y="275" text-anchor="middle" class="hf-num">3</text><text x="100" y="268" class="hf-t2">"Done"? Code checks</text><text x="100" y="286" class="hf-s">not the agent's word</text>
+        <path d="M220 302 V352" class="hf-line hf-ok" marker-end="url(#hf-ar)"/>
+        <text x="232" y="332" class="hf-s hf-okt">exactly once</text>
+        <rect x="120" y="356" width="200" height="62" rx="12" class="hf-box"/>
+        <text x="220" y="382" class="hf-t" text-anchor="middle">Your systems</text>
+        <text x="220" y="402" class="hf-s" text-anchor="middle">email · payments · infra</text>
+        <path d="M400 190 H428" class="hf-line hf-bad"/>
+        <text x="436" y="160" class="hf-s hf-badt" text-anchor="end">repeat after</text>
+        <text x="436" y="176" class="hf-s hf-badt" text-anchor="end">a crash</text>
+        <text x="424" y="212" class="hf-x" text-anchor="middle">✕</text>
+        <text x="436" y="232" class="hf-s hf-badt" text-anchor="end">blocked</text>
+        <path d="M40 260 H12 V452 H120" class="hf-line hf-warn" marker-end="url(#hf-ar)"/>
+        <text x="126" y="448" class="hf-s hf-warnt">can't tell → a human decides, with evidence</text>
+        <circle r="6" class="hf-dot"><animateMotion dur="3.2s" repeatCount="indefinite" path="M220 40 V116 H384 V298 H220 V386"/></circle>
+      </svg>
+    </figure>
   </header>
 
   <section id="promises" class="promises" aria-labelledby="h-promises">
@@ -303,6 +350,25 @@ nav { gap: 16px; }
           <p id="flow-why"></p>
         </div>
         <div class="flow-ctl"><button type="button" id="flow-prev" aria-label="Previous phase">◀ Back</button><button type="button" id="flow-play">❚❚ Pause</button><button type="button" id="flow-auto" aria-label="Next phase">Next ▶</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="crusoe">
+    <div class="infra">
+      <div class="head" style="margin:0">
+        <span class="eyebrow">Built on Crusoe + NVIDIA Nemotron</span>
+        <h2>Every judgment runs on Nemotron, through Crusoe.</h2>
+        <p class="lede">Every judgment in Blackout, from writing the definition of done to repairing to reconciling after a crash, runs on Nemotron 3.5 Lightning through Crusoe Managed Inference, at about half a cent per mission. Crusoe's own telemetry independently confirms our numbers. That price is what makes "verify everything" the default, not a luxury.</p>
+        <p>We picked the model by measuring, not by name. On the same crash mission, Nemotron 3.5 Lightning finished in the fewest turns, Nemotron 3 Super also finished at about six times the cost, and Nemotron 3 Nano did not make progress. Lightning drives all 40 measured missions in the results table. When capacity was tight during the event, Blackout rerouted to Nemotron 3 Super and kept going. In the recorded race above, every call in both lanes ran on Lightning.</p>
+      </div>
+      <div class="facts">
+        <div><span class="k">Model</span><span class="v"><b>Nemotron 3.5 Lightning</b><br>30B A3B, both agents, native tool calling</span></div>
+        <div><span class="k">Inference</span><span class="v"><b>Crusoe Managed Inference</b><br>OpenAI-compatible endpoint, zero glue code</span></div>
+        <div><span class="k">Cost / mission</span><span class="v"><b>≈ $0.005</b><br>from API usage counts × $0.05 / $0.20 per 1M tokens</span></div>
+        <div><span class="k">Live missions</span><span class="v"><b>60+</b><br>40 in the paired ablation, all reported in the repo</span></div>
+        <div><span class="k">Observed</span><span class="v"><b>40 req/min · 717 ms</b><br>first token, from Crusoe's own metrics API during our runs</span></div>
+        <div><span class="k">Fallback</span><span class="v"><b>Nemotron 3 Super</b><br>measured to complete the mission; used only on 429s</span></div>
       </div>
     </div>
   </section>
@@ -412,24 +478,7 @@ nav { gap: 16px; }
     <p class="note">The gateway handles exactly-once side effects. "Code decides done" (frozen contract plus verifier) is the full Blackout runtime shown in the race above. Works with anything that can answer "did operation X happen?" by an ID you choose: Stripe idempotency keys, SQS FIFO dedup IDs, a Postgres outbox.</p>
   </section>
 
-  <section id="crusoe">
-    <div class="infra">
-      <div class="head" style="margin:0">
-        <span class="eyebrow">Built on Crusoe + NVIDIA Nemotron</span>
-        <h2>Verification only works if it's cheap enough to always run.</h2>
-        <p class="lede">Every Blackout mission is two Nemotron agents making about 28 calls: writing the contract, diagnosing, repairing, deciding. On Crusoe Managed Inference that costs about half a cent, so checking everything is the default, not a luxury.</p>
-        <p>We picked the model by measuring, not by name. On the same crash mission, Nemotron 3.5 Lightning finished in the fewest turns, Nemotron 3 Super also finished at about six times the cost, and Nemotron 3 Nano did not make progress. Lightning drives all 40 measured missions in the results table. When capacity was tight during the event, Blackout rerouted to Nemotron 3 Super and kept going. In the recorded race above, every call in both lanes ran on Lightning.</p>
-      </div>
-      <div class="facts">
-        <div><span class="k">Model</span><span class="v"><b>Nemotron 3.5 Lightning</b><br>30B A3B, both agents, native tool calling</span></div>
-        <div><span class="k">Inference</span><span class="v"><b>Crusoe Managed Inference</b><br>OpenAI-compatible endpoint, zero glue code</span></div>
-        <div><span class="k">Cost / mission</span><span class="v"><b>≈ $0.005</b><br>from API usage counts × $0.05 / $0.20 per 1M tokens</span></div>
-        <div><span class="k">Live missions</span><span class="v"><b>60+</b><br>40 in the paired ablation, all reported in the repo</span></div>
-        <div><span class="k">Observed</span><span class="v"><b>40 req/min · 717 ms</b><br>first token, from Crusoe's own metrics API during our runs</span></div>
-        <div><span class="k">Fallback</span><span class="v"><b>Nemotron 3 Super</b><br>measured to complete the mission; used only on 429s</span></div>
-      </div>
-    </div>
-  </section>
+
 
   <section id="roadmap">
     <div class="head">

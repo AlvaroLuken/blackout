@@ -187,8 +187,8 @@ const WITH = [
     () => { look(agent, 2); respawn(); later(() => { say(agent, "Send to customer 5"); packet(at(agent, 2), at(guard, 2.1), C.blue, 1100); }, 500); }],
   ["Check the receipt", "Blackout recognises op-005, then asks your system what really happened. The receipt says: already sent.", "It asks the outside world instead of guessing. If the answer were unknown, it would escalate to a human.",
     () => { look(guard, 1.5); say(guard, "op-005 again… checking", "amber"); packet(at(guard, 2.1), at(receipts, 1.6), C.amber, 900, () => { glow(receipts, C.ok); say(receipts, "already sent ✓", "ok", 2400, 2.2); packet(at(receipts, 1.6), at(guard, 2.1), C.ok, 900); }); }],
-  ["Blocked, and verified", "Blackout blocks the repeat. Customer 5 got exactly one message, and code checks every inbox before anyone says done.", "Exactly-once actions plus a verdict from code, not from the agent's confidence.",
-    () => { look(null); shield.material.opacity = 0.25; glow(guard, C.amber, 1500); say(guard, "Blocked: already done", "amber", 3000); }],
+  ["Blocked, and verified", "Blackout blocks the repeat. Then its verifier, plain code with no AI, checks every inbox before anyone is allowed to say done.", "Exactly-once actions plus a verdict from code, not from the agent's confidence.",
+    () => { look(null); shield.material.opacity = 0.25; glow(guard, C.amber, 1500); say(guard, "Blocked: already done", "amber", 2000); later(() => { say(guard, "Code check: every inbox ✓, 0 duplicates", "ok", 3200, 3.9); for (const c of customers) glow(c, C.ok, 900); }, 1500); }],
 ];
 const WITHOUT = [
   ["Ask", "The agent decides to message customer 5. Nothing writes it down.", "No journal: the only record is in the agent's head.",

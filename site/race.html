@@ -28,6 +28,8 @@ header { display: flex; align-items: flex-end; justify-content: space-between; g
 .chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
 .chip.live { color: var(--ok); border-color: #1d4d3c; }
 
+.crusoe-line { font-size: 15px; color: var(--muted); padding: 0 4px; } .crusoe-line b { color: #76b900; font-weight: 600; }
+body.presenter .crusoe-line { display: none; }
 .crusoe { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 0 4px; }
 .crusoe .cv { color: var(--fg); font-size: 15px; }
 .promise-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -181,6 +183,7 @@ body.presenter .status { font-size: 15px; }
     </div>
   </header>
 
+  <div class="crusoe-line">Every judgment here, from writing the definition of done to repairing to reconciling after a crash, runs on <b>Nemotron 3.5 Lightning through Crusoe Managed Inference</b>, about half a cent per mission. Crusoe's own telemetry confirms it:</div>
   <div class="crusoe" id="crusoe"><span class="ck">Crusoe metrics API · our model · snapshot from a live run, 12:31 PT</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
 
   <div class="promise-strip" aria-label="Blackout's three promises">
