@@ -115,6 +115,16 @@ p { margin: 0; max-width: 68ch; }
 .krow .out { font-family: var(--mono); font-weight: 700; } .krow.bad .out { color: var(--bad); } .krow.ok .out { color: var(--ok); }
 .krow code { font-size: 14px; }
 @media (max-width: 760px) { .krow { grid-template-columns: 1fr; } .krow .arrow { display: none; } }
+.auds { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.aud { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 4px; align-content: start; }
+.aud .sub { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.aud ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 12px; }
+.aud li { border-top: 1px solid var(--line); padding-top: 10px; }
+.aud .ut { font-weight: 600; font-size: 15.5px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.aud li p { font-size: 14.5px; color: var(--soft); margin-top: 4px; }
+.rb { font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 999px; }
+.rb.today { background: #0f2e24; color: var(--ok); } .rb.adapter { background: #2e2208; color: var(--amber); } .rb.runtime { background: #18264a; color: var(--blue); }
+.legend { font-size: 14px; color: var(--muted); max-width: 90ch; line-height: 1.9; }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
@@ -251,18 +261,11 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   <section id="where" aria-labelledby="h-where">
     <div class="head">
       <span class="eyebrow">Use cases</span>
-      <h2 id="h-where">Anywhere doing it twice is worse than not doing it.</h2>
-      <p>Tested so far on a simulated notification sender and an MCP mailer. Each case below needs an adapter: a way to ask that system "did operation X happen?".</p>
+      <h2 id="h-where">Anywhere an agent does something you can't take back.</h2>
+      <p class="lede">Sending, paying, creating, deploying. And anywhere "the agent said it's done" isn't good enough.</p>
+      <p class="legend"><span class="rb today">Today</span> works now with <code>npx blackout-mcp</code> in front of an MCP tool · <span class="rb adapter">Adapter</span> needs a small integration: a way to ask that system "did operation X happen?" · <span class="rb runtime">Full runtime</span> uses the full runtime with a frozen definition of done and a code verifier. Tested so far on a simulated notification sender, an MCP mailer, and Claude Code.</p>
     </div>
-    <div class="uses">
-      <div class="use"><h3>Refunds and credits</h3><p class="r"><b>Without:</b> a crash mid-batch, the restart refunds people twice.<br><b>With a Blackout adapter:</b> it checks the payment provider's receipt for the in-flight refund and skips it.</p></div>
-      <div class="use"><h3>Customer messaging</h3><p class="r"><b>Without:</b> the backlog resend hits half your list twice.<br><b>With a Blackout adapter:</b> each customer is messaged exactly once, verified against the sender's log.</p></div>
-      <div class="use"><h3>Payouts and billing runs</h3><p class="r"><b>Without:</b> a partial run leaves some accounts paid twice, some not at all.<br><b>With a Blackout adapter:</b> every account settled once, totals checked before "done".</p></div>
-      <div class="use"><h3>Infrastructure auto-fixes</h3><p class="r"><b>Without:</b> /health is green, so the bot closes the incident.<br><b>With a Blackout adapter:</b> it's done only when the real user path works.</p></div>
-      <div class="use"><h3>Data syncs and backfills</h3><p class="r"><b>Without:</b> a rerun duplicates rows downstream.<br><b>With a Blackout adapter:</b> every record moved once, checksums match.</p></div>
-      <div class="use"><h3>Coding and ops agents</h3><p class="r"><b>Without:</b> "tests pass" because the agent said so.<br><b>With a Blackout adapter:</b> code runs the checks; the agent's claim doesn't count.</p></div>
-    </div>
-    
+    <div class="auds"><div class="aud"><h3>Developers using coding agents</h3><span class="sub">Claude Code, Cursor, Hermes and friends</span><ul><li><div class="ut">Posting to Slack, GitHub or email <span class="rb today">Today</span></div><p>A retried or restarted session can't post the same release note, PR comment or reply twice.</p></li><li><div class="ut">Creating tickets, issues and invites <span class="rb today">Today</span></div><p>No duplicate Jira tickets, GitHub issues or calendar invites when the agent loops.</p></li><li><div class="ut">Long sessions that crash or hit limits <span class="rb today">Today</span></div><p>The next session picks up the job without redoing what already went out.</p></li></ul></div><div class="aud"><h3>Companies running agents unattended</h3><span class="sub">Support, ops and growth</span><ul><li><div class="ut">Customer messaging <span class="rb today">Today</span> <span class="rb adapter">Adapter</span></div><p>Order updates, reminders and sequences: each customer gets each message once, across crashes and redeploys.</p></li><li><div class="ut">Refunds and credits <span class="rb adapter">Adapter</span></div><p>Support agents can't refund the same customer twice.</p></li><li><div class="ut">CRM and sales agents <span class="rb today">Today</span> <span class="rb adapter">Adapter</span></div><p>No double-sent sequences or duplicate contacts.</p></li></ul></div><div class="aud"><h3>Finance and payments</h3><span class="sub">Where a duplicate is a finance incident</span><ul><li><div class="ut">Payouts, invoicing, billing runs <span class="rb adapter">Adapter</span> <span class="rb runtime">Full runtime</span></div><p>Every account settled once, and "done" only when totals reconcile in code.</p></li></ul></div><div class="aud"><h3>Platform, SRE and infrastructure</h3><span class="sub">Bots that touch production</span><ul><li><div class="ut">Auto-remediation <span class="rb runtime">Full runtime</span></div><p>No double rollbacks or restarts, and "fixed" is decided by real checks, not /health 200.</p></li><li><div class="ut">Provisioning <span class="rb adapter">Adapter</span></div><p>No duplicate VMs, buckets or DNS records, and no surprise bills, when the agent retries.</p></li></ul></div><div class="aud"><h3>Data teams</h3><span class="sub">Moving data with agents</span><ul><li><div class="ut">Backfills, migrations, syncs <span class="rb adapter">Adapter</span> <span class="rb runtime">Full runtime</span></div><p>Every record moved once; checks must pass before anyone says done.</p></li></ul></div><div class="aud"><h3>Agent platforms and framework builders</h3><span class="sub">Shipping agents to your users</span><ul><li><div class="ut">Exactly-once for every connected tool <span class="rb today">Today</span></div><p>Put Blackout in front of the tools your users connect. Each tool author doesn't have to rebuild it.</p></li></ul></div><div class="aud"><h3>Compliance, risk and audit</h3><span class="sub">Proving what an agent did</span><ul><li><div class="ut">An auditable record per run <span class="rb runtime">Full runtime</span></div><p>A frozen definition of done, an ID for every action, receipts, and a verdict from code instead of a chat log.</p></li></ul></div></div>
   </section>
 
   <section id="how">
