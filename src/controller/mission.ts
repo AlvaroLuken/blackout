@@ -104,7 +104,7 @@ export async function runMission(opts: MissionOpts): Promise<MissionOutcome> {
     if (exit.signal) {
       journal.workerEnded(missionId, g, "killed", exit);
       journal.event(missionId, "controller", "worker_crashed", { generation: g, signal: exit.signal });
-      say(`[controller] worker g${g} died (${exit.signal}). Its last action has no acknowledgement. Starting a replacement from the journal.`);
+      say(`[controller] worker g${g} died (${exit.signal}). Its last action has no acknowledgement. Starting a replacement${opts.mode === "journal" ? " from the journal" : " (baseline: no journal)"}.`);
       crashAt ??= Date.now();
       const r = afterCrash(state); state = r.state;
       if (r.forced.kind === "escalate") return escalate(r.forced.reason, verdict, state.episodes, state.crashes, recoveryMs);
