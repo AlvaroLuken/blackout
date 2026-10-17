@@ -7,3 +7,4 @@ var/
 results/raw/
 .vercel
 site/.vercel
+*.tgz

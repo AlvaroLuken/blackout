@@ -1,5 +1,5 @@
 {
-  "name": "blackout",
+  "name": "blackout-mcp",
   "version": "0.1.0",
   "scripts": {
     "target": "NODE_NO_WARNINGS=1 tsx src/target/supervisor.ts",
@@ -20,17 +20,47 @@
     "gateway:demo": "NODE_NO_WARNINGS=1 tsx src/mcp-gateway/agent-demo.ts"
   },
   "license": "MIT",
-  "description": "Keeps a recovery mission accountable to verified outcomes while repair workers fail and get replaced.",
+  "description": "Exactly-once side effects for AI agents: an MCP gateway that journals every action before it runs, suppresses repeats, and reconciles from receipts after a crash. Plus the full Blackout runtime (frozen definition of done, code-only verifier).",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "openai": "^7.36.0",
-    "zod": "^4.6.7"
+    "zod": "^4.6.7",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
-    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
-  "private": true,
-  "type": "module"
+  "private": false,
+  "type": "module",
+  "bin": {
+    "blackout-mcp": "bin/blackout-mcp.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "examples/",
+    "README.md",
+    "LICENSE",
+    "tsconfig.json"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "agents",
+    "idempotency",
+    "exactly-once",
+    "nemotron",
+    "crusoe",
+    "reliability"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlvaroLuken/blackout.git"
+  },
+  "homepage": "https://blackout-woad.vercel.app",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "author": "Alvaro Luken"
 }

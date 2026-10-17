@@ -1,0 +1,8 @@
+{
+  "mission": "order-shipped-backlog",
+  "journal": "./blackout-journal.db",
+  "downstream": { "builtin": "demo-mailer", "env": { "MAILER_DB": "./blackout-demo-mailer.db" } },
+  "sideEffects": {
+    "send_email": { "idempotencyArg": "idempotency_key", "receipt": { "tool": "get_receipt", "arg": "idempotency_key" } }
+  }
+}

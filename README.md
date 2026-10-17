@@ -145,7 +145,18 @@ Reused components: [OpenAI Node SDK](https://github.com/openai/openai-node) (Apa
 
 ## Blackout MCP gateway (use it with any MCP agent)
 
-A drop-in, exactly-once layer for agents that call tools over MCP. Point your agent at the gateway instead of the tool server; mark which tools have side effects.
+A drop-in, exactly-once layer for agents that call tools over MCP. Point your agent at the gateway instead of the tool server, and mark which tools have side effects.
+
+**Try it in Claude Code in 30 seconds** (uses a bundled demo mailer):
+
+```bash
+npx -y blackout-mcp init                      # writes an example blackout.mcp.json here
+claude mcp add blackout -- npx -y blackout-mcp --config "$PWD/blackout.mcp.json"
+```
+
+Then ask Claude to send the same email twice, or restart it and ask again: the second send comes back as `duplicate suppressed`.
+
+**In front of your own MCP server**, edit `blackout.mcp.json`:
 
 ```json
 {
@@ -158,10 +169,7 @@ A drop-in, exactly-once layer for agents that call tools over MCP. Point your ag
 }
 ```
 
-```bash
-npm run gateway -- --config blackout.mcp.json   # an MCP server on stdio; add it to your agent like any other
-npm run gateway:demo                             # live: a Nemotron agent sends a backlog, "restarts", tries again
-```
+Any MCP client works the same way: run `npx -y blackout-mcp --config /path/to/blackout.mcp.json` as a stdio server. Requires Node 22.5+.
 
 - Each side-effect call gets a stable op ID from (mission, tool, arguments), journaled before the call and passed as the tool's idempotency key.
 - A repeat of the same side effect, from a retry or a restarted agent, returns the original result instead of running again.
