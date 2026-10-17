@@ -112,7 +112,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <a class="btn ghost" href="#use">Use it today: MCP gateway</a>
       <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
     </div>
-    <span class="built">Works today as a drop-in <b style="color:var(--amber)">MCP gateway</b> in front of any tool server · agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
+    <span class="built">Works today as a drop-in <b style="color:var(--amber)">MCP gateway</b> (<code>npx blackout-mcp</code>, on npm) in front of any tool server · agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
   </header>
 
   <section id="problem" aria-labelledby="h-problem">
@@ -199,8 +199,8 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <p class="lede">The Blackout MCP gateway works with any agent that calls tools over MCP. Your agent doesn't change: point it at the gateway instead of the tool server, and mark which tools have side effects.</p>
     </div>
 <pre><span class="c"># Try it in Claude Code (bundled demo mailer, no setup)</span>
-<span class="c">$</span> npx -y github:AlvaroLuken/blackout init
-<span class="c">$</span> claude mcp add blackout -- npx -y github:AlvaroLuken/blackout --config "$PWD/blackout.mcp.json"
+<span class="c">$</span> npx -y blackout-mcp init
+<span class="c">$</span> claude mcp add blackout -- npx -y blackout-mcp --config "$PWD/blackout.mcp.json"
 <span class="c"># then ask Claude to send the same email twice: the second comes back "duplicate suppressed"</span></pre>
 <pre style="margin-top:12px"><span class="c">// blackout.mcp.json, in front of your own MCP server</span>
 {
@@ -212,7 +212,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   }
 }
 
-<span class="c">$</span> npx -y github:AlvaroLuken/blackout --config blackout.mcp.json   <span class="c"># a stdio MCP server; add it to any agent</span></pre>
+<span class="c">$</span> npx -y blackout-mcp --config blackout.mcp.json   <span class="c"># a stdio MCP server; add it to any agent</span></pre>
     <div class="grid3" style="margin-top:18px">
       <div class="card"><h3>Repeats are suppressed</h3><p>Every side effect gets a stable ID and is journaled before it runs. A retry or a restarted agent gets the original result back, not a second email.</p></div>
       <div class="card"><h3>Crashes are reconciled</h3><p>If the gateway dies mid-call, it asks your system's receipt tool what happened before allowing a retry. If it can't tell, it refuses and escalates.</p></div>

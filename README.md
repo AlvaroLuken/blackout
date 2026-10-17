@@ -150,8 +150,8 @@ A drop-in, exactly-once layer for agents that call tools over MCP. Point your ag
 **Try it in Claude Code in 30 seconds** (uses a bundled demo mailer):
 
 ```bash
-npx -y github:AlvaroLuken/blackout init       # writes an example blackout.mcp.json here
-claude mcp add blackout -- npx -y github:AlvaroLuken/blackout --config "$PWD/blackout.mcp.json"
+npx -y blackout-mcp init       # writes an example blackout.mcp.json here
+claude mcp add blackout -- npx -y blackout-mcp --config "$PWD/blackout.mcp.json"
 ```
 
 Then ask Claude to send the same email twice, or restart it and ask again: the second send comes back as `duplicate suppressed`.
@@ -169,7 +169,7 @@ Then ask Claude to send the same email twice, or restart it and ask again: the s
 }
 ```
 
-Any MCP client works the same way: run `npx -y github:AlvaroLuken/blackout --config /path/to/blackout.mcp.json` as a stdio server. Requires Node 22.5+.
+Any MCP client works the same way: run `npx -y blackout-mcp --config /path/to/blackout.mcp.json` as a stdio server. Requires Node 22.5+.
 
 - Each side-effect call gets a stable op ID from (mission, tool, arguments), journaled before the call and passed as the tool's idempotency key.
 - A repeat of the same side effect, from a retry or a restarted agent, returns the original result instead of running again.
