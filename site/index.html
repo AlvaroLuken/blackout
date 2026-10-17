@@ -100,7 +100,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 <div class="wrap">
   <nav>
     <a class="logo" href="#">BLACK<span>OUT</span></a>
-    <div class="links"><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">Use it</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+    <div class="links"><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">Use it today</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
   </nav>
 
   <header class="hero">
@@ -193,29 +193,27 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 
   <section id="use">
     <div class="head">
-      <span class="eyebrow">Use it in your agent</span>
-      <h2>Wrap the tools that touch the world. Keep your agent.</h2>
-      <p>Blackout is not a new agent framework. You keep your model and your prompts, and wrap the actions that have side effects. <span class="tag">Planned SDK shape</span> Today this logic lives in <code>src/adapter/tools.ts</code> and <code>src/controller/</code>; extracting it is the next step.</p>
+      <span class="eyebrow">Use it today</span>
+      <h2>Put Blackout between your agent and its tools.</h2>
+      <p class="lede">The Blackout MCP gateway works with any agent that calls tools over MCP. Your agent doesn't change: point it at the gateway instead of the tool server, and mark which tools have side effects.</p>
     </div>
-<pre><span class="k">import</span> { mission, sideEffect, check } <span class="k">from</span> <span class="s">"blackout"</span>;
+<pre><span class="c">// blackout.mcp.json</span>
+{
+  <span class="f">"mission"</span>: <span class="s">"order-shipped-backlog"</span>,
+  <span class="f">"downstream"</span>: { <span class="f">"command"</span>: <span class="s">"node"</span>, <span class="f">"args"</span>: [<span class="s">"your-mcp-server.js"</span>] },
+  <span class="f">"sideEffects"</span>: {
+    <span class="f">"send_email"</span>: { <span class="f">"idempotencyArg"</span>: <span class="s">"idempotency_key"</span>,
+                    <span class="f">"receipt"</span>: { <span class="f">"tool"</span>: <span class="s">"get_receipt"</span>, <span class="f">"arg"</span>: <span class="s">"idempotency_key"</span> } }
+  }
+}
 
-<span class="c">// 1. A side effect: Blackout journals the op ID before it runs,</span>
-<span class="c">//    and after a crash asks your system whether it already happened.</span>
-<span class="k">const</span> sendEmail = <span class="f">sideEffect</span>({
-  run: (op, msg) =&gt; mailer.send(msg, { idempotencyKey: op.id }),
-  receipt: (op) =&gt; mailer.lookup(op.id),          <span class="c">// "did op X happen?"</span>
-});
-
-<span class="c">// 2. The definition of done, checked by code, never by the model.</span>
-<span class="k">const</span> done = [
-  check.<span class="f">everyRecipient</span>(batch, (r) =&gt; inbox.count(r) === <span class="s">1</span>),
-  check.<span class="f">untouched</span>(alreadySent),
-];
-
-<span class="c">// 3. Run your agent. Workers can die; the mission keeps its promises.</span>
-<span class="k">await</span> <span class="f">mission</span>({ goal: <span class="s">"Send the backlog. Nobody gets it twice."</span>, tools: { sendEmail }, done,
-  model: <span class="s">"nvidia/Nemotron-3.5-Lightning-30B-A3B"</span>, budget: { usd: <span class="s">1</span> } });</pre>
-    <p class="note">Plugs into anything that can answer "did operation X happen?" by an ID you choose: Stripe idempotency keys, SQS FIFO deduplication IDs, a Postgres outbox table. Without that, Blackout marks the outcome unknown and asks a human. Two service profiles are built and tested today.</p>
+<span class="c">$</span> npm run gateway -- --config blackout.mcp.json   <span class="c"># an MCP server; add it to your agent like any other</span></pre>
+    <div class="grid3" style="margin-top:18px">
+      <div class="card"><h3>Repeats are suppressed</h3><p>Every side effect gets a stable ID and is journaled before it runs. A retry or a restarted agent gets the original result back, not a second email.</p></div>
+      <div class="card"><h3>Crashes are reconciled</h3><p>If the gateway dies mid-call, it asks your system's receipt tool what happened before allowing a retry. If it can't tell, it refuses and escalates.</p></div>
+      <div class="card"><h3>Measured live</h3><p>A Nemotron agent on Crusoe sent 3 emails through the gateway, was restarted with no memory and given the same job. All 3 repeats suppressed; each customer got exactly one email.</p></div>
+    </div>
+    <p class="note">The gateway handles exactly-once side effects. "Code decides done" (frozen contract plus verifier) is the full Blackout runtime shown in the race above. Works with anything that can answer "did operation X happen?" by an ID you choose: Stripe idempotency keys, SQS FIFO dedup IDs, a Postgres outbox.</p>
   </section>
 
   <section id="crusoe">
@@ -243,8 +241,8 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <h2>From a hackathon protocol to the reliability layer for agents.</h2>
     </div>
     <div class="road">
-      <div class="card now"><span class="when">Today</span><h3>Working protocol</h3><p>Journal, frozen contracts, receipt reconciliation, code verifier, budgets and escalation. Two service profiles, 60+ live missions, 18 tests.</p></div>
-      <div class="card"><span class="when">Next</span><h3>The SDK</h3><p>Extract <code>sideEffect</code>, <code>check</code> and <code>mission</code> so any agent framework can wrap its tools in a few lines.</p></div>
+      <div class="card now"><span class="when">Today</span><h3>Runtime + MCP gateway</h3><p>Journal, frozen contracts, receipt reconciliation, code verifier, budgets and escalation. A drop-in MCP gateway for any agent. 60+ live missions, 25 tests.</p></div>
+      <div class="card"><span class="when">Next</span><h3>Done-checks in the gateway</h3><p>Bring frozen contracts and the verifier to the gateway, plus an SDK for frameworks that don't use MCP.</p></div>
       <div class="card"><span class="when">Then</span><h3>Real adapters</h3><p>Postgres outbox, Stripe test mode, email and SMS providers with idempotency keys, Kubernetes.</p></div>
       <div class="card"><span class="when">Later</span><h3>Hosted mission ledger</h3><p>Proof-of-done records and escalation reports for every unattended agent run, for on-call and compliance teams.</p></div>
     </div>

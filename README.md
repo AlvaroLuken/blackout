@@ -143,6 +143,33 @@ Everything in `src/`, `test/` and `results/` was written on Oct 17 2026 between 
 
 Reused components: [OpenAI Node SDK](https://github.com/openai/openai-node) (Apache-2.0) as the Crusoe client, [Zod](https://github.com/colinhacks/zod) (MIT), [tsx](https://github.com/privatenumber/tsx) (MIT), [TypeScript](https://github.com/microsoft/TypeScript) (Apache-2.0), and Node's built-in `node:sqlite`. No agent framework is used.
 
+## Blackout MCP gateway (use it with any MCP agent)
+
+A drop-in, exactly-once layer for agents that call tools over MCP. Point your agent at the gateway instead of the tool server; mark which tools have side effects.
+
+```json
+{
+  "mission": "order-shipped-backlog",
+  "journal": "./blackout-journal.db",
+  "downstream": { "command": "node", "args": ["your-mcp-server.js"] },
+  "sideEffects": {
+    "send_email": { "idempotencyArg": "idempotency_key", "receipt": { "tool": "get_receipt", "arg": "idempotency_key" } }
+  }
+}
+```
+
+```bash
+npm run gateway -- --config blackout.mcp.json   # an MCP server on stdio; add it to your agent like any other
+npm run gateway:demo                             # live: a Nemotron agent sends a backlog, "restarts", tries again
+```
+
+- Each side-effect call gets a stable op ID from (mission, tool, arguments), journaled before the call and passed as the tool's idempotency key.
+- A repeat of the same side effect, from a retry or a restarted agent, returns the original result instead of running again.
+- If the gateway itself dies mid-call, the next attempt asks the receipt tool first. No receipt tool and an interrupted call means it refuses and escalates.
+- Read-only tools pass straight through.
+- Measured live on Oct 17: a Nemotron agent sent 3 emails, was restarted with no memory and given the same job; all 3 repeats were suppressed and each customer received exactly one email. 7 tests in `test/mcp-gateway.test.ts`.
+- Scope: the gateway gives exactly-once side effects. Done-verification (frozen contract, verifier) is in the full runtime, not the gateway. Two identical intended sends in one mission are treated as one; vary an argument if you really mean to send twice.
+
 ## Pointing Blackout at another system
 
 The controller, journal, contract freezing, verifier vocabulary, reconciliation protocol, budgets and escalation are target-independent. A new target needs an adapter with three parts:
