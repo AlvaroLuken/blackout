@@ -43,7 +43,7 @@ async function main() {
     case "mission":
     case "demo": {
       const flag = (n: string, d: string) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
-      const kill = flag("kill-after", cmd === "demo" ? "2" : "0");
+      const kill = args.includes("--manual-kill") ? "0" : flag("kill-after", cmd === "demo" ? "2" : "0");
       const r = await runScenario({
         fault: flag("fault", "bad_digest") as FaultName | "none" | "random",
         profile: flag("profile", "ledger") as "ledger" | "outbox",
@@ -51,8 +51,16 @@ async function main() {
         mode: flag("mode", "journal") as "journal" | "baseline",
         policy: flag("policy", "llm") as "llm" | "test",
         goal: flag("goal", DEFAULT_GOAL),
+        inject: args.includes("--inject"),
+        manualKill: args.includes("--manual-kill"),
       });
       process.exit(r.status === "verified" ? 0 : 1);
+    }
+    case "kill": {
+      const { killWorkerNow } = await import("./faults/harness.ts");
+      const pid = killWorkerNow();
+      console.log(pid ? `SIGKILL sent to worker pid ${pid}` : "no running worker found");
+      return;
     }
     case "eval": {
       // Predefined paired ablation. Same model, tools, contract rules, verifier,
@@ -67,9 +75,10 @@ async function main() {
       const fault = flag("fault", "bad_digest") as FaultName | "random";
       const runs: any[] = [];
       for (let i = 0; i < pairs; i++) {
+        const pairFault = fault === "random" ? (Math.random() < 0.5 ? "bad_digest" : "bad_unicode") : fault;
         for (const mode of ["journal", "baseline"] as const) {
           console.log(`\n######## pair ${i + 1}/${pairs}  mode=${mode} ########`);
-          runs.push(await runScenario({ fault, profile, killAfter: 2, mode, policy, quiet: args.includes("--quiet"), label: `eval-${profile}-pair${i + 1}-${mode}` }));
+          runs.push(await runScenario({ fault: pairFault as FaultName, profile, killAfter: 2, mode, policy, quiet: args.includes("--quiet"), label: `eval-${profile}-pair${i + 1}-${mode}` }));
         }
       }
       const row = (r: any) => ({

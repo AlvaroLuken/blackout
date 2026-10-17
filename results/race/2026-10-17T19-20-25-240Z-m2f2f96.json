@@ -1,0 +1,106 @@
+{
+  "label": null,
+  "scenario": {
+    "profile": "outbox",
+    "fault": "bad_digest",
+    "kill_after_commit": 2,
+    "manual_kill": false,
+    "planted_instruction": false
+  },
+  "mission_id": "m2f2f96",
+  "mode": "journal",
+  "policy": "test",
+  "model": null,
+  "status": "verified",
+  "reason": "verifier passed",
+  "episodes": 1,
+  "crashes": 1,
+  "final_verdict": {
+    "pass": true,
+    "contract_hash": "fa6ae8f99db5e9fa77d5b01dccd9b6c402666bd7b98d52e79971ca53a095ac2f",
+    "results": [
+      {
+        "kind": "fresh_job_e2e",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "probe probe-17272a2a delivered with a correct payload"
+      },
+      {
+        "kind": "all_scope_jobs_valid_output",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "10/10 jobs have a correct delivery"
+      },
+      {
+        "kind": "no_duplicate_deliveries",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "every job has at most one delivery"
+      },
+      {
+        "kind": "preexisting_outputs_intact",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "3 pre-existing deliveries unchanged"
+      },
+      {
+        "kind": "no_unaccounted_work",
+        "source": "mandatory",
+        "pass": true,
+        "detail": "every scoped job is done with a receipt"
+      },
+      {
+        "kind": "health_ok",
+        "source": "model",
+        "pass": true,
+        "detail": "health 200 (liveness only, not proof of correctness)"
+      }
+    ],
+    "progress": {
+      "valid_jobs": 10,
+      "scope_jobs": 10,
+      "duplicate_jobs": 0,
+      "failed_mandatory": 0
+    },
+    "at": "2026-10-17T19:20:25.235Z"
+  },
+  "declared_success_without_verification": false,
+  "usage": {
+    "calls": 0,
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "cached_tokens": 0,
+    "est_usd": null,
+    "priced_calls": 0
+  },
+  "elapsed_ms": 5703,
+  "recovery_ms": 2615,
+  "target_facts": {
+    "scope_jobs": 10,
+    "jobs_with_delivery": 10,
+    "missing_jobs": 0,
+    "duplicate_committed_deliveries": 0
+  },
+  "harness_events": [
+    {
+      "ts": "2026-10-17T19:20:18.966Z",
+      "event": "fault_injected",
+      "fault": "bad_digest"
+    },
+    {
+      "ts": "2026-10-17T19:20:19.533Z",
+      "event": "kill_armed",
+      "commit_number": 2
+    },
+    {
+      "ts": "2026-10-17T19:20:22.611Z",
+      "event": "worker_sigkilled",
+      "pid": 75099,
+      "point": "after_commit_before_ack",
+      "op_id": "m2f2f96-job-005-a2b7b8",
+      "commit_number": 2
+    }
+  ],
+  "recorded_at": "2026-10-17T19:20:25.240Z",
+  "inference": "none (deterministic test policy)"
+}
