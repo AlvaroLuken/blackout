@@ -141,6 +141,16 @@ Everything in `src/`, `test/` and `results/` was written on Oct 17 2026 between 
 
 Reused components: [OpenAI Node SDK](https://github.com/openai/openai-node) (Apache-2.0) as the Crusoe client, [Zod](https://github.com/colinhacks/zod) (MIT), [tsx](https://github.com/privatenumber/tsx) (MIT), [TypeScript](https://github.com/microsoft/TypeScript) (Apache-2.0), and Node's built-in `node:sqlite`. No agent framework is used.
 
+## Pointing Blackout at another system
+
+The controller, journal, contract freezing, verifier vocabulary, reconciliation protocol, budgets and escalation are target-independent. A new target needs an adapter with three parts:
+
+1. A small set of safe tools for that system (read logs, change an allowlisted setting, restart, submit work).
+2. A way to ask "did operation X happen?" by a caller-chosen ID. Many real systems have one: Stripe idempotency keys, SQS FIFO deduplication IDs, a Postgres outbox table keyed by operation ID.
+3. Output rules the verifier can check independently.
+
+Without (2), Blackout marks an interrupted action's outcome unknown and escalates rather than guessing. Next targets we would try: a real Postgres outbox, a Stripe test-mode payout run, a Hermes agent.
+
 ## Known limitations
 
 - One synthetic service with two profiles (ledger, outbox) and three config faults. Not a general outage-recovery system.

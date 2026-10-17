@@ -70,7 +70,7 @@ export function story(raw: string): string | null {
   if ((m = s.match(/^\[verifier\] before repair: FAIL\s+valid=(\d+)\/(\d+)/))) return `verifier: FAIL  ${m[1]}/${m[2]} jobs done`;
   if (/fresh_job_e2e: process returned 500/.test(s)) return "  real jobs crash (500)";
   if ((m = s.match(/^\[verifier\] after episode \d+: (PASS|FAIL)\s+valid=(\d+)\/(\d+) duplicates=(\d+)/))) return `verifier: ${m[1]}  ${m[2]}/${m[3]} valid  dup=${m[4]}`;
-  if ((m = s.match(/duplicate deliveries for (job-\d+) \(x(\d+)\)/))) return `  ✖ ${m[1]} delivered ${m[2]} times`;
+  if ((m = s.match(/duplicate deliveries for (job-\d+) \(x(\d+)\)/))) return `  ✖ ${m[1]} sent ${m[2]} times: a customer got it twice`;
   if ((m = s.match(/^\[controller\] spawn worker generation (\d+)/))) return `▶ worker ${m[1]} starts`;
   if ((m = s.match(/^\[controller\] worker g(\d) died/))) return `✖ worker ${m[1]} SIGKILLed mid-delivery`;
   if (/worker claimed done, verifier disagrees/.test(s)) return "worker says done → REJECTED";

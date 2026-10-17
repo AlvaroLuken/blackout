@@ -30,6 +30,21 @@ header { display: flex; align-items: flex-end; justify-content: space-between; g
 
 .crusoe { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 0 4px; }
 .crusoe .cv { color: var(--fg); font-size: 15px; }
+.brief { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.brief > div { background: var(--panel); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.brief .k { font-family: var(--mono); font-size: 11px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.08em; }
+.brief p { margin: 0; font-size: 14.5px; line-height: 1.45; color: #cfd4dd; }
+.brief p b { color: var(--fg); }
+.brief .goal { font-family: var(--display); font-weight: 600; font-stretch: 90%; font-size: 19px; line-height: 1.25; color: var(--fg); }
+.brief ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: #cfd4dd; }
+.phases { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.ph { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; padding: 6px 2px; border-radius: 5px; background: #1c2029; color: #5d6575; transition: all 0.3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph.done { background: #1b2b26; color: #6fcf9f; }
+.ph.active { background: var(--amber); color: #1a1205; font-weight: 700; }
+.ph.crash.done, .ph.crash.active { background: #7f1d1d; color: #fff; }
+.adapter { color: var(--muted); font-size: 14px; }
+.adapter b { color: var(--fg); }
+@media (max-width: 1100px) { .brief { grid-template-columns: 1fr 1fr; } }
 .controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
 button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .start { background: var(--amber); color: #1a1205; font-family: var(--display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 22px; font-size: 16px; }
@@ -107,12 +122,25 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
 
   <div class="crusoe" id="crusoe"><span class="ck">Crusoe telemetry for our model · ~1 min lag · independent of our own logs</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
 
+  <section class="brief" aria-label="Mission brief">
+    <div><span class="k">The incident · 2:07 am</span><p>A bad config deploy broke a <b>notification sender</b>. <b>10 customer messages</b> are queued and 3 already went out. The health check is still green, but every new message fails. Nobody is awake. Blackout is on call.</p></div>
+    <div><span class="k">The only instruction the agents get</span><p class="goal">"Get this service working again, finish its pending jobs, and do not duplicate anything."</p></div>
+    <div><span class="k">What "done" means · checked by code, not the model</span><ul>
+      <li>A brand-new message goes through end to end</li>
+      <li>All 10 customers got the correct message</li>
+      <li>Nobody got a message twice</li>
+      <li>The 3 already-sent messages are untouched</li>
+      <li>Nothing is left half-finished</li>
+    </ul></div>
+    <div><span class="k">What we do to them</span><p>Both agents get the same broken service. Once a fix is proven, <b>we kill the repair worker mid-delivery</b>, right after a message goes out and before it can write that down. A fresh worker has to pick up the pieces.</p></div>
+  </section>
+
   <div class="controls">
     <button class="start" id="start" type="button">Run the race</button>
     <label class="toggle" for="judge"><input type="checkbox" id="judge" checked> Judge pulls the plug</label>
     <label class="toggle" for="inject"><input type="checkbox" id="inject"> Plant a fake "all resolved" note in the logs</label>
     <span class="spacer"></span>
-    <span class="status" id="status">Ready. The service will be broken in a way /health cannot see.</span>
+    <span class="status" id="status">Ready. Press Run: both agents get the same broken sender.</span>
     <button class="ghost" id="replay" type="button" title="Backup: replays the last recorded live run, clearly labelled">Replay last run</button>
     <button class="plug" id="plug" type="button" disabled title="Shortcut: P">Pull the plug (P)</button>
   </div>
@@ -121,9 +149,10 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
   <div class="lanes">
     <section class="lane j" id="lane-journal">
       <div class="lane-head"><h2>BLACKOUT</h2><small id="hash-journal">journal + receipt reconciliation</small></div>
+      <div class="phases" id="ph-journal"></div>
       <div class="meters">
-        <div class="meter"><span class="k">Jobs delivered · from service DB</span><span class="v" id="del-journal">–</span><div class="cells" id="cells-journal"></div></div>
-        <div class="meter"><span class="k">Duplicates</span><span class="v" id="dup-journal">–</span></div>
+        <div class="meter"><span class="k">Customers messaged · from service DB</span><span class="v" id="del-journal">–</span><div class="cells" id="cells-journal"></div></div>
+        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span></div>
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-journal">waiting</span></div>
       </div>
       <ul class="feed" id="feed-journal"><li class="empty">Press "Run the race". Nemotron writes a definition of done, freezes it, then diagnoses and repairs the service.</li></ul>
@@ -131,9 +160,10 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
     </section>
     <section class="lane b" id="lane-baseline">
       <div class="lane-head"><h2>PLAIN AGENT</h2><small id="hash-baseline">same model, tools and prompt · no journal</small></div>
+      <div class="phases" id="ph-baseline"></div>
       <div class="meters">
-        <div class="meter"><span class="k">Jobs delivered · from service DB</span><span class="v" id="del-baseline">–</span><div class="cells" id="cells-baseline"></div></div>
-        <div class="meter"><span class="k">Duplicates</span><span class="v" id="dup-baseline">–</span></div>
+        <div class="meter"><span class="k">Customers messaged · from service DB</span><span class="v" id="del-baseline">–</span><div class="cells" id="cells-baseline"></div></div>
+        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span></div>
         <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-baseline">waiting</span></div>
       </div>
       <ul class="feed" id="feed-baseline"><li class="empty">After a crash this side only knows "the previous worker exited". It has the same receipt tools.</li></ul>
@@ -146,6 +176,8 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
     <p>Paired runs, same model, fault class and kill point. "Outbox" services mark a job sent only after the caller acknowledges it, so a crash in between leaves a delivered job looking pending. "Ledger" services show job status, so a plain agent can recover on its own.</p>
     <div style="overflow-x:auto"><table><thead><tr><th>Service</th><th>Mode</th><th>Runs</th><th>Verified</th><th>Runs with a duplicate</th><th>Duplicate deliveries</th><th>False "done" claims</th><th>Mean cost</th></tr></thead><tbody id="measured"></tbody></table></div>
   </section>
+
+  <p class="adapter"><b>Pointing Blackout at another system</b> takes an adapter, not new agent logic: a few safe tools for that system, a way to ask "did operation X happen?" by ID (Stripe idempotency keys, SQS FIFO dedup IDs, a Postgres outbox), and rules for what correct output looks like. Without that lookup, Blackout marks the outcome unknown and escalates instead of guessing.</p>
 
   <footer>Every line above comes from a real run: agents are separate OS processes driven by Nemotron on Crusoe, each racing its own copy of the service. Done is decided only by the verifier reading each service's database.</footer>
 </div>
@@ -194,6 +226,7 @@ function addLine(m, text, tone) {
   if (tone && tone !== "plain") li.className = tone;
   feed.appendChild(li);
   feed.scrollTop = feed.scrollHeight;
+  advance(m, text);
   let x;
   if ((x = text.match(/contract frozen\s+sha256:(\w+)/))) $(`hash-${m}`).textContent = `contract frozen · sha256:${x[1]}`;
   if (/reports: done/.test(text) && !sending[m]) sawDone[m] = true;
@@ -212,12 +245,39 @@ function addLine(m, text, tone) {
   if ((x = text.match(/worker (\d+) SIGKILLed/))) { $(`w-${m}`).textContent = `✖ worker ${x[1]} killed`; $(`w-${m}`).className = "worker dead"; flash(m); }
 }
 
+const PHASES = [["define", "Define done"], ["diagnose", "Diagnose"], ["repair", "Repair"], ["deliver", "Deliver"], ["crash", "Crash"], ["recover", "Recover"], ["verify", "Verify"]];
+const phaseAt = { journal: -1, baseline: -1 };
+function drawPhases(m) {
+  const host = $(`ph-${m}`); host.innerHTML = "";
+  PHASES.forEach(([k, label], i) => {
+    const d = document.createElement("div");
+    d.className = `ph ${k}` + (i < phaseAt[m] ? " done" : i === phaseAt[m] ? " active" : "");
+    d.textContent = label; host.appendChild(d);
+  });
+}
+function phaseFor(text) {
+  if (/definition of done|contract frozen/.test(text)) return 0;
+  if (/SIGKILLed/.test(text)) return 4;
+  if (/verifier: (PASS|FAIL)\s+10|verifier: (PASS|FAIL)\s+\d+\/\d+ valid|DONE:|ESCALATED/.test(text)) return 6;
+  if (/worker 2 starts|checks journal|receipt for|retry same op/.test(text)) return 5;
+  if (/sending /.test(text)) return 3;
+  if (/FIX |restarts the service|test job ✓/.test(text)) return 2;
+  if (/^w\d /.test(text)) return 1;
+  return -1;
+}
+function advance(m, text) {
+  const p = phaseFor(text);
+  if (p < 0) return;
+  // After the crash, everything until the verdict is recovery.
+  const next = phaseAt[m] >= 4 && p < 6 ? Math.max(phaseAt[m], 5) : Math.max(phaseAt[m], p);
+  if (next !== phaseAt[m]) { phaseAt[m] = next; drawPhases(m); }
+}
 function addNote(m, text, tone) {
   const li = document.createElement("li"); li.textContent = text; li.className = tone; $(`feed-${m}`).appendChild(li);
 }
 function reset() {
   plugged = false; clearTimeout(autoTimer); autoTimer = null;
-  for (const m of MODES) { sawDone[m] = false; sending[m] = false; }
+  for (const m of MODES) { sawDone[m] = false; sending[m] = false; phaseAt[m] = -1; drawPhases(m); }
   for (const m of MODES) {
     $(`feed-${m}`).innerHTML = "";
     $(`verdict-${m}`).className = "verdict"; $(`verdict-${m}`).innerHTML = "";
@@ -294,7 +354,7 @@ fetch("/measured").then((r) => r.json()).then((rows) => {
     tb.appendChild(tr);
   }
 });
-for (const m of MODES) cells(m, null);
+for (const m of MODES) { cells(m, null); drawPhases(m); }
 async function crusoe() {
   try {
     const t = await (await fetch("/crusoe")).json();
