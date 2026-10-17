@@ -25,9 +25,9 @@ async function playRecorded() {
 html = html.replace(/\$\("start"\)\.addEventListener\("click", async \(\) => \{[\s\S]*?\n\}\);/, `$("start").addEventListener("click", playRecorded);`);
 swap(`fetch("/measured")`, `fetch("measured.json")`);
 swap(`const t = await (await fetch("/crusoe")).json();`, `const t = await (await fetch("crusoe.json")).json();`);
-swap(`<span class="ck">Crusoe metrics API · our model · 5-min window, ~1 min lag</span>`, `<span class="ck">Crusoe metrics API · our model · snapshot from a live run, 12:31 PT</span>`);
+swap(`<span class="ck">Crusoe live metrics</span>`, `<span class="ck">Crusoe metrics · snapshot from a live run</span>`);
 swap(`<button class="start" id="start" type="button">Run the race</button>`, `<button class="start" id="start" type="button">▶ Play the recorded race</button>`);
-swap(`<span class="status" id="status">Ready. Press Run: both agents get the same broken sender.</span>`, `<span class="status" id="status">A real live run from the event, replayed at 2× speed. Run it live yourself: see the GitHub README.</span>`);
+swap(`<span class="status" id="status">Ready.</span>`, `<span class="status" id="status">A real live run, replayed at 2×.</span>`);
 swap(`</style>`, `#plug, #replay, .toggle { display: none !important; }\n</style>`);
 fs.writeFileSync(path.join(out, "race.html"), html);
 
