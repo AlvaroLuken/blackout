@@ -34,7 +34,19 @@ h2 { font-weight: 800; font-stretch: 80%; font-size: clamp(32px, 4.5vw, 48px); l
 h3 { font-weight: 700; font-stretch: 90%; font-size: 21px; }
 p { margin: 0; max-width: 68ch; }
 .lede { font-size: 21px; color: var(--soft); max-width: 46ch; }
-.hero { padding-block: 64px 80px; border-top: 0; display: grid; gap: 26px; }
+.hero { padding-block: 40px 72px; border-top: 0; display: grid; grid-template-columns: minmax(0, 45fr) minmax(0, 55fr); gap: 40px; align-items: center; }
+.hero-text { display: grid; gap: 22px; min-width: 0; }
+.hero-visual { min-width: 0; }
+.hero h1 { font-size: clamp(46px, 5.8vw, 82px); }
+.hero .lede { font-size: 19px; }
+.benefits { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.benefits li { position: relative; padding-left: 30px; font-size: 16.5px; color: var(--soft); line-height: 1.45; }
+.benefits li::before { content: "✓"; position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--amber-soft); color: var(--amber); font-size: 12px; display: grid; place-items: center; font-weight: 700; }
+.benefits b { color: var(--fg); font-weight: 600; }
+.hero #flow3d { height: 470px; }
+.hero .flow-text { min-height: 128px; }
+.hero #flow-caption { font-size: 16px; } .hero #flow-why { font-size: 14px; }
+@media (max-width: 1000px) { .hero { grid-template-columns: 1fr; } }
 .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: 17px; padding: 13px 22px; border-radius: 9px; }
 .btn.primary { background: var(--amber); color: #1a1205; }
@@ -130,21 +142,48 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   </nav>
 
   <header class="hero">
-    <span class="eyebrow">The problem</span>
-    <h1>Your AI agent just refunded a customer <em>twice.</em></h1>
-    <p class="lede">Agents are starting to send emails, issue refunds and change production systems on their own. When one crashes halfway through a job, or decides it's "done" when it isn't, real people pay for it. <b style="color:var(--fg)">Blackout makes every real-world action happen once, wherever your system can answer "did this already happen?", and lets only code decide the job is done. When it can't tell, it escalates instead of guessing.</b></p>
-    <div class="ctas">
-      <a class="btn primary" href="#race">▶ See it handle a crash</a>
-      <a class="btn ghost" href="#use">Use it today: MCP gateway</a>
-      <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
+    <div class="hero-text">
+      <span class="eyebrow">Exactly-once actions for AI agents</span>
+      <h1>Let agents act on their own. <em>Never twice.</em></h1>
+      <p class="lede">Blackout sits between your AI agents and the real world. With it:</p>
+      <ul class="benefits">
+        <li><b>Every action happens once.</b> No double refunds, emails or charges, even when the agent crashes mid-job.</li>
+        <li><b>"Done" means verified.</b> Code checks the real system. The agent's confidence doesn't count.</li>
+        <li><b>When it can't tell, a human decides,</b> with the evidence, instead of the agent guessing.</li>
+        <li><b>Drop-in today.</b> An MCP gateway in front of your tools: <code>npx blackout-mcp</code>. Keep your agent.</li>
+      </ul>
+      <div class="ctas">
+        <a class="btn primary" href="#race">▶ See it handle a crash</a>
+        <a class="btn ghost" href="#use">Use it today</a>
+        <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
+      </div>
+      <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
     </div>
-    <span class="built">Works today as a drop-in <b style="color:var(--amber)">MCP gateway</b> (<code>npx blackout-mcp</code>, on npm) in front of any tool server · agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
+    <div class="hero-visual">
+    <div class="flow" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
+      <div id="flow3d"></div>
+      <div id="flow-labels" aria-hidden="true"></div>
+      <div class="flow-tabs" role="tablist" aria-label="Story">
+        <button type="button" role="tab" data-flow-mode="with" aria-selected="true">With Blackout</button>
+        <button type="button" role="tab" data-flow-mode="without" aria-selected="false">Without Blackout</button>
+        <button type="button" role="tab" data-flow-mode="mcp" aria-selected="false">MCP gateway</button>
+      </div>
+      <div class="flow-bar">
+        <div class="flow-text">
+          <div><span id="flow-step">1/7</span> <span id="flow-phase">Ask</span></div>
+          <p id="flow-caption" aria-live="polite">The agent decides to message customer 5.</p>
+          <p id="flow-why"></p>
+        </div>
+        <div class="flow-ctl"><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
+      </div>
+    </div>
+    </div>
   </header>
 
   <section id="problem" aria-labelledby="h-problem">
     <div class="head">
-      <span class="eyebrow">How it goes wrong</span>
-      <h2 id="h-problem">One crash, one second, one very unhappy customer.</h2>
+      <span class="eyebrow">The problem</span>
+      <h2 id="h-problem">Your AI agent just refunded a customer twice.</h2>
       <p class="lede">This isn't an exotic failure. It's what happens to any worker that is killed between doing something and writing down that it did it. <span style="color:var(--muted);font-size:15px">(An illustration. The live demo below uses a simulated notification sender.)</span></p>
     </div>
     <ol class="story">
@@ -199,26 +238,9 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <div class="head">
       <span class="eyebrow">How it works</span>
       <h2>Three rules, enforced in code.</h2>
-      <p class="lede">No new agent framework. Blackout wraps the actions that touch the outside world and holds the agent to a goal it can't quietly lower. Watch one message, one crash, and what happens next.</p>
+      <p class="lede">No new agent framework. Blackout wraps the actions that touch the outside world and holds the agent to a goal it can't quietly lower.</p>
     </div>
-    <div class="flow" aria-label="Animated explanation: an AI agent, Blackout, its journal, your system, its receipts, and customers">
-      <div id="flow3d"></div>
-      <div id="flow-labels" aria-hidden="true"></div>
-      <div class="flow-tabs" role="tablist" aria-label="Story">
-        <button type="button" role="tab" data-flow-mode="with" aria-selected="true">With Blackout</button>
-        <button type="button" role="tab" data-flow-mode="without" aria-selected="false">Without Blackout</button>
-        <button type="button" role="tab" data-flow-mode="mcp" aria-selected="false">MCP gateway</button>
-      </div>
-      <div class="flow-bar">
-        <div class="flow-text">
-          <div><span id="flow-step">1/7</span> <span id="flow-phase">Ask</span></div>
-          <p id="flow-caption" aria-live="polite">The agent decides to message customer 5.</p>
-          <p id="flow-why"></p>
-        </div>
-        <div class="flow-ctl"><button type="button" id="flow-play">Pause</button><button type="button" id="flow-auto">Play from here</button></div>
-      </div>
-    </div>
-    <div style="height:28px"></div>
+
     <div class="grid3">
       <div class="card"><span class="num">01</span><p class="rule">Define done first, then freeze it.</p><p>The model proposes a definition of done from a fixed vocabulary of checks. Blackout adds the checks it is not allowed to skip, hashes the contract and stores it where no agent can touch it.</p></div>
       <div class="card"><span class="num">02</span><p class="rule">Write it down before you do it.</p><p>Every side effect gets a stable operation ID in a durable journal before it happens. If the worker dies, its replacement asks the outside system for that exact receipt instead of guessing. Unknown outcomes are escalated, never retried blindly.</p></div>

@@ -86,7 +86,6 @@ for (let i = 0; i < 4; i++) {
   g.userData = { box, flag, count: 0, envs: [] };
   customers.push(g);
 }
-label(customers[3], "Customers", "one message each", 1.9);
 const c5 = customers[1];
 const c5Label = label(c5, "Customer 5", "", 1.9);
 
@@ -118,7 +117,7 @@ const tabs = [...document.querySelectorAll("[data-flow-mode]")];
 let mode = "with", playing = !reduce, stepIdx = -1, timer = null, flash = { obj: null, until: 0 };
 const focus = new THREE.Vector3(0, 1.2, 0.8), focusGoal = new THREE.Vector3(0, 1.2, 0.8);
 function glow(obj, color, ms = 900) { flash = { obj, until: performance.now() + ms }; }
-function look(obj, dx = 0) { if (!obj) { focusGoal.set(0, 1.2, 0.8); return; } obj.getWorldPosition(focusGoal); focusGoal.y = 1.4; focusGoal.x = focusGoal.x * 0.45 + dx; focusGoal.z = 0.8; }
+function look(obj, dx = 0) { if (!obj) { focusGoal.set(0, 1.2, 0.8); return; } obj.getWorldPosition(focusGoal); focusGoal.y = 1.4; focusGoal.x = focusGoal.x * 0.22 + dx * 0.5; focusGoal.z = 0.8; }
 
 // Speech bubbles anchored to actors.
 const bubbles = [];
@@ -242,8 +241,11 @@ document.getElementById("flow-auto").addEventListener("click", () => { playing =
 
 function resize() {
   const w = host.clientWidth, h = host.clientHeight;
-  renderer.setSize(w, h, false); camera.aspect = w / h;
-  camera.position.z = w < 640 ? 27 : 15.5; camera.position.y = w < 640 ? 11 : 6.5;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  // Fit the ~19-unit-wide scene to whatever width the canvas has.
+  const half = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const d = Math.max(13, 11.2 / (half * camera.aspect));
+  camera.position.z = d; camera.position.y = d * 0.42;
   camera.updateProjectionMatrix();
 }
 new ResizeObserver(resize).observe(host); resize();
