@@ -132,6 +132,9 @@ export function armNextDelivery(mode: Mode) {
 
 export function startRace(o: RaceOpts, emit: (e: RaceEvent) => void): { children: ChildProcess[] } {
   const children: ChildProcess[] = [];
+  // Clear every lane's state up front, so nothing reads a previous run's database
+  // while a staggered lane is still waiting to launch.
+  for (const mode of MODES) fs.rmSync(varDirFor(mode), { recursive: true, force: true });
   MODES.forEach((mode, i) => setTimeout(() => children.push(launch(mode, i)), i * 2500));
   return { children };
 

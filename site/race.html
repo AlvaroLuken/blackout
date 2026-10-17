@@ -240,10 +240,13 @@ function cells(mode, c) {
     host.appendChild(d);
   });
 }
+// A lane's counters only count once that lane has produced its first event in this run
+// (older recordings can carry a previous run's numbers from before the lane reset).
+const laneLive = { journal: false, baseline: false };
 function setCounters(data) {
   for (const m of MODES) {
     const c = data[m];
-    if (!c) continue;
+    if (!c || !laneLive[m]) continue;
     $(`del-${m}`).textContent = `${c.delivered}/${c.total}`;
     const dup = $(`dup-${m}`);
     const was = dup.textContent;
@@ -264,6 +267,7 @@ function bump(m) { const l = $(`lane-${m}`); l.classList.remove("shake"); void l
 function flash(m) { const l = $(`lane-${m}`); l.classList.remove("flash", "shake"); void l.offsetWidth; l.classList.add("flash", "shake"); }
 
 function addLine(m, text, tone) {
+  laneLive[m] = true;
   const feed = $(`feed-${m}`);
   const empty = feed.querySelector(".empty");
   if (empty) empty.remove();
@@ -341,7 +345,7 @@ function addNote(m, text, tone) {
 }
 function reset() {
   plugged = false; clearTimeout(autoTimer); autoTimer = null;
-  for (const m of MODES) { sawDone[m] = false; sending[m] = false; phaseAt[m] = -1; drawPhases(m); truth[m] = null; renderTruth(m); }
+  for (const m of MODES) { sawDone[m] = false; sending[m] = false; laneLive[m] = false; phaseAt[m] = -1; drawPhases(m); truth[m] = null; renderTruth(m); }
   for (const m of MODES) {
     $(`feed-${m}`).innerHTML = "";
     $(`verdict-${m}`).className = "verdict"; $(`verdict-${m}`).innerHTML = "";
