@@ -23,7 +23,7 @@ function inflight(m: Mode) {
     const db = ro(targetDb(m));
     try {
       const r = db.prepare("SELECT op_id, job_id, committed_at FROM receipts WHERE op_id = ?").get(kill.op_id) as any;
-      return r ? { op: r.op_id, job: r.job_id, committed_at: r.committed_at } : null;
+      return r ? { op: r.op_id, job: r.job_id, committed_at: r.committed_at, pid: kill.pid } : null;
     } finally { db.close(); }
   } catch { return null; }
 }
@@ -137,6 +137,22 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify(rows));
       } finally { db.close(); }
     } catch { res.writeHead(200, { "content-type": "application/json" }); return res.end("[]"); }
+  }
+  if (req.method === "POST" && url.pathname === "/warmup") {
+    // One tiny Crusoe call before going on stage: confirms the key, model and latency.
+    const t0 = Date.now();
+    try {
+      const r = await fetch(`${process.env.CRUSOE_BASE_URL ?? "https://api.inference.crusoecloud.com/v1"}/chat/completions`, {
+        method: "POST", headers: { authorization: `Bearer ${process.env.CRUSOE_API_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({ model: MODEL_ALIAS, max_tokens: 5, messages: [{ role: "user", content: "ping" }], chat_template_kwargs: { enable_thinking: false } }),
+        signal: AbortSignal.timeout(20_000),
+      });
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end(JSON.stringify({ ok: r.ok, status: r.status, ms: Date.now() - t0 }));
+    } catch (e) {
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end(JSON.stringify({ ok: false, error: (e as Error).message.slice(0, 80), ms: Date.now() - t0 }));
+    }
   }
   if (req.method === "GET" && url.pathname === "/crusoe") {
     res.writeHead(200, { "content-type": "application/json" });

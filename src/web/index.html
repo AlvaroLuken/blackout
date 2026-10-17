@@ -131,6 +131,20 @@ th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: upp
 td.hi { color: var(--ok); font-weight: 700; } td.lo { color: var(--bad); font-weight: 700; }
 footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
 @media (max-width: 900px) { .lanes { grid-template-columns: 1fr; } }
+/* Presenter view: readable from the back of the room. */
+body.presenter .brief, body.presenter .measured, body.presenter .crusoe, body.presenter footer, body.presenter .adapter, body.presenter .chips { display: none; }
+body.presenter .wrap { max-width: none; padding: 12px 18px; gap: 12px; }
+body.presenter .brand h1 { font-size: 40px; } body.presenter .brand p { font-size: 20px; }
+body.presenter .lane-head h2 { font-size: 34px; }
+body.presenter .meter .v { font-size: 64px; } body.presenter .meter .k { font-size: 14px; }
+body.presenter .cell { height: 22px; }
+body.presenter .worker { font-size: 18px; }
+body.presenter .ph { font-size: 13px; padding: 8px 2px; }
+body.presenter .truth { font-size: 19px; } body.presenter .truth .mono { font-size: 14px; }
+body.presenter .feed { font-size: 17px; max-height: 300px; }
+body.presenter .checks { font-size: 15px; }
+body.presenter .verdict { font-size: 42px; } body.presenter .verdict small { font-size: 15px; }
+body.presenter .status { font-size: 15px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -169,6 +183,8 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
     <label class="toggle" for="inject"><input type="checkbox" id="inject"> Plant a fake "all resolved" note in the logs</label>
     <span class="spacer"></span>
     <span class="status" id="status">Ready. Press Run: both agents get the same broken sender.</span>
+    <button class="ghost" id="warmup" type="button" title="One tiny Crusoe call to check the key and latency">Warm up</button>
+    <button class="ghost" id="presenter" type="button" aria-pressed="false" title="Shortcut: V">Presenter view</button>
     <button class="ghost" id="replay" type="button" title="Backup: replays the last recorded live run, clearly labelled">Replay last run</button>
     <button class="plug" id="plug" type="button" disabled title="Shortcut: P">Pull the plug (P)</button>
   </div>
@@ -339,7 +355,7 @@ function renderTruth(m) {
   const head = document.createElement("span"); head.className = "t"; head.textContent = "The moment of truth"; el.appendChild(head);
   const row = (icon, cls, html) => { const r = document.createElement("div"); r.className = "row"; const i = document.createElement("span"); i.className = cls; i.textContent = icon; const b = document.createElement("div"); b.innerHTML = html; r.append(i, b); el.appendChild(r); };
   const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-  row("✖", "bad", `Killed right after the service delivered <b>${esc(t.job)}</b> at ${esc(fmtTime(t.committed_at))}. The worker never wrote that down.<div class="mono">op ${esc(t.op)}</div>`);
+  row("✖", "bad", `Killed right after the service delivered <b>${esc(t.job)}</b> at ${esc(fmtTime(t.committed_at))}. The worker never wrote that down.<div class="mono">${t.pid ? `kill -9 ${esc(t.pid)} → exit signal SIGKILL · ` : ""}op ${esc(t.op)}</div>`);
   if (!t.result) row("…", "wait", m === "journal" ? "Replacement starting. It has the journal: the op ID was recorded before the send." : "Replacement starting. It only knows the previous worker exited.");
   if (t.result === "good" && m === "journal") row("✓", "good", `Replacement asked the service about that exact op: <b>receipt found, already delivered.</b> Skipped it. Customer messaged once.`);
   if (t.result === "bad") row("✗", "bad", `No record, so ${esc(t.job)} still looked pending. <b>Sent it again.</b> The customer got it ${t.count} times.`);
@@ -380,7 +396,7 @@ function handle(msg) {
       break;
     case "line": addLine(msg.mode, msg.text, msg.tone); break;
     case "inflight":
-      truth[msg.mode] = { job: msg.job, op: msg.op, committed_at: msg.committed_at, result: receiptSeen[msg.mode] === msg.job ? "good" : null };
+      truth[msg.mode] = { job: msg.job, op: msg.op, committed_at: msg.committed_at, pid: msg.pid, result: receiptSeen[msg.mode] === msg.job ? "good" : null };
       renderTruth(msg.mode);
       break;
     case "counters": setCounters(msg.data); break;
@@ -464,6 +480,19 @@ $("modal").addEventListener("click", (e) => { if (e.target === $("modal")) close
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeInbox(); });
 $("plug").addEventListener("click", pullPlug);
 $("replay").addEventListener("click", () => fetch("/replay", { method: "POST" }));
+function togglePresenter() {
+  const on = document.body.classList.toggle("presenter");
+  $("presenter").setAttribute("aria-pressed", String(on));
+  try { localStorage.setItem("blackout-presenter", on ? "1" : "0"); } catch {}
+}
+$("presenter").addEventListener("click", togglePresenter);
+document.addEventListener("keydown", (e) => { if ((e.key === "v" || e.key === "V") && !e.metaKey && !e.ctrlKey && !e.target.closest?.("input")) togglePresenter(); });
+try { if (localStorage.getItem("blackout-presenter") === "1") togglePresenter(); } catch {}
+$("warmup").addEventListener("click", async () => {
+  $("warmup").textContent = "Warming up…";
+  const r = await (await fetch("/warmup", { method: "POST" })).json().catch(() => ({ ok: false }));
+  $("warmup").textContent = r.ok ? `Crusoe ✓ ${(r.ms / 1000).toFixed(1)}s` : `Crusoe ✗ ${r.status ?? ""} ${r.error ?? ""}`;
+});
 document.addEventListener("keydown", (e) => { if ((e.key === "p" || e.key === "P") && !e.metaKey && !e.ctrlKey) pullPlug(); });
 
 const es = new EventSource("/events");

@@ -17,7 +17,8 @@
     "web": "NODE_NO_WARNINGS=1 tsx src/web/server.ts",
     "site": "NODE_NO_WARNINGS=1 tsx scripts/build-site.ts",
     "gateway": "NODE_NO_WARNINGS=1 tsx src/mcp-gateway/cli.ts",
-    "gateway:demo": "NODE_NO_WARNINGS=1 tsx src/mcp-gateway/agent-demo.ts"
+    "gateway:demo": "NODE_NO_WARNINGS=1 tsx src/mcp-gateway/agent-demo.ts",
+    "gateway:eval": "NODE_NO_WARNINGS=1 tsx src/mcp-gateway/eval.ts"
   },
   "license": "MIT",
   "description": "Exactly-once side effects for AI agents: an MCP gateway that journals every action before it runs, suppresses repeats, and reconciles from receipts after a crash. Plus the full Blackout runtime (frozen definition of done, code-only verifier).",
