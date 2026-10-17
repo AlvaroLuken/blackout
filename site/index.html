@@ -100,7 +100,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 <div class="wrap">
   <nav>
     <a class="logo" href="#">BLACK<span>OUT</span></a>
-    <div class="links"><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">Use it today</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+    <div class="links"><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
   </nav>
 
   <header class="hero">
@@ -109,10 +109,10 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <p class="lede">Agents are starting to send emails, issue refunds and change production systems on their own. When one crashes halfway through a job, or decides it's "done" when it isn't, real people pay for it. <b style="color:var(--fg)">Blackout makes every real-world action happen once, wherever your system can answer "did this already happen?", and lets only code decide the job is done. When it can't tell, it escalates instead of guessing.</b></p>
     <div class="ctas">
       <a class="btn primary" href="#race">▶ See it handle a crash</a>
-      <a class="btn ghost" href="#who">Who it's for</a>
+      <a class="btn ghost" href="#use">Use it today: MCP gateway</a>
       <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
     </div>
-    <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
+    <span class="built">Works today as a drop-in <b style="color:var(--amber)">MCP gateway</b> in front of any tool server · agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
   </header>
 
   <section id="problem" aria-labelledby="h-problem">
@@ -140,7 +140,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
       <h2 id="h-who">Teams letting agents act on their own.</h2>
     </div>
     <div class="who">
-      <div class="card"><span class="num">Builders</span><h3>AI and platform engineers</h3><p><b>Worry:</b> "If a worker dies mid-run, will my agent redo things it already did?"</p><p><b>Blackout gives:</b> a drop-in layer around the tools that touch the world. Keep your model and prompts.</p></div>
+      <div class="card"><span class="num">Builders</span><h3>AI and platform engineers</h3><p><b>Worry:</b> "If a worker dies mid-run, will my agent redo things it already did?"</p><p><b>Blackout gives:</b> a drop-in MCP gateway around the tools that touch the world. Keep your agent, model and prompts.</p></div>
       <div class="card"><span class="num">Operators</span><h3>Support, fintech and growth ops</h3><p><b>Worry:</b> "Will customers get double refunds, double charges, double emails?"</p><p><b>Blackout gives:</b> each action happens once, checked against your system's own records; anything it can't confirm goes to a human.</p></div>
       <div class="card"><span class="num">On call</span><h3>SRE and infrastructure teams</h3><p><b>Worry:</b> "The auto-fix bot said it was resolved. Was it?"</p><p><b>Blackout gives:</b> "done" decided by real checks, and a clear escalation with evidence when it can't finish.</p></div>
       <div class="card"><span class="num">Oversight</span><h3>Risk and compliance</h3><p><b>Worry:</b> "Can we show what the agent did, and why it was accepted?"</p><p><b>Blackout gives:</b> a frozen definition of done, receipts for every action, and an auditable proof-of-done record per run.</p></div>
@@ -194,7 +194,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 
   <section id="use">
     <div class="head">
-      <span class="eyebrow">Use it today</span>
+      <span class="eyebrow">Use it today · MCP gateway</span>
       <h2>Put Blackout between your agent and its tools.</h2>
       <p class="lede">The Blackout MCP gateway works with any agent that calls tools over MCP. Your agent doesn't change: point it at the gateway instead of the tool server, and mark which tools have side effects.</p>
     </div>
