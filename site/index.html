@@ -67,6 +67,9 @@ p { margin: 0; max-width: 68ch; }
 .hf-tag { fill: var(--panel); stroke: var(--bad); stroke-width: 1.5; }
 .hf-tag.solid { fill: var(--bad); }
 .hf-tagt { fill: #fff; font-weight: 700; }
+.hf-ring { fill: none; stroke: var(--amber); stroke-width: 2.2; opacity: 0.9; } .hf-ring.back { opacity: 0.45; }
+.hf-gem { transform-box: fill-box; transform-origin: center; animation: hfBob 3s ease-in-out infinite; filter: drop-shadow(0 6px 14px rgba(245,158,11,0.45)); }
+@keyframes hfBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 .hf-dot { fill: var(--amber); } .hf-dot.bad { fill: var(--bad); }
 .hfw-with { animation: hfWith 12s linear infinite; } .hfw-without { animation: hfWithout 12s linear infinite; }
 .hf-crash { animation: hfCrash 12s linear infinite; }
@@ -83,7 +86,7 @@ p { margin: 0; max-width: 68ch; }
 @keyframes hfHappy { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @keyframes hfAngry { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg) scale(1.06); } 75% { transform: rotate(10deg) scale(1.06); } }
 @media (prefers-reduced-motion: reduce) {
-  .hf-dot { display: none; } .hfw-with, .hfw-without, .hf-crash, .hf-blocked, .hf-out-with, .hf-dup, .hf-out-without, .hf-face { animation: none; }
+  .hf-dot { display: none; } .hfw-with, .hfw-without, .hf-crash, .hf-blocked, .hf-out-with, .hf-dup, .hf-out-without, .hf-face, .hf-gem { animation: none; }
   .hfw-without, .hf-crash { opacity: 0; }
 }
 
@@ -217,6 +220,50 @@ html[data-theme="light"] .install pre { background: #12151b; color: #e8eaef; }
 html[data-theme="light"] .install pre .c { color: #f5a524; }
 .hero-text { gap: 20px; }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
+.adiag { margin: 28px 0 0; }
+.adiag-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.adiag svg { display: block; width: 100%; min-width: 880px; height: auto; }
+.ad-box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.ad-box.nv { stroke: #76b900; stroke-width: 2; } .ad-box.ghost { opacity: 0.35; }
+.ad-box.cr { stroke: color-mix(in srgb, #76b900 45%, var(--line)); stroke-width: 2; }
+.ad-box.core { fill: color-mix(in srgb, var(--amber) 6%, var(--bg)); stroke: var(--amber); stroke-width: 2.5; }
+.ad-box.code { fill: var(--panel); stroke: color-mix(in srgb, var(--blue) 55%, var(--line)); }
+.ad-tag.nv { fill: color-mix(in srgb, #76b900 18%, transparent); } .ad-tag.cr { fill: color-mix(in srgb, var(--fg) 10%, transparent); } .ad-tag.plain { fill: color-mix(in srgb, var(--muted) 18%, transparent); }
+.ad-tagt { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; fill: var(--fg); } .ad-tagt.nv { fill: #76b900; }
+.ad-t { font-family: var(--display); font-weight: 700; font-size: 16px; fill: var(--fg); }
+.ad-s { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
+.ad-brand { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: 0.05em; fill: var(--amber); }
+.ad-kill { font-family: var(--mono); font-size: 11.5px; font-weight: 700; fill: var(--bad); }
+.ad-ar { fill: none; stroke: var(--muted); stroke-width: 2; } .ad-headp { fill: var(--muted); }
+.ad-ar.nvl { stroke: #76b900; } .ad-ar.code { stroke: var(--blue); } .ad-ar.dash { stroke-dasharray: 5 5; }
+.ad-l { font-family: var(--mono); font-size: 11.5px; fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+.ad-l.nvl { fill: #76b900; } .ad-l.code { fill: var(--blue); }
+.arch { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 16px; margin-top: 28px; position: relative; }
+.acol { display: grid; gap: 16px; align-content: stretch; }
+.abox { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.abox b { font-family: var(--display); font-size: 18px; }
+.abox p, .abox li { font-size: 14.5px; color: var(--soft); }
+.abox ul { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.abox li b { display: block; font-size: 15px; color: var(--fg); }
+.abox.core { border: 2px solid var(--amber); height: 100%; }
+.abox.nvbox { border-color: color-mix(in srgb, #76b900 55%, var(--line)); }
+.abox.crbox { border-color: color-mix(in srgb, #76b900 35%, var(--line)); }
+.atag { display: inline-flex; align-items: center; gap: 6px; width: max-content; font-family: var(--mono); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; }
+.atag .lg { width: 16px; height: 16px; color: #76b900; }
+.atag.nv { background: color-mix(in srgb, #76b900 16%, transparent); color: color-mix(in srgb, #76b900 70%, var(--fg)); }
+.atag.code { background: color-mix(in srgb, var(--blue) 16%, transparent); color: var(--blue); }
+.atag.cr { background: color-mix(in srgb, var(--fg) 10%, transparent); color: var(--fg); }
+.atag.plain { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+.alegend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 30px 0 12px; font-size: 14px; color: var(--muted); }
+.alegend .atag + .atag { margin-left: 10px; }
+.asteps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.astep { display: grid; grid-template-columns: 34px 1fr; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 12px; padding: 14px 16px; }
+.astep.nv { border-left-color: #76b900; }
+.anum { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--muted); padding-top: 2px; }
+.ahead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 4px; }
+.ahead b { font-family: var(--display); font-size: 17px; }
+.astep p { font-size: 14.5px; color: var(--soft); }
+@media (max-width: 900px) { .arch { grid-template-columns: 1fr; } .asteps { grid-template-columns: 1fr; } }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
 .card p { font-size: 15.5px; color: var(--soft); }
@@ -320,7 +367,7 @@ nav { gap: 16px; }
     </div>
     <figure class="hero-flow" aria-label="With Blackout: the agent's action is written down first, so when a crashed agent restarts and repeats it, Blackout checks the receipt and blocks the repeat. The customer gets one email and code checks the result. Without Blackout: the restarted agent sends it again, the customer gets two emails, and the agent still says done.">
       <svg viewBox="0 0 440 470" role="img" aria-hidden="true">
-        <defs><marker id="hf-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hf-arrowhead"/></marker></defs>
+        <defs><radialGradient id="hf-glow"><stop offset="0" stop-color="#f59e0b" stop-opacity="0.45"/><stop offset="1" stop-color="#f59e0b" stop-opacity="0"/></radialGradient><marker id="hf-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="hf-arrowhead"/></marker></defs>
         <rect x="70" y="4" width="146" height="28" rx="14" class="hf-pill"/><rect x="70" y="4" width="146" height="28" rx="14" class="hf-pill-on hfw-with"/>
         <rect x="224" y="4" width="146" height="28" rx="14" class="hf-pill"/><rect x="224" y="4" width="146" height="28" rx="14" class="hf-pill-on bad hfw-without"/>
         <text x="143" y="23" class="hf-pt" text-anchor="middle">With Blackout</text>
@@ -336,10 +383,13 @@ nav { gap: 16px; }
         <g class="hf-crash"><rect x="330" y="58" width="104" height="36" rx="8" class="hf-tag bad solid"/><text x="342" y="73" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">💥 crashed,</text><text x="342" y="87" class="hf-s hf-tagt" textLength="80" lengthAdjust="spacingAndGlyphs">restarted</text></g>
         <g class="hfw-with">
           <rect x="40" y="128" width="360" height="172" rx="16" class="hf-core"/>
-          <text x="64" y="158" class="hf-brand">BLACKOUT</text>
-          <circle cx="76" cy="188" r="13" class="hf-n1"/><text x="76" y="193" text-anchor="middle" class="hf-num">1</text><text x="100" y="186" class="hf-t2">Write it down first</text><text x="100" y="203" class="hf-s">a stable ID for every action</text>
-          <circle cx="76" cy="228" r="13" class="hf-n2"/><text x="76" y="233" text-anchor="middle" class="hf-num">2</text><text x="100" y="226" class="hf-t2">Already happened? Ask the receipts</text><text x="100" y="243" class="hf-s">skip it instead of doing it twice</text>
-          <circle cx="76" cy="268" r="13" class="hf-n3"/><text x="76" y="273" text-anchor="middle" class="hf-num">3</text><text x="100" y="266" class="hf-t2">"Done"? Code checks</text><text x="100" y="283" class="hf-s">not the agent's word</text>
+          <g class="hf-guard" aria-hidden="true">
+            <circle cx="220" cy="206" r="78" fill="url(#hf-glow)"/>
+            <ellipse cx="220" cy="206" rx="70" ry="20" class="hf-ring back"><animate attributeName="ry" dur="4s" repeatCount="indefinite" values="20;58;20" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/></ellipse>
+            <g class="hf-gem"><path d="M220 210L220.0 168.0L252.9 187.0Z" fill="#ffd27a"/><path d="M220 210L252.9 187.0L252.9 225.0Z" fill="#f5a524"/><path d="M220 210L252.9 225.0L220.0 244.0Z" fill="#c47a0a"/><path d="M220 210L220.0 244.0L187.1 225.0Z" fill="#8a5200"/><path d="M220 210L187.1 225.0L187.1 187.0Z" fill="#b86e08"/><path d="M220 210L187.1 187.0L220.0 168.0Z" fill="#f0b440"/><path d="M220.0 168.0L252.9 187.0L252.9 225.0L220.0 244.0L187.1 225.0L187.1 187.0Z" fill="none" stroke="#ffe2a6" stroke-width="1.2" stroke-linejoin="round"/></g>
+            <ellipse cx="220" cy="206" rx="62" ry="54" class="hf-ring" transform="rotate(-28 220 206)"><animate attributeName="rx" dur="5s" repeatCount="indefinite" values="62;16;62" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/></ellipse>
+            <text x="220" y="290" class="hf-brand" text-anchor="middle">BLACKOUT</text>
+          </g>
           <g class="hf-blocked"><rect x="240" y="105" width="176" height="22" rx="6" class="hf-tag bad solid"/><text x="250" y="120" class="hf-s hf-tagt" textLength="156" lengthAdjust="spacingAndGlyphs">✕ blocked: already sent</text></g>
           <g class="hf-out-with"><text x="132" y="446" class="hf-face happy" text-anchor="middle">😊</text><text x="166" y="422" class="hf-t2 hf-okt">✓ Customer gets it once</text><text x="166" y="442" class="hf-s">and "done" is checked by code</text></g>
         </g>
@@ -433,7 +483,7 @@ nav { gap: 16px; }
       <div class="head" style="margin:0">
         <span class="eyebrow">Built on Crusoe + NVIDIA Nemotron</span>
         <h2>Every judgment runs on Nemotron, through Crusoe.</h2>
-        <p class="lede">Every judgment in Blackout, from writing the definition of done to repairing to reconciling after a crash, runs on Nemotron 3.5 Lightning through Crusoe Managed Inference, at about half a cent per mission. Crusoe's own telemetry independently confirms our numbers. That price is what makes "verify everything" the default, not a luxury.</p>
+        <p class="lede">Every judgment in Blackout, from writing the definition of done to repairing the service to deciding what to do after a crash, runs on Nemotron 3.5 Lightning through Crusoe Managed Inference, at about half a cent per mission. Crusoe's own telemetry independently confirms our numbers. That price is what makes "verify everything" the default, not a luxury.</p>
         <p>We picked the model by measuring, not by name. On the same crash mission, Nemotron 3.5 Lightning finished in the fewest turns, Nemotron 3 Super also finished at about six times the cost, and Nemotron 3 Nano did not make progress. Lightning drives all 40 measured missions in the results table. When capacity was tight during the event, Blackout rerouted to Nemotron 3 Super and kept going. In the recorded race above, every call in both lanes ran on Lightning.</p>
       </div>
       <div class="facts">
@@ -490,17 +540,48 @@ nav { gap: 16px; }
   </section>
 
   <section id="how">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="nv-mark" viewBox="0 0 24 24"><path d="M8.948 8.798v-1.43a6.7 6.7 0 0 1 .424-.018c3.922-.124 6.493 3.374 6.493 3.374s-2.774 3.851-5.75 3.851c-.398 0-.787-.062-1.158-.185v-4.346c1.528.185 1.837.857 2.747 2.385l2.04-1.714s-1.492-1.952-4-1.952a6.016 6.016 0 0 0-.796.035m0-4.735v2.138l.424-.027c5.45-.185 9.01 4.47 9.01 4.47s-4.08 4.964-8.33 4.964c-.37 0-.733-.035-1.095-.097v1.325c.3.035.61.062.91.062 3.957 0 6.82-2.023 9.593-4.408.459.371 2.34 1.263 2.73 1.652-2.633 2.208-8.772 3.984-12.253 3.984-.335 0-.653-.018-.971-.053v1.864H24V4.063zm0 10.326v1.131c-3.657-.654-4.673-4.46-4.673-4.46s1.758-1.944 4.673-2.262v1.237H8.94c-1.528-.186-2.73 1.245-2.73 1.245s.68 2.412 2.739 3.11M2.456 10.9s2.164-3.197 6.5-3.533V6.201C4.153 6.59 0 10.653 0 10.653s2.35 6.802 8.948 7.42v-1.237c-4.84-.6-6.492-5.936-6.492-5.936z"/></symbol></defs></svg>
     <div class="head">
-      <span class="eyebrow">How it works</span>
-      <h2>Three rules, enforced in code.</h2>
-      <p class="lede">No new agent framework. Blackout wraps the actions that touch the outside world and holds the agent to a goal it can't quietly lower.</p>
+      <span class="eyebrow">How it works · architecture</span>
+      <h2>The model proposes. Code decides.</h2>
+      <p class="lede">Nemotron does the thinking: what "done" means, how to fix the service, what to try next. Everything that has to be guaranteed, like IDs, receipts, fencing and the final verdict, is plain code with no AI in it.</p>
     </div>
 
-    <div class="grid3">
-      <div class="card"><span class="num">01</span><p class="rule">Define done first, then freeze it.</p><p>The model proposes a definition of done from a fixed vocabulary of checks. Blackout adds the checks it is not allowed to skip, hashes the contract and stores it where no agent can touch it.</p></div>
-      <div class="card"><span class="num">02</span><p class="rule">Write it down before you do it.</p><p>Every side effect gets a stable operation ID in a durable journal before it happens. If the worker dies, its replacement asks the outside system for that exact receipt instead of guessing. Unknown outcomes are escalated, never retried blindly.</p></div>
-      <div class="card"><span class="num">03</span><p class="rule">Only code says done.</p><p>A deterministic verifier, with no LLM, checks the real system against the frozen contract. Agent claims of success are ignored unless it agrees. No progress means replan, then escalate to a human with evidence.</p></div>
-    </div>
+    <figure class="adiag" aria-label="Architecture. Left: two Nemotron 3.5 Lightning agents, a coordinator and a killable repair worker, both calling Crusoe Managed Inference. Middle: the Blackout controller, plain code: contract freezer, tool adapter that journals an operation ID before each side effect, a SQLite journal, and a deterministic verifier. Right: the target service with receipts keyed by operation ID, and its database, which the verifier reads.">
+      <div class="adiag-scroll"><svg viewBox="-4 -4 1180 470" role="img" aria-hidden="true">
+        <defs><marker id="ad-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ad-headp"/></marker></defs>
+        <rect x="0" y="10" width="300" height="118" rx="12" class="ad-box nv"/><rect x="12" y="20" width="176" height="20" rx="10" class="ad-tag nv"/><text x="21" y="34" class="ad-tagt nv">NEMOTRON 3.5 LIGHTNING</text><text x="14" y="60" class="ad-t">Coordinator agent</text><text x="14" y="80" class="ad-s">proposes the definition of done</text><text x="14" y="97" class="ad-s">reads verdicts: continue / replan /</text><text x="14" y="114" class="ad-s">escalate. Can't declare success.</text>
+        <rect x="8" y="160" width="300" height="118" rx="12" class="ad-box nv ghost"/>
+        <rect x="0" y="152" width="300" height="118" rx="12" class="ad-box nv"/><rect x="12" y="162" width="176" height="20" rx="10" class="ad-tag nv"/><text x="21" y="176" class="ad-tagt nv">NEMOTRON 3.5 LIGHTNING</text><text x="14" y="202" class="ad-t">Repair worker · gen N</text><text x="14" y="222" class="ad-s">12 tools: logs, config, restart,</text><text x="14" y="239" class="ad-s">test job, receipts, process jobs</text><text x="14" y="256" class="ad-s">killable child process</text>
+        <text x="296" y="146" class="ad-kill" text-anchor="end">⚡ SIGKILL → gen N+1</text>
+        <rect x="0" y="330" width="300" height="120" rx="12" class="ad-box cr"/><rect x="12" y="340" width="191" height="20" rx="10" class="ad-tag cr"/><text x="21" y="354" class="ad-tagt cr">CRUSOE MANAGED INFERENCE</text><text x="14" y="380" class="ad-t">api.inference.crusoecloud.com</text><text x="14" y="400" class="ad-s">OpenAI-compatible /v1/chat</text><text x="14" y="417" class="ad-s">Lightning 30B-A3B · 262k ctx</text><text x="14" y="434" class="ad-s">429 → reroute to Nemotron 3 Super</text>
+        <path d="M150 270 V 326" class="ad-ar nvl" marker-end="url(#ad-head)"/><text x="160" y="304" class="ad-l nvl" text-anchor="start">chat.completions</text>
+        <rect x="370" y="0" width="440" height="460" rx="16" class="ad-box core"/>
+        <text x="390" y="30" class="ad-brand">BLACKOUT CONTROLLER</text><text x="790" y="30" class="ad-s" text-anchor="end">plain code · no LLM</text>
+        <rect x="390" y="44" width="400" height="82" rx="12" class="ad-box code"/><text x="404" y="66" class="ad-t">Contract freezer</text><text x="404" y="86" class="ad-s">menu of 8 check kinds + 5 mandatory checks</text><text x="404" y="103" class="ad-s">rejects impossible checks → sha256 → frozen</text>
+        <rect x="390" y="140" width="400" height="112" rx="12" class="ad-box code"/><text x="404" y="162" class="ad-t">Tool adapter</text><text x="404" y="182" class="ad-s">① op_id = journal intent  (before the call)</text><text x="404" y="199" class="ad-s">② side effect, op_id travels with it</text><text x="404" y="216" class="ad-s">③ ack ← receipt · stale generation = fenced</text>
+        <rect x="390" y="266" width="400" height="82" rx="12" class="ad-box code"/><text x="404" y="288" class="ad-t">Journal · SQLite (WAL)</text><text x="404" y="308" class="ad-s">missions · actions(op_id) · workers(gen)</text><text x="404" y="325" class="ad-s">events · verdicts · usage(tokens, $)</text>
+        <rect x="390" y="362" width="400" height="82" rx="12" class="ad-box code"/><text x="404" y="384" class="ad-t">Verifier</text><text x="404" y="404" class="ad-s">deterministic checks vs frozen contract</text><text x="404" y="421" class="ad-s">reads the service's real database</text>
+        <path d="M300 70 H 386" class="ad-ar nvl" marker-end="url(#ad-head)"/><text x="350" y="62" class="ad-l nvl" text-anchor="middle">checks</text>
+        <path d="M300 200 H 386" class="ad-ar nvl" marker-end="url(#ad-head)"/><text x="350" y="192" class="ad-l nvl" text-anchor="middle">tools</text>
+        <path d="M590 252 V 262" class="ad-ar code" marker-end="url(#ad-head)"/>
+        <path d="M590 126 V 136" class="ad-ar code" marker-end="url(#ad-head)"/>
+        <path d="M390 403 H 336 V 112 H 304" class="ad-ar code dash" marker-end="url(#ad-head)"/>
+        <text x="0" y="0" class="ad-l code" text-anchor="middle" transform="translate(330 330) rotate(-90)">verdict + evidence</text>
+        <rect x="870" y="90" width="300" height="170" rx="12" class="ad-box "/><rect x="882" y="100" width="97" height="20" rx="10" class="ad-tag plain"/><text x="891" y="114" class="ad-tagt plain">YOUR SYSTEM</text><text x="884" y="140" class="ad-t">Target service</text><text x="884" y="160" class="ad-s">POST /jobs/:id/process {op_id}</text><text x="884" y="177" class="ad-s">GET  /receipts/:op_id</text><text x="884" y="194" class="ad-s">POST /jobs/:id/ack</text><text x="884" y="211" class="ad-s">/health can lie: 200 OK</text>
+        <rect x="870" y="300" width="300" height="110" rx="12" class="ad-box "/><text x="884" y="322" class="ad-t">Service database</text><text x="884" y="342" class="ad-s">deliveries per customer</text><text x="884" y="359" class="ad-s">receipts keyed by op_id</text><text x="884" y="376" class="ad-s">(ground truth)</text>
+        <path d="M790 180 H 866" class="ad-ar code" marker-end="url(#ad-head)"/><text x="828" y="172" class="ad-l code" text-anchor="middle">side effect</text>
+        <path d="M866 222 H 794" class="ad-ar code dash" marker-end="url(#ad-head)"/><text x="830" y="240" class="ad-l code dash" text-anchor="middle">receipt</text>
+        <path d="M1020 260 V 296" class="ad-ar plain" marker-end="url(#ad-head)"/>
+        <path d="M790 403 H 866" class="ad-ar code dash" marker-end="url(#ad-head)"/><text x="828" y="395" class="ad-l code dash" text-anchor="middle">reads</text>
+      </svg></div>
+    </figure>
+
+    <div class="alegend"><span class="atag nv"><svg aria-hidden="true" class="lg" viewBox="0 0 24 24"><use href="#nv-mark"/></svg>Nemotron on Crusoe</span> a model judgment <span class="atag code">{ } Code, no AI</span> a guarantee</div>
+    <ol class="asteps">
+      <li class="astep code"><span class="anum">1</span><div><div class="ahead"><b>Snapshot the job</b><span class="atag code">{ } Code, no AI</span></div><p>Before anything changes, the controller reads the service: which 10 jobs are in the batch and which customers already got a message.</p></div></li><li class="astep nv"><span class="anum">2</span><div><div class="ahead"><b>Propose the definition of done</b><span class="atag nv"><svg aria-hidden="true" class="lg" viewBox="0 0 24 24"><use href="#nv-mark"/></svg>Nemotron on Crusoe</span></div><p>The coordinator agent picks checks from a fixed menu (every job delivered, no duplicates, earlier outputs untouched, a fresh test job works…) and states its assumptions. It can't write checker code.</p></div></li><li class="astep code"><span class="anum">3</span><div><div class="ahead"><b>Freeze the contract</b><span class="atag code">{ } Code, no AI</span></div><p>Blackout adds the five checks it may never drop, rejects checks that are false from the start, hashes the result and stores it in the journal. Nobody can lower the bar later.</p></div></li><li class="astep nv"><span class="anum">4</span><div><div class="ahead"><b>Diagnose and repair</b><span class="atag nv"><svg aria-hidden="true" class="lg" viewBox="0 0 24 24"><use href="#nv-mark"/></svg>Nemotron on Crusoe</span></div><p>A worker agent investigates with 12 tools (logs, workspace files, config patch, restart, test job, receipts, process jobs) and chooses every call itself.</p></div></li><li class="astep code"><span class="anum">5</span><div><div class="ahead"><b>Write it down, then act</b><span class="atag code">{ } Code, no AI</span></div><p>Every tool call that changes the world gets a stable operation ID, saved to SQLite <i>before</i> the request goes out. The ID travels with the request, so the service's receipt carries it.</p></div></li><li class="astep code"><span class="anum">6</span><div><div class="ahead"><b>Crash and fence</b><span class="atag code">{ } Code, no AI</span></div><p>We SIGKILL the worker right after a send. The controller starts a new worker generation; anything the dead one still tries to write is rejected.</p></div></li><li class="astep code"><span class="anum">7</span><div><div class="ahead"><b>Reconcile from receipts</b><span class="atag code">{ } Code, no AI</span></div><p>Before the new worker's model sees anything, Blackout asks the service about each unfinished operation ID. Happened: mark done. Never arrived: safe to retry with the same ID. Can't tell: escalate.</p></div></li><li class="astep code"><span class="anum">8</span><div><div class="ahead"><b>Verify</b><span class="atag code">{ } Code, no AI</span></div><p>The verifier reads the service's real database and checks it against the frozen contract. The agent's own "done" counts for nothing.</p></div></li><li class="astep nv"><span class="anum">9</span><div><div class="ahead"><b>Decide what's next</b><span class="atag nv"><svg aria-hidden="true" class="lg" viewBox="0 0 24 24"><use href="#nv-mark"/></svg>Nemotron on Crusoe</span></div><p>The coordinator reads the verifier's evidence and chooses continue, replan or escalate. It can't declare success, and the controller forces a replan when there's no progress.</p></div></li><li class="astep code"><span class="anum">10</span><div><div class="ahead"><b>Verified, or a human decides</b><span class="atag code">{ } Code, no AI</span></div><p>The mission ends VERIFIED only on a passing verdict. Otherwise it stops with an escalation report: what was checked, what failed, which operations are unknown.</p></div></li>
+    </ol>
+    <p class="note">The MCP gateway (<code>npx blackout-mcp</code>) is steps 5 and 7 packaged for any MCP agent. It has no model of its own: the agent brings its own, Nemotron, Claude or anything else.</p>
   </section>
 
   <section id="race">
