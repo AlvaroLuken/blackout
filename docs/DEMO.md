@@ -12,7 +12,7 @@
 
 | Time | Say | Do |
 |---|---|---|
-| 0:00 | "Agents are starting to send emails and issue refunds on their own. When one crashes mid-job, it does things twice and still says 'done'." | Press **Run the race** immediately |
+| 0:00 | "Agents are starting to send emails and issue refunds on their own. When one crashes mid-job, it does things twice and still says 'done'. Blackout makes three promises: every action happens once, 'done' is decided by code, and when it can't tell, a human decides." | Press **Run the race** immediately; point at the promise strip |
 | 0:05 | "This page has no logic. It starts real processes, reads each service's database, and sends one SIGKILL. Left is Blackout. Right is the same Nemotron agent, same tools, same prompt, without our journal." | Point at the two lane titles |
 | 0:15 | "The service is broken. Its health check is green, every real message fails. Nemotron writes the definition of done first, and code freezes it." | Point at "/health 200" and the contract hash |
 | 0:30 | "Now it diagnoses on its own: logs, config, docs, finds the bad setting, fixes it, proves it with a test message." | Blue FIX line, green "test job ✓" |

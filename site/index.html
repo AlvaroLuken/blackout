@@ -125,6 +125,17 @@ p { margin: 0; max-width: 68ch; }
 .rb { font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 999px; }
 .rb.today { background: #0f2e24; color: var(--ok); } .rb.adapter { background: #2e2208; color: var(--amber); } .rb.runtime { background: #18264a; color: var(--blue); }
 .legend { font-size: 14px; color: var(--muted); max-width: 90ch; line-height: 1.9; }
+.promises { border-top: 0; padding-block: 8px 56px; }
+.pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.pcard { background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--amber); border-radius: 12px; padding: 22px; display: grid; gap: 12px; align-content: start; position: relative; }
+.pcard.p1 { border-top-color: var(--ok); } .pcard.p2 { border-top-color: var(--blue); } .pcard.p3 { border-top-color: var(--amber); }
+.pnum { font-family: var(--display); font-weight: 800; font-stretch: 75%; font-size: 44px; line-height: 1; color: var(--muted); }
+.pcard h3 { font-size: 23px; line-height: 1.15; }
+.pcard p { font-size: 15.5px; color: var(--soft); }
+.pproof { font-size: 14.5px; color: var(--soft); background: var(--panel2); border-radius: 8px; padding: 10px 12px; }
+.pproof b { color: var(--fg); font-family: var(--display); font-stretch: 85%; font-size: 17px; }
+.pwhere { font-family: var(--mono); font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+@media (max-width: 900px) { .pgrid { grid-template-columns: 1fr; } }
 .head { display: grid; gap: 14px; margin-bottom: 36px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
@@ -167,28 +178,53 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 <div class="wrap">
   <nav>
     <a class="logo" href="#">BLACK<span>OUT</span></a>
-    <div class="links"><a href="#watch">Watch</a><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+    <div class="links"><a href="#promises">Promises</a><a href="#watch">Watch</a><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">MCP gateway</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
   </nav>
 
   <header class="hero">
     <div class="hero-text">
       <span class="eyebrow">Exactly-once actions for AI agents</span>
       <h1>Let agents act on their own. <em>Never twice.</em></h1>
-      <p class="lede">Blackout sits between your AI agents and the real world. With it:</p>
-      <ul class="benefits">
-        <li><b>Every action happens once.</b> No double refunds, emails or charges, even when the agent crashes mid-job.</li>
-        <li><b>"Done" means verified.</b> Code checks the real system. The agent's confidence doesn't count.</li>
-        <li><b>When it can't tell, a human decides,</b> with the evidence, instead of the agent guessing.</li>
-        <li><b>Drop-in today.</b> An MCP gateway in front of your tools: <code>npx blackout-mcp</code>. Keep your agent.</li>
-      </ul>
+      <p class="lede">Blackout sits between your AI agents and the real world. It makes every action happen once, lets only code decide when the job is done, and hands a human the evidence when it can't tell. Drop it in front of your tools today: <code>npx blackout-mcp</code>.</p>
       <div class="ctas">
-        <a class="btn primary" href="#watch">▶ Watch how it works</a>
+        <a class="btn primary" href="#promises">The three promises</a>
+        <a class="btn ghost" href="#watch">▶ Watch how it works</a>
         <a class="btn ghost" href="#use">Use it today</a>
         <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
       </div>
       <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
     </div>
   </header>
+
+  <section id="promises" class="promises" aria-labelledby="h-promises">
+    <div class="head">
+      <span class="eyebrow">Three promises</span>
+      <h2 id="h-promises">What Blackout guarantees, and how we know.</h2>
+    </div>
+    <div class="pgrid">
+      <div class="pcard p1">
+        <span class="pnum">1</span>
+        <h3>Every action happens once.</h3>
+        <p>Before an agent sends, pays or deploys, Blackout writes the action down with an ID. After a crash or restart it asks your system "did this already happen?" and skips it if so.</p>
+        <div class="pproof"><b>18 → 0</b> duplicate emails across 10 restarted agents · <b>10/10 vs 0/10</b> clean runs after a real crash</div>
+        <span class="pwhere">Runtime + MCP gateway, today · where your system can answer "did operation X happen?"</span>
+      </div>
+      <div class="pcard p2">
+        <span class="pnum">2</span>
+        <h3>"Done" is decided by code, not the agent.</h3>
+        <p>The definition of done is written and frozen before the work starts. When the agent says it's finished, plain code checks the real system against it. A confident agent can't talk its way past a failing check.</p>
+        <div class="pproof"><b>0</b> false "done" claims accepted · without it, the agent reported DONE in <b>6 of 10</b> runs while customers had duplicates</div>
+        <span class="pwhere">Full runtime, today · coming to the gateway next</span>
+      </div>
+      <div class="pcard p3">
+        <span class="pnum">3</span>
+        <h3>When it can't tell, a human decides.</h3>
+        <p>If Blackout can't confirm what happened, it never retries blindly. It stops and hands a person the evidence: what was attempted, what the checks found.</p>
+        <div class="pproof">Every duplicate in our tests was caught and escalated, never reported as success</div>
+        <span class="pwhere">Runtime + MCP gateway, today</span>
+      </div>
+    </div>
+  </section>
 
   <section class="proofbar" aria-label="Measured results">
     <div class="proof">

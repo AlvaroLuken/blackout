@@ -30,6 +30,15 @@ header { display: flex; align-items: flex-end; justify-content: space-between; g
 
 .crusoe { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 0 4px; }
 .crusoe .cv { color: var(--fg); font-size: 15px; }
+.promise-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pp { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--amber); border-radius: 10px; padding: 10px 14px; font-size: 15px; color: #cfd4dd; display: flex; gap: 10px; align-items: baseline; }
+.pp span { font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--muted); }
+.pp b { color: var(--fg); }
+.pp.p1 { border-left-color: var(--ok); } .pp.p2 { border-left-color: var(--blue); } .pp.p3 { border-left-color: var(--amber); }
+.ptag { font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+.ptag.p1 { background: #0f2e24; color: var(--ok); } .ptag.p2 { background: #18264a; color: var(--blue); } .ptag.p3 { background: #2e2208; color: var(--amber); }
+body.presenter .promise-strip { display: grid; } body.presenter .pp { font-size: 18px; }
+@media (max-width: 900px) { .promise-strip { grid-template-columns: 1fr; } }
 .brief { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .brief > div { background: var(--panel); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
 .brief .k { font-family: var(--mono); font-size: 11px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.08em; }
@@ -44,7 +53,16 @@ header { display: flex; align-items: flex-end; justify-content: space-between; g
 .ph.crash.done, .ph.crash.active { background: #7f1d1d; color: #fff; }
 .adapter { color: var(--muted); font-size: 14px; }
 .adapter b { color: var(--fg); }
-@media (max-width: 1100px) { .brief { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1100px) { .promise-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pp { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--amber); border-radius: 10px; padding: 10px 14px; font-size: 15px; color: #cfd4dd; display: flex; gap: 10px; align-items: baseline; }
+.pp span { font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--muted); }
+.pp b { color: var(--fg); }
+.pp.p1 { border-left-color: var(--ok); } .pp.p2 { border-left-color: var(--blue); } .pp.p3 { border-left-color: var(--amber); }
+.ptag { font-family: var(--mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+.ptag.p1 { background: #0f2e24; color: var(--ok); } .ptag.p2 { background: #18264a; color: var(--blue); } .ptag.p3 { background: #2e2208; color: var(--amber); }
+body.presenter .promise-strip { display: grid; } body.presenter .pp { font-size: 18px; }
+@media (max-width: 900px) { .promise-strip { grid-template-columns: 1fr; } }
+.brief { grid-template-columns: 1fr 1fr; } }
 .controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
 button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .start { background: var(--amber); color: #1a1205; font-family: var(--display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 22px; font-size: 16px; }
@@ -164,6 +182,12 @@ body.presenter .status { font-size: 15px; }
   </header>
 
   <div class="crusoe" id="crusoe"><span class="ck">Crusoe metrics API · our model · snapshot from a live run, 12:31 PT</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
+
+  <div class="promise-strip" aria-label="Blackout's three promises">
+    <div class="pp p1"><span>1</span><b>Every action happens once.</b> Even when the worker is killed mid-delivery.</div>
+    <div class="pp p2"><span>2</span><b>"Done" is decided by code.</b> The agent's claim doesn't count.</div>
+    <div class="pp p3"><span>3</span><b>When it can't tell, a human decides.</b> With the evidence.</div>
+  </div>
 
   <section class="brief" aria-label="Mission brief">
     <div><span class="k">The incident · simulated target · 2:07 am</span><p>A bad config deploy broke a <b>notification sender</b>. <b>10 customer messages</b> are queued and 3 already went out. The health check is still green, but every new message fails. Nobody is awake. Blackout is on call.</p></div>
@@ -353,7 +377,7 @@ function renderTruth(m) {
   if (!t) { el.className = "truth"; el.innerHTML = ""; return; }
   el.className = "truth on" + (t.result === "good" ? " resolved-good" : t.result === "bad" ? " resolved-bad" : "");
   el.innerHTML = "";
-  const head = document.createElement("span"); head.className = "t"; head.textContent = "The moment of truth"; el.appendChild(head);
+  const head = document.createElement("span"); head.className = "t"; head.innerHTML = `<span class="ptag p1">Promise 1 · once</span>The moment of truth`; el.appendChild(head);
   const row = (icon, cls, html) => { const r = document.createElement("div"); r.className = "row"; const i = document.createElement("span"); i.className = cls; i.textContent = icon; const b = document.createElement("div"); b.innerHTML = html; r.append(i, b); el.appendChild(r); };
   const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   row("✖", "bad", `Killed right after the service delivered <b>${esc(t.job)}</b> at ${esc(fmtTime(t.committed_at))}. The worker never wrote that down.<div class="mono">${t.pid ? `kill -9 ${esc(t.pid)} → exit signal SIGKILL · ` : ""}op ${esc(t.op)}</div>`);
@@ -420,6 +444,9 @@ function handle(msg) {
         const NAMES = { fresh_job_e2e: "a brand-new message goes through", all_scope_jobs_valid_output: "all 10 customers got the correct message", no_duplicate_deliveries: "nobody got a message twice", preexisting_outputs_intact: "the 3 already-sent messages are untouched", no_unaccounted_work: "nothing left half-finished", health_ok: "health check (liveness only)", no_errors_since_boot: "no errors since restart", expected_scope_size: "batch size as expected" };
         const ul = $(`checks-${msg.mode}`); ul.innerHTML = ""; ul.className = "checks on " + (ok ? "cert" : "report");
         const add = (cls, text) => { const li = document.createElement("li"); li.className = cls; li.textContent = text; ul.appendChild(li); };
+        const tagLi = document.createElement("li");
+        tagLi.innerHTML = ok ? `<span class="ptag p2">Promise 2 · done decided by code</span>` : `<span class="ptag p2">Promise 2 · "done" rejected by code</span><span class="ptag p3">Promise 3 · a human decides</span>`;
+        ul.appendChild(tagLi);
         add("h", `${ok ? "Proof of done" : "Escalation report · nothing claimed done"}${msg.mission ? ` · mission ${msg.mission}` : ""} · contract sha256:${(msg.hash ?? "").slice(0, 12)}`);
         if (msg.facts?.goal) add("goal", `Goal: "${msg.facts.goal}"`);
         for (const c of msg.checks) {
