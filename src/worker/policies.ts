@@ -87,6 +87,7 @@ export async function llmPolicy(ctx: ToolCtx, brief: Brief, limits: Limits, maxT
       calls++;
       let args: unknown = {};
       try { args = JSON.parse(tc.function.arguments || "{}"); } catch { args = { __unparseable__: tc.function.arguments }; }
+      if (tc.function.name === "process_jobs") log(`  [${actor}] -> process_jobs ${JSON.stringify(args).slice(0, 120)} (side effect, journaled first)`);
       const r = await runTool(tc.function.name, args, ctx);
       if (!r.ok) malformed += r.output.startsWith("invalid arguments") || r.output.startsWith("unknown tool") ? 1 : 0;
       ctx.journal.event(ctx.missionId, actor, "tool", { policy: "llm", tool: tc.function.name, args, ok: r.ok, output: r.output.slice(0, 600), fallback });

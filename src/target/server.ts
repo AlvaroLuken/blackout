@@ -32,7 +32,7 @@ function readHooks(): Hooks {
 async function afterCommitHook(opId: string) {
   const h = readHooks();
   if (!h.armed || !h.kill_on_commit_number || !h.armed_at) return;
-  const n = (db.prepare("SELECT COUNT(*) AS n FROM receipts WHERE committed_at >= ? AND op_id NOT LIKE 'verify-%'").get(h.armed_at) as { n: number }).n;
+  const n = (db.prepare("SELECT COUNT(*) AS n FROM receipts r JOIN jobs j ON j.id = r.job_id WHERE r.committed_at >= ? AND j.probe = 0").get(h.armed_at) as { n: number }).n;
   if (n !== h.kill_on_commit_number) return;
   try {
     await fetch(`http://127.0.0.1:${PORTS.harness}/failpoint`, {
