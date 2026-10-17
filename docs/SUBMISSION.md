@@ -8,7 +8,7 @@ Each external step needs Alvaro's approval.
 - [ ] `npm test` passes on a clean clone (`git clone` to a temp dir, `npm ci`, `npm test`)
 - [ ] README results match `results/RESULTS.md`
 - [ ] Record the one-minute video on Loom (script in `docs/DEMO.md`), confirm the link plays logged out
-- [ ] Confirm with organizers whether the form's "Best Use of Nemoclaw?" question means Nemotron
+- [x] Form has separate questions: Best Use of Nemotron (Yes) and NemoClaw & OpenShell (No)
 - [ ] Fill and submit the form (approval)
 
 ## Draft form answers
@@ -31,8 +31,8 @@ https://github.com/AlvaroLuken/blackout
 **Problem statement**
 Done Means Done
 
-**Best Use of Nemoclaw?**
-Ask an organizer first. If it means Nemotron: Yes. If it really means NemoClaw: No.
+**Are you submitting for NVIDIA's Best Use of Nemotron?**
+Yes (confirmed the form has separate Nemotron and NemoClaw questions)
 
 **Best Use of NemoClaw & OpenShell?**
 No (we did not use NemoClaw or OpenShell)
