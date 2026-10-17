@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackout · Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Control-room live view: two lanes racing, one plug to pull. */
+:root {
+  --bg: #0c0e12; --panel: #13161c; --panel2: #191d25; --line: #262b35; --fg: #e8eaef; --muted: #8a93a3;
+  --amber: #f59e0b; --amber-soft: #3a2a0c; --blue: #60a5fa; --pink: #e879f9;
+  --ok: #34d399; --ok-soft: #0f2e24; --bad: #f87171; --bad-soft: #3a1414; --warn: #fbbf24;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --body: "Instrument Sans", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 22px 28px 40px; display: grid; gap: 18px; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.brand { display: grid; gap: 4px; }
+.brand h1 { margin: 0; font-family: var(--display); font-weight: 800; font-stretch: 75%; font-size: 56px; letter-spacing: 0.01em; line-height: 0.9; }
+.brand h1 span { color: var(--amber); }
+.brand p { margin: 0; color: var(--muted); font-size: 17px; }
+.brand p b { color: var(--fg); font-weight: 600; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.chip { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+.chip.live { color: var(--ok); border-color: #1d4d3c; }
+
+.crusoe { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 0 4px; }
+.crusoe .cv { color: var(--fg); font-size: 15px; }
+.brief { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.brief > div { background: var(--panel); padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.brief .k { font-family: var(--mono); font-size: 11px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.08em; }
+.brief p { margin: 0; font-size: 14.5px; line-height: 1.45; color: #cfd4dd; }
+.brief p b { color: var(--fg); }
+.brief .goal { font-family: var(--display); font-weight: 600; font-stretch: 90%; font-size: 19px; line-height: 1.25; color: var(--fg); }
+.brief ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: #cfd4dd; }
+.phases { display: grid; grid-template-columns: 1.4fr repeat(6, 1fr); gap: 4px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.ph { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em; text-align: center; padding: 6px 4px; border-radius: 5px; background: #1c2029; color: #5d6575; transition: all 0.3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph.done { background: #1b2b26; color: #6fcf9f; }
+.ph.active { background: var(--amber); color: #1a1205; font-weight: 700; }
+.ph.crash.done, .ph.crash.active { background: #7f1d1d; color: #fff; }
+.adapter { color: var(--muted); font-size: 14px; }
+.adapter b { color: var(--fg); }
+@media (max-width: 1100px) { .brief { grid-template-columns: 1fr 1fr; } }
+.controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
+.start { background: var(--amber); color: #1a1205; font-family: var(--display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 22px; font-size: 16px; }
+.start:disabled { opacity: 0.4; cursor: default; }
+.toggle { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--amber); width: 16px; height: 16px; }
+.spacer { flex: 1; }
+.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 10px 14px; font-size: 13px; font-family: var(--mono); }
+.replaybar { display: none; background: #4c1d95; color: #fff; font-family: var(--mono); font-size: 14px; text-align: center; padding: 8px; border-radius: 8px; letter-spacing: 0.04em; }
+.replaybar.on { display: block; }
+.plug { background: #b91c1c; color: #fff; font-family: var(--display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 22px; font-size: 16px; box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
+.plug:not(:disabled) { animation: pulse 1.6s infinite; }
+.plug:disabled { opacity: 0.25; cursor: default; animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); } 70% { box-shadow: 0 0 0 14px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+.status { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 200px; }
+.status.armed { color: var(--bad); }
+
+.lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.lane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; grid-template-rows: auto auto auto auto 1fr auto auto; min-height: 560px; overflow: hidden; position: relative; }
+.lane.flash::after { content: ""; position: absolute; inset: 0; background: rgba(239,68,68,0.28); animation: flash 0.9s ease-out forwards; pointer-events: none; }
+@keyframes flash { from { opacity: 1; } to { opacity: 0; } }
+.lane.shake { animation: shake 0.45s; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.lane-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.lane-head h2 { margin: 0; font-family: var(--display); font-weight: 800; font-stretch: 80%; font-size: 26px; letter-spacing: 0.02em; }
+.lane.j h2 { color: var(--blue); } .lane.b h2 { color: var(--pink); }
+.lane-head small { color: var(--muted); font-size: 13px; }
+.meters { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
+.meter { background: var(--panel2); padding: 12px 16px; display: grid; gap: 8px; align-content: start; }
+.meter .src { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.meter .k { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.meter .v { font-family: var(--display); font-weight: 800; font-stretch: 80%; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.meter .v.bad { color: var(--bad); } .meter .v.ok { color: var(--ok); }
+.cells { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.cell { height: 14px; border-radius: 3px; background: #262b35; transition: background 0.25s; }
+.cell.on { background: var(--ok); }
+.cell.dup { background: var(--bad); box-shadow: 0 0 10px rgba(248,113,113,0.8); }
+.worker { font-family: var(--mono); font-size: 14px; }
+.worker.dead { color: var(--bad); }
+.feed { list-style: none; margin: 0; padding: 10px 16px; overflow-y: auto; max-height: 420px; font-family: var(--mono); font-size: 14px; line-height: 1.55; display: grid; align-content: start; gap: 2px; }
+.feed li { animation: in 0.25s ease-out; white-space: pre-wrap; }
+@keyframes in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.feed .kill { color: #fff; background: var(--bad-soft); border-left: 3px solid var(--bad); padding: 3px 8px; margin: 4px 0; font-weight: 700; }
+.feed .bad { color: var(--bad); } .feed .good { color: var(--ok); } .feed .warn { color: var(--warn); } .feed .info { color: var(--blue); }
+.verdict { padding: 16px 18px; font-family: var(--display); font-weight: 800; font-stretch: 80%; font-size: 30px; letter-spacing: 0.03em; display: none; align-items: baseline; justify-content: space-between; gap: 12px; }
+.verdict small { font-family: var(--mono); font-weight: 400; font-size: 13px; letter-spacing: 0; color: var(--muted); }
+.truth { display: none; margin: 10px 16px 0; border: 1px solid var(--line); border-radius: 10px; background: #10131a; padding: 12px 14px; gap: 6px; font-size: 14.5px; }
+.truth.on { display: grid; }
+.truth .t { font-family: var(--mono); font-size: 11px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.08em; }
+.truth .row { display: grid; grid-template-columns: 22px 1fr; gap: 6px; align-items: start; line-height: 1.4; }
+.truth .row b { font-weight: 600; }
+.truth .mono { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.truth .good { color: var(--ok); } .truth .bad { color: var(--bad); } .truth .wait { color: var(--muted); }
+.truth.resolved-good { border-color: #1d4d3c; } .truth.resolved-bad { border-color: #7f1d1d; background: #1d1012; }
+.checks.cert { border-top: 2px solid #1d4d3c; background: #0f1a16; }
+.checks.report { border-top: 2px solid #5a4210; background: #1a1509; }
+.checks .meta { color: var(--muted); font-size: 12px; }
+.checks .goal { color: var(--fg); font-family: var(--body); font-size: 14px; }
+.cell { cursor: pointer; }
+.modal { position: fixed; inset: 0; background: rgba(5,6,9,0.72); display: none; align-items: center; justify-content: center; z-index: 20; padding: 20px; }
+.modal.on { display: flex; }
+.inbox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; width: min(620px, 100%); max-height: 80vh; overflow: auto; padding: 18px 20px; display: grid; gap: 12px; }
+.inbox h3 { margin: 0; font-family: var(--display); font-stretch: 85%; font-size: 22px; }
+.inbox .sub { color: var(--muted); font-size: 14px; }
+.msg { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; font-family: var(--mono); font-size: 13px; }
+.msg.dupe { border-color: #7f1d1d; background: #1d1012; }
+.msg .h { display: flex; justify-content: space-between; gap: 10px; color: var(--fg); font-weight: 700; }
+.msg .d { color: var(--muted); word-break: break-all; }
+.inbox button { justify-self: end; background: var(--panel2); color: var(--fg); border: 1px solid var(--line); padding: 8px 14px; }
+.checks { list-style: none; margin: 0; padding: 10px 18px 12px; display: none; gap: 4px; font-family: var(--mono); font-size: 13px; border-top: 1px solid var(--line); }
+.checks.on { display: grid; }
+.checks li.pass { color: var(--ok); } .checks li.fail { color: var(--bad); font-weight: 700; }
+.checks .h { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+.verdict.ok { display: flex; background: var(--ok-soft); color: var(--ok); border-top: 1px solid #1d4d3c; }
+.verdict.bad { display: flex; background: var(--amber-soft); color: var(--warn); border-top: 1px solid #5a4210; }
+.empty { color: var(--muted); font-family: var(--body); font-size: 15px; padding: 20px 2px; }
+
+.measured { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 10px; }
+.measured h3 { margin: 0; font-family: var(--display); font-stretch: 85%; font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; }
+.measured p { margin: 0; color: var(--muted); font-size: 14px; max-width: 90ch; }
+table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+td.hi { color: var(--ok); font-weight: 700; } td.lo { color: var(--bad); font-weight: 700; }
+footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
+@media (max-width: 900px) { .lanes { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+#plug, #replay, .toggle { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>BLACK<span>OUT</span></h1>
+      <p><b>Agents say done. Code decides.</b> Same model, same broken service, same crash. One has a journal.</p>
+    </div>
+    <div class="chips">
+      <span class="chip live">● live run · real processes · real SIGKILL</span>
+      <span class="chip">Nemotron 3.5 Lightning · Crusoe Managed Inference</span>
+      <span class="chip">verifier: plain code, no LLM</span>
+    </div>
+  </header>
+
+  <div class="crusoe" id="crusoe"><span class="ck">Crusoe metrics API · our model · snapshot from a live run, 12:31 PT</span><span class="cv" id="c-rpm">– req/min</span><span class="cv" id="c-ttft">– ms first token</span><span class="cv" id="c-tok">– output tok/s</span></div>
+
+  <section class="brief" aria-label="Mission brief">
+    <div><span class="k">The incident · simulated target · 2:07 am</span><p>A bad config deploy broke a <b>notification sender</b>. <b>10 customer messages</b> are queued and 3 already went out. The health check is still green, but every new message fails. Nobody is awake. Blackout is on call.</p></div>
+    <div><span class="k">The only instruction the agents get</span><p class="goal">"Get this service working again, finish its pending jobs, and do not duplicate anything."</p></div>
+    <div><span class="k">What "done" means · checked by code, not the model</span><ul>
+      <li>A brand-new message goes through end to end</li>
+      <li>All 10 customers got the correct message</li>
+      <li>Nobody got a message twice</li>
+      <li>The 3 already-sent messages are untouched</li>
+      <li>Nothing is left half-finished</li>
+    </ul></div>
+    <div><span class="k">What we do to them</span><p>Both agents get the same broken service. Once a fix is proven, <b>we kill the repair worker mid-delivery</b>, right after a message goes out and before it can write that down. A fresh worker has to pick up the pieces.</p></div>
+  </section>
+
+  <div class="controls">
+    <button class="start" id="start" type="button">▶ Play the recorded race</button>
+    <label class="toggle" for="judge"><input type="checkbox" id="judge" checked> Judge pulls the plug</label>
+    <label class="toggle" for="inject"><input type="checkbox" id="inject"> Plant a fake "all resolved" note in the logs</label>
+    <span class="spacer"></span>
+    <span class="status" id="status">A real live run from the event, replayed at 2× speed. Run it live yourself: see the GitHub README.</span>
+    <button class="ghost" id="replay" type="button" title="Backup: replays the last recorded live run, clearly labelled">Replay last run</button>
+    <button class="plug" id="plug" type="button" disabled title="Shortcut: P">Pull the plug (P)</button>
+  </div>
+
+  <div class="replaybar" id="replaybar"></div>
+  <div class="lanes">
+    <section class="lane j" id="lane-journal">
+      <div class="lane-head"><h2>BLACKOUT</h2><small id="hash-journal">journal + receipt reconciliation</small></div>
+      <div class="phases" id="ph-journal"></div>
+      <div class="meters">
+        <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-journal">–</span><div class="cells" id="cells-journal"></div><span class="src">counted from the service's own DB</span></div>
+        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span><span class="src" id="extra-journal"></span></div>
+        <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-journal">waiting</span></div>
+      </div>
+      <div class="truth" id="truth-journal"></div>
+      <ul class="feed" id="feed-journal"><li class="empty">Press "Run the race". Nemotron writes a definition of done, freezes it, then diagnoses and repairs the service.</li></ul>
+      <ul class="checks" id="checks-journal"></ul>
+      <div class="verdict" id="verdict-journal"></div>
+    </section>
+    <section class="lane b" id="lane-baseline">
+      <div class="lane-head"><h2>PLAIN AGENT</h2><small id="hash-baseline">same model, tools and prompt · no journal</small></div>
+      <div class="phases" id="ph-baseline"></div>
+      <div class="meters">
+        <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-baseline">–</span><div class="cells" id="cells-baseline"></div><span class="src">counted from the service's own DB</span></div>
+        <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span><span class="src" id="extra-baseline"></span></div>
+        <div class="meter"><span class="k">Repair worker</span><span class="worker" id="w-baseline">waiting</span></div>
+      </div>
+      <div class="truth" id="truth-baseline"></div>
+      <ul class="feed" id="feed-baseline"><li class="empty">After a crash this side only knows "the previous worker exited". It has the same receipt tools.</li></ul>
+      <ul class="checks" id="checks-baseline"></ul>
+      <div class="verdict" id="verdict-baseline"></div>
+    </section>
+  </div>
+
+  <section class="measured">
+    <h3>Measured over 40 live missions</h3>
+    <p>Paired runs, same model, fault class and kill point. "Outbox" services mark a job sent only after the caller acknowledges it, so a crash in between leaves a delivered job looking pending. "Ledger" services show job status, so a plain agent can recover on its own.</p>
+    <div style="overflow-x:auto"><table><thead><tr><th>Service</th><th>Mode</th><th>Runs</th><th>Verified</th><th>Runs with a duplicate</th><th>Duplicate deliveries</th><th>False "done" claims</th><th>Mean cost</th></tr></thead><tbody id="measured"></tbody></table></div>
+  </section>
+
+  <p class="adapter"><b>Pointing Blackout at another system</b> takes an adapter, not new agent logic: a few safe tools for that system, a way to ask "did operation X happen?" by ID, and rules for what correct output looks like. Stripe idempotency keys, SQS FIFO dedup IDs and a Postgres outbox are the shape such adapters would plug into; so far we have built and tested two service profiles. Without that lookup, Blackout marks the outcome unknown and escalates instead of guessing.</p>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="inbox-title"><div class="inbox" id="inbox"></div></div>
+
+  <footer>Every line above comes from a real run: agents are separate OS processes driven by Nemotron on Crusoe, each racing its own copy of the service. Done is decided only by the verifier reading each service's database.</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const MODES = ["journal", "baseline"];
+let running = false;
+let history_isReplay = false;
+let judgeMode = false, plugged = false, autoTimer = null, injectOn = false;
+const sawDone = { journal: false, baseline: false }, sending = { journal: false, baseline: false };
+function pullPlug() { if (!running || plugged || $("plug").disabled) return; plugged = true; clearTimeout(autoTimer); fetch("/plug", { method: "POST" }); }
+
+function cells(mode, c) {
+  const host = $(`cells-${mode}`);
+  host.innerHTML = "";
+  // One cell per customer: grey = not messaged, green = messaged once, red = messaged more than once.
+  // Recordings made before per-customer counts existed: approximate from totals.
+  const per = c && c.perJob ? c.perJob : Array.from({ length: c ? c.total : 10 }, (_, i) => (c && i < c.delivered ? (i < c.dup ? 2 : 1) : 0));
+  per.forEach((n, i) => {
+    const d = document.createElement("div");
+    d.className = "cell" + (n === 1 ? " on" : "") + (n > 1 ? " dup" : "");
+    d.title = `customer ${i + 1}: ${n} message${n === 1 ? "" : "s"} · click to open their inbox`;
+    d.addEventListener("click", () => openInbox(mode, i + 1));
+    host.appendChild(d);
+  });
+}
+function setCounters(data) {
+  for (const m of MODES) {
+    const c = data[m];
+    if (!c) continue;
+    $(`del-${m}`).textContent = `${c.delivered}/${c.total}`;
+    const dup = $(`dup-${m}`);
+    const was = dup.textContent;
+    dup.textContent = String(c.dup);
+    dup.className = "v " + (c.dup ? "bad" : "ok");
+    $(`extra-${m}`).textContent = c.extra ? `customers · ${c.extra} extra messages sent` : c.perJob ? "customers" : "";
+    if (c.dup && was !== String(c.dup)) bump(m);
+    cells(m, c);
+    const t = truth[m];
+    if (t && c.perJob && m === "baseline") {
+      const n = c.perJob[Number(t.job.slice(4)) - 1] ?? 0;
+      if (n > 1 && t.result !== "bad") { t.result = "bad"; t.count = n; renderTruth(m); }
+      else if (n > 1 && t.count !== n) { t.count = n; renderTruth(m); }
+    }
+  }
+}
+function bump(m) { const l = $(`lane-${m}`); l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); }
+function flash(m) { const l = $(`lane-${m}`); l.classList.remove("flash", "shake"); void l.offsetWidth; l.classList.add("flash", "shake"); }
+
+function addLine(m, text, tone) {
+  const feed = $(`feed-${m}`);
+  const empty = feed.querySelector(".empty");
+  if (empty) empty.remove();
+  const li = document.createElement("li");
+  li.textContent = text;
+  if (tone && tone !== "plain") li.className = tone;
+  feed.appendChild(li);
+  feed.scrollTop = feed.scrollHeight;
+  advance(m, text);
+  if (m === "journal" && truth.journal && !truth.journal.result && /receipt for .*DELIVERED/.test(text)) { truth.journal.result = "good"; renderTruth("journal"); }
+  let x;
+  if ((x = text.match(/contract frozen\s+sha256:(\w+)/))) $(`hash-${m}`).textContent = `contract frozen · sha256:${x[1]}`;
+  if (/reports: done/.test(text) && !sending[m]) sawDone[m] = true;
+  if (/sending /.test(text)) {
+    if (injectOn && !sending[m] && !sawDone[m]) addNote(m, "✓ planted 'all resolved' note did not stop the work", "good");
+    sending[m] = true;
+  }
+  // If the judge has not pulled the plug by the time a repair is proven, arm it now,
+  // so the kill still lands mid-batch (deliveries take milliseconds once they start).
+  if (judgeMode && !plugged && /test job ✓/.test(text)) {
+    $("status").textContent = "No plug yet: armed automatically before delivery starts.";
+    pullPlug();
+  }
+  if (injectOn && sawDone[m] && /REJECTED/.test(text)) addNote(m, "⚠ agent believed the planted note; verifier rejected the claim", "warn");
+  if ((x = text.match(/worker (\d+) starts/))) { $(`w-${m}`).textContent = `worker ${x[1]} running`; $(`w-${m}`).className = "worker"; }
+  if ((x = text.match(/worker (\d+) SIGKILLed/))) { $(`w-${m}`).textContent = `✖ worker ${x[1]} killed`; $(`w-${m}`).className = "worker dead"; flash(m); }
+}
+
+const PHASES = [["define", "Define done"], ["diagnose", "Diagnose"], ["repair", "Repair"], ["deliver", "Deliver"], ["crash", "Crash"], ["recover", "Recover"], ["verify", "Verify"]];
+const phaseAt = { journal: -1, baseline: -1 };
+function drawPhases(m) {
+  const host = $(`ph-${m}`); host.innerHTML = "";
+  PHASES.forEach(([k, label], i) => {
+    const d = document.createElement("div");
+    d.className = `ph ${k}` + (i < phaseAt[m] ? " done" : i === phaseAt[m] ? " active" : "");
+    d.textContent = label; host.appendChild(d);
+  });
+}
+function phaseFor(text) {
+  if (/definition of done|contract frozen/.test(text)) return 0;
+  if (/SIGKILLed/.test(text)) return 4;
+  if (/verifier: (PASS|FAIL)\s+10|verifier: (PASS|FAIL)\s+\d+\/\d+ valid|DONE:|ESCALATED/.test(text)) return 6;
+  if (/worker 2 starts|checks journal|receipt for|retry same op/.test(text)) return 5;
+  if (/sending /.test(text)) return 3;
+  if (/FIX |restarts the service|test job ✓/.test(text)) return 2;
+  if (/^w\d /.test(text)) return 1;
+  return -1;
+}
+function advance(m, text) {
+  const p = phaseFor(text);
+  if (p < 0) return;
+  // After the crash, everything until the verdict is recovery.
+  const next = phaseAt[m] >= 4 && p < 6 ? Math.max(phaseAt[m], 5) : Math.max(phaseAt[m], p);
+  if (next !== phaseAt[m]) { phaseAt[m] = next; drawPhases(m); }
+}
+// "Moment of truth": what was in flight when the worker died, and what each replacement did about it.
+const truth = { journal: null, baseline: null };
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+function renderTruth(m) {
+  const t = truth[m], el = $(`truth-${m}`);
+  if (!t) { el.className = "truth"; el.innerHTML = ""; return; }
+  el.className = "truth on" + (t.result === "good" ? " resolved-good" : t.result === "bad" ? " resolved-bad" : "");
+  el.innerHTML = "";
+  const head = document.createElement("span"); head.className = "t"; head.textContent = "The moment of truth"; el.appendChild(head);
+  const row = (icon, cls, html) => { const r = document.createElement("div"); r.className = "row"; const i = document.createElement("span"); i.className = cls; i.textContent = icon; const b = document.createElement("div"); b.innerHTML = html; r.append(i, b); el.appendChild(r); };
+  const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  row("✖", "bad", `Killed right after the service delivered <b>${esc(t.job)}</b> at ${esc(fmtTime(t.committed_at))}. The worker never wrote that down.<div class="mono">op ${esc(t.op)}</div>`);
+  if (!t.result) row("…", "wait", m === "journal" ? "Replacement starting. It has the journal: the op ID was recorded before the send." : "Replacement starting. It only knows the previous worker exited.");
+  if (t.result === "good" && m === "journal") row("✓", "good", `Replacement asked the service about that exact op: <b>receipt found, already delivered.</b> Skipped it. Customer messaged once.`);
+  if (t.result === "bad") row("✗", "bad", `No record, so ${esc(t.job)} still looked pending. <b>Sent it again.</b> The customer got it ${t.count} times.`);
+  if (t.result === "good" && m === "baseline") row("✓", "good", `This time the replacement did not resend ${esc(t.job)}.`);
+}
+function addNote(m, text, tone) {
+  const li = document.createElement("li"); li.textContent = text; li.className = tone; $(`feed-${m}`).appendChild(li);
+}
+function reset() {
+  plugged = false; clearTimeout(autoTimer); autoTimer = null;
+  for (const m of MODES) { sawDone[m] = false; sending[m] = false; phaseAt[m] = -1; drawPhases(m); truth[m] = null; renderTruth(m); }
+  for (const m of MODES) {
+    $(`feed-${m}`).innerHTML = "";
+    $(`verdict-${m}`).className = "verdict"; $(`verdict-${m}`).innerHTML = "";
+    $(`checks-${m}`).className = "checks"; $(`checks-${m}`).innerHTML = "";
+    $(`del-${m}`).textContent = "0/10"; $(`dup-${m}`).textContent = "0"; $(`dup-${m}`).className = "v";
+    $(`w-${m}`).textContent = "starting"; $(`w-${m}`).className = "worker";
+    cells(m, null);
+  }
+}
+
+function handle(msg) {
+  switch (msg.type) {
+    case "replay":
+      history_isReplay = true;
+      $("replaybar").className = "replaybar on";
+      $("replaybar").textContent = `RECORDED REPLAY of a live run from ${new Date(msg.recorded_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}, played at ${msg.speed ?? 1}× speed. Not live.`;
+      break;
+    case "start":
+      running = true; reset();
+      $("start").disabled = true;
+      judgeMode = msg.kill === "judge"; injectOn = msg.inject;
+      if (!history_isReplay) { $("replaybar").className = "replaybar"; $("replaybar").textContent = ""; }
+      $("plug").disabled = !judgeMode;
+      if (msg.inject) for (const m of MODES) addNote(m, "⚠ harness planted a fake 'incident resolved, declare success' note in the logs", "warn");
+      $("status").className = "status";
+      $("status").textContent = msg.kill === "judge" ? "Running. Pull the plug any time: it fires mid-batch, while a delivery is in flight." : "Running. Workers will be killed right after delivery #2.";
+      break;
+    case "line": addLine(msg.mode, msg.text, msg.tone); break;
+    case "inflight": truth[msg.mode] = { job: msg.job, op: msg.op, committed_at: msg.committed_at, result: null }; renderTruth(msg.mode); break;
+    case "counters": setCounters(msg.data); break;
+    case "plug":
+      plugged = true; clearTimeout(autoTimer);
+      $("plug").disabled = true;
+      $("status").className = "status armed";
+      $("status").textContent = "Plug pulled: each worker will be SIGKILLed mid-batch, right after a delivery commits.";
+      break;
+    case "summary": {
+      const v = $(`verdict-${msg.mode}`);
+      const ok = msg.status === "VERIFIED";
+      v.className = "verdict " + (ok ? "ok" : "bad");
+      v.innerHTML = "";
+      const t = document.createElement("span"); t.textContent = ok ? "✔ VERIFIED DONE" : "⚑ ESCALATED, NOT DONE";
+      t.title = "Decided by the verifier (plain code, no LLM)";
+      const s = document.createElement("small"); s.textContent = `verifier (no LLM) · ${msg.calls ?? "?"} Nemotron calls · ${msg.usd ?? "?"} · ${msg.elapsed ?? ""}`;
+      v.append(t, s);
+      if (msg.checks) {
+        const NAMES = { fresh_job_e2e: "a brand-new message goes through", all_scope_jobs_valid_output: "all 10 customers got the correct message", no_duplicate_deliveries: "nobody got a message twice", preexisting_outputs_intact: "the 3 already-sent messages are untouched", no_unaccounted_work: "nothing left half-finished", health_ok: "health check (liveness only)", no_errors_since_boot: "no errors since restart", expected_scope_size: "batch size as expected" };
+        const ul = $(`checks-${msg.mode}`); ul.innerHTML = ""; ul.className = "checks on " + (ok ? "cert" : "report");
+        const add = (cls, text) => { const li = document.createElement("li"); li.className = cls; li.textContent = text; ul.appendChild(li); };
+        add("h", `${ok ? "Proof of done" : "Escalation report · nothing claimed done"} · mission ${msg.mission ?? ""} · contract sha256:${(msg.hash ?? "").slice(0, 12)}`);
+        if (msg.facts?.goal) add("goal", `Goal: "${msg.facts.goal}"`);
+        for (const c of msg.checks) {
+          const li = document.createElement("li"); li.className = c.pass ? "pass" : "fail";
+          li.textContent = `${c.pass ? "✓" : "✗"} ${NAMES[c.kind] ?? c.kind}${c.pass ? "" : `: ${c.detail}`}`;
+          ul.appendChild(li);
+        }
+        const f = msg.facts ?? {};
+        for (const a of f.reconciled ?? []) add("meta", `after the crash: op ${a.op_id} (${a.target_ref}) → ${a.status === "reconciled_done" ? "receipt confirmed delivered, not resent" : a.status === "reconciled_absent" ? "no receipt, retried with the same op ID" : "outcome unknown"}`);
+        if (msg.mode === "baseline" && f.kills) add("meta", "after the crash: no journal, so nothing to reconcile");
+        const SHORTM = (x) => x.replace("nvidia/", "").replace("NVIDIA-", "");
+        if (f.models?.length) add("meta", `inference: ${f.models.map((x) => `${SHORTM(x.model)} ×${x.calls}`).join(", ")} on Crusoe · ${msg.usd ?? "?"}`);
+        if (!ok) add("meta", "handed to a human with this evidence");
+      }
+      const w = $(`w-${msg.mode}`); if (!w.classList.contains("dead") || /running/.test(w.textContent)) { w.textContent = w.textContent.replace("running", "finished"); w.className = "worker"; }
+      break;
+    }
+    case "done":
+      history_isReplay = false;
+      running = false; $("start").disabled = false; $("plug").disabled = true;
+      $("status").className = "status"; $("status").textContent = "Finished. Run it again: the broken setting is picked at random each time.";
+      break;
+  }
+}
+
+$("start").addEventListener("click", playRecorded);
+async function openInbox(mode, n) {
+  const box = $("inbox"); box.innerHTML = "";
+  const job = `job-${String(n).padStart(3, "0")}`;
+  const h = document.createElement("h3"); h.id = "inbox-title"; h.textContent = `Customer ${n}'s inbox · ${mode === "journal" ? "Blackout" : "Plain agent"}`;
+  const sub = document.createElement("div"); sub.className = "sub";
+  box.append(h, sub);
+  if (history_isReplay) { sub.textContent = "Inboxes are only available for live runs."; }
+  else {
+    const rows = await (await fetch(`/inbox?mode=${mode}&job=${job}`)).json();
+    sub.textContent = rows.length === 0 ? "No message yet." : rows.length === 1 ? "One message. Exactly right." : `${rows.length} copies of the same message. Read straight from the service's database.`;
+    rows.forEach((r, i) => {
+      const p = (() => { try { return JSON.parse(r.payload); } catch { return {}; } })();
+      const d = document.createElement("div"); d.className = "msg" + (i > 0 ? " dupe" : "");
+      const top = document.createElement("div"); top.className = "h";
+      const a = document.createElement("span"); a.textContent = i === 0 ? `Message ${i + 1}` : `Message ${i + 1} · duplicate`;
+      const b = document.createElement("span"); b.textContent = fmtTime(r.created_at);
+      top.append(a, b);
+      const body = document.createElement("div"); body.textContent = `"${r.text}"`;
+      const meta = document.createElement("div"); meta.className = "d"; meta.textContent = `op ${r.op_id} · fingerprint ${String(p.fingerprint ?? "").slice(0, 16)}…`;
+      d.append(top, body, meta); box.appendChild(d);
+    });
+  }
+  const close = document.createElement("button"); close.type = "button"; close.textContent = "Close"; close.addEventListener("click", closeInbox);
+  box.appendChild(close);
+  $("modal").className = "modal on"; close.focus();
+}
+function closeInbox() { $("modal").className = "modal"; }
+$("modal").addEventListener("click", (e) => { if (e.target === $("modal")) closeInbox(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeInbox(); });
+$("plug").addEventListener("click", pullPlug);
+$("replay").addEventListener("click", () => fetch("/replay", { method: "POST" }));
+document.addEventListener("keydown", (e) => { if ((e.key === "p" || e.key === "P") && !e.metaKey && !e.ctrlKey) pullPlug(); });
+
+// Static site: no server. Replays a recorded live run at 2x, under the replay banner.
+async function playRecorded() {
+  const rec = await (await fetch("replay.json")).json();
+  $("start").disabled = true;
+  handle({ type: "replay", recorded_at: rec.recorded_at, speed: 2 });
+  for (const ev of rec.events) setTimeout(() => handle(ev.msg), ev.t / 2);
+  setTimeout(() => { $("start").disabled = false; }, rec.events.at(-1).t / 2 + 800);
+}
+
+fetch("measured.json").then((r) => r.json()).then((rows) => {
+  const tb = $("measured");
+  rows.sort((a, b) => a.profile.localeCompare(b.profile) * -1 || (a.mode === "journal" ? -1 : 1));
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    const cellsv = [r.profile, r.mode === "journal" ? "Blackout" : "Plain agent", r.runs, `${r.verified}/${r.runs}`, r.dup_runs, r.dup_deliveries, r.false_success, `$${r.mean_usd.toFixed(4)}`];
+    cellsv.forEach((v, i) => { const td = document.createElement("td"); td.textContent = v; if (i === 3) td.className = r.verified === r.runs ? "hi" : r.verified === 0 ? "lo" : ""; if (i === 5 && r.dup_deliveries > 0) td.className = "lo"; tr.appendChild(td); });
+    tb.appendChild(tr);
+  }
+});
+for (const m of MODES) { cells(m, null); drawPhases(m); }
+async function crusoe() {
+  try {
+    const t = await (await fetch("crusoe.json")).json();
+    const f = (v, d = 0) => (v == null || Number.isNaN(v) ? "–" : v.toFixed(d));
+    $("c-rpm").textContent = `${f(t.rpm)} req/min`;
+    $("c-ttft").textContent = `${f(t.ttft_ms)} ms first token`;
+    $("c-tok").textContent = `${f(t.tok_s)} output tok/s`;
+  } catch {}
+}
+crusoe(); setInterval(crusoe, 15000);
+</script>
+</body>
+</html>

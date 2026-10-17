@@ -2,6 +2,8 @@
 
 Blackout keeps a recovery mission accountable to verified outcomes while the workers doing the repair can fail and be replaced.
 
+**Site and recorded race:** https://blackout-woad.vercel.app
+
 Built at the Recursive Agents Hackathon (San Francisco, Oct 17 2026) for the **Done Means Done** problem statement. All agent inference runs on **NVIDIA Nemotron 3.5 Lightning** through **Crusoe Managed Inference**.
 
 > Goal given to Blackout: *"Get this service working again, finish its pending jobs, and do not duplicate anything."*

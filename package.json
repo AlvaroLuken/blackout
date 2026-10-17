@@ -14,7 +14,8 @@
     "typecheck": "tsc -p .",
     "race": "NODE_NO_WARNINGS=1 tsx src/race.ts",
     "kill": "NODE_NO_WARNINGS=1 tsx src/cli.ts kill",
-    "web": "NODE_NO_WARNINGS=1 tsx src/web/server.ts"
+    "web": "NODE_NO_WARNINGS=1 tsx src/web/server.ts",
+    "site": "NODE_NO_WARNINGS=1 tsx scripts/build-site.ts"
   },
   "license": "MIT",
   "description": "Keeps a recovery mission accountable to verified outcomes while repair workers fail and get replaced.",

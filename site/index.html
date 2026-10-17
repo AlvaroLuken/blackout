@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blackout · AI agents that finish the job exactly once</title>
+<meta name="description" content="A recovery runtime for AI agents that touch the real world. Built on NVIDIA Nemotron and Crusoe Managed Inference.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* One long dark page: hero, proof, mechanism, race, adoption, infra, roadmap. */
+:root {
+  --bg: #0b0d11; --panel: #12151b; --panel2: #171b22; --line: #242a34; --fg: #eceef2; --muted: #8b94a4; --soft: #c9ced8;
+  --amber: #f59e0b; --amber-soft: #2e2208; --ok: #34d399; --bad: #f87171; --blue: #60a5fa; --pink: #e879f9; --green: #76b900;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --body: "Instrument Sans", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.55; }
+a { color: inherit; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+nav { display: flex; justify-content: space-between; align-items: center; padding-block: 18px; }
+.logo { font-family: var(--display); font-weight: 800; font-stretch: 75%; font-size: 26px; letter-spacing: 0.02em; text-decoration: none; }
+.logo span { color: var(--amber); }
+nav .links { display: flex; gap: 22px; font-size: 15px; color: var(--muted); }
+nav .links a { text-decoration: none; } nav .links a:hover { color: var(--fg); }
+section { padding-block: 72px; border-top: 1px solid var(--line); }
+.eyebrow { font-family: var(--mono); font-size: 12px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.1em; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-weight: 800; font-stretch: 75%; font-size: clamp(54px, 9vw, 112px); line-height: 0.92; letter-spacing: -0.005em; }
+h1 em { font-style: normal; color: var(--amber); }
+h2 { font-weight: 800; font-stretch: 80%; font-size: clamp(32px, 4.5vw, 48px); line-height: 1.02; }
+h3 { font-weight: 700; font-stretch: 90%; font-size: 21px; }
+p { margin: 0; max-width: 68ch; }
+.lede { font-size: 21px; color: var(--soft); max-width: 46ch; }
+.hero { padding-block: 64px 80px; border-top: 0; display: grid; gap: 26px; }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: 17px; padding: 13px 22px; border-radius: 9px; }
+.btn.primary { background: var(--amber); color: #1a1205; }
+.btn.ghost { border: 1px solid var(--line); color: var(--fg); }
+.btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.built { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.built b { color: var(--green); font-weight: 500; }
+.proof { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 10px; }
+.proof div { background: var(--panel); padding: 20px; display: grid; gap: 6px; align-content: start; }
+.proof .n { font-family: var(--display); font-weight: 800; font-stretch: 75%; font-size: 46px; line-height: 1; font-variant-numeric: tabular-nums; }
+.proof .n.ok { color: var(--ok); } .proof .n.bad { color: var(--bad); }
+.proof .l { font-size: 14px; color: var(--muted); }
+.story { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: 8px; }
+.story li { display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 12px 0 12px 22px; position: relative; font-size: 18px; color: var(--soft); }
+.story li::before { content: ""; position: absolute; left: -7px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); }
+.story li.bad::before { background: var(--bad); box-shadow: 0 0 0 4px rgba(248,113,113,0.2); }
+.story li.bad b { color: var(--bad); }
+.story .t { font-family: var(--mono); font-size: 14px; color: var(--muted); padding-top: 3px; }
+.story b { color: var(--fg); font-weight: 600; }
+.who { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.who .card p { font-size: 15px; }
+.who .card b { color: var(--fg); font-weight: 600; }
+.skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 12px; background: var(--amber); color: #1a1205; padding: 8px 12px; border-radius: 6px; z-index: 5; }
+.head { display: grid; gap: 14px; margin-bottom: 36px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.card p { font-size: 15.5px; color: var(--soft); }
+.num { font-family: var(--mono); font-size: 13px; color: var(--amber); }
+.rule { font-family: var(--display); font-weight: 700; font-stretch: 88%; font-size: 22px; line-height: 1.2; }
+.race { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #0c0e12; }
+.race iframe { display: block; width: 100%; height: 1180px; border: 0; }
+.note { font-size: 14px; color: var(--muted); margin-top: 12px; }
+pre { margin: 0; background: #0e1116; border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; overflow-x: auto; font-family: var(--mono); font-size: 14px; line-height: 1.6; color: #d6dbe4; }
+pre .c { color: #6b7485; } pre .k { color: var(--pink); } pre .s { color: var(--ok); } pre .f { color: var(--blue); }
+.tag { display: inline-block; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 999px; border: 1px solid #5a4210; color: var(--amber); }
+.uses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.use { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 8px; }
+.use .r { font-size: 14.5px; color: var(--soft); }
+.use .r b { color: var(--fg); font-weight: 600; }
+.infra { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; }
+.facts { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.facts div { background: var(--panel); padding: 16px 18px; display: grid; grid-template-columns: 150px 1fr; gap: 14px; font-size: 15px; }
+.facts .k { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 3px; }
+.facts .v b { font-family: var(--display); font-stretch: 85%; font-size: 20px; }
+.road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.road .card .when { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.road .card.now { border-color: #1d4d3c; }
+.road .card.now .when { color: var(--ok); }
+.final { text-align: left; display: grid; gap: 22px; }
+footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var(--muted); font-size: 14px; display: grid; gap: 8px; }
+@media (max-width: 900px) {
+  .proof, .grid3, .uses, .road, .who { grid-template-columns: 1fr 1fr; }
+  .infra { grid-template-columns: 1fr; }
+  nav .links { display: none; }
+  .race iframe { height: 1500px; }
+}
+@media (max-width: 560px) { .story li { grid-template-columns: 1fr; gap: 2px; } .proof, .grid3, .uses, .road, .who { grid-template-columns: 1fr; } .facts div { grid-template-columns: 1fr; gap: 4px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#problem">Skip to content</a>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#">BLACK<span>OUT</span></a>
+    <div class="links"><a href="#problem">Problem</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#race">See it work</a><a href="#use">Use it</a><a href="#crusoe">Crusoe + Nemotron</a><a href="https://github.com/AlvaroLuken/blackout">GitHub</a></div>
+  </nav>
+
+  <header class="hero">
+    <span class="eyebrow">The problem</span>
+    <h1>Your AI agent just refunded a customer <em>twice.</em></h1>
+    <p class="lede">Agents are starting to send emails, issue refunds and change production systems on their own. When one crashes halfway through a job, or decides it's "done" when it isn't, real people pay for it. <b style="color:var(--fg)">Blackout makes agents finish the job exactly once, and prove it.</b></p>
+    <div class="ctas">
+      <a class="btn primary" href="#race">▶ See it handle a crash</a>
+      <a class="btn ghost" href="#who">Who it's for</a>
+      <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout">GitHub</a>
+    </div>
+    <span class="built">Agents powered by <b>NVIDIA Nemotron 3.5 Lightning</b> on <b>Crusoe Managed Inference</b> · open source · built at the Recursive Agents Hackathon, SF</span>
+  </header>
+
+  <section id="problem" aria-labelledby="h-problem">
+    <div class="head">
+      <span class="eyebrow">How it goes wrong</span>
+      <h2 id="h-problem">One crash, one second, one very unhappy customer.</h2>
+      <p class="lede">This isn't an exotic failure. It's what happens to any worker that is killed between doing something and writing down that it did it. <span style="color:var(--muted);font-size:15px">(An illustration. The live demo below uses a simulated notification sender.)</span></p>
+    </div>
+    <ol class="story">
+      <li><span class="t">1:59:58</span><div><b>The agent issues refund #4417.</b> The payment goes through.</div></li>
+      <li class="bad"><span class="t">1:59:58</span><div><b>The agent's process dies</b> a moment later, before it records "refund sent". A deploy, an out-of-memory kill, a timeout.</div></li>
+      <li><span class="t">2:00:30</span><div><b>A fresh agent takes over.</b> Its records say refund #4417 is still pending.</div></li>
+      <li class="bad"><span class="t">2:00:31</span><div><b>It sends the refund again.</b> Then reports "all done", because as far as it can tell, it is.</div></li>
+    </ol>
+    <div class="grid3" style="margin-top:28px">
+      <div class="card"><h3>They double-act</h3><p>A restarted agent can't tell "didn't happen" from "happened, but nobody wrote it down". Retrying feels safe. It isn't.</p></div>
+      <div class="card"><h3>They say "done" when it isn't</h3><p>Health checks stay green while real work fails. Agents grade their own homework, and they grade generously.</p></div>
+      <div class="card"><h3>Nobody can walk away</h3><p>Without a clear definition of finished and a budget, agents loop, drift and burn money overnight.</p></div>
+    </div>
+  </section>
+
+  <section id="who" aria-labelledby="h-who">
+    <div class="head">
+      <span class="eyebrow">Who it's for</span>
+      <h2 id="h-who">Teams letting agents act on their own.</h2>
+    </div>
+    <div class="who">
+      <div class="card"><span class="num">Builders</span><h3>AI and platform engineers</h3><p><b>Worry:</b> "If a worker dies mid-run, will my agent redo things it already did?"</p><p><b>Blackout gives:</b> a drop-in layer around the tools that touch the world. Keep your model and prompts.</p></div>
+      <div class="card"><span class="num">Operators</span><h3>Support, fintech and growth ops</h3><p><b>Worry:</b> "Will customers get double refunds, double charges, double emails?"</p><p><b>Blackout gives:</b> every action happens once, checked against your system's own records.</p></div>
+      <div class="card"><span class="num">On call</span><h3>SRE and infrastructure teams</h3><p><b>Worry:</b> "The auto-fix bot said it was resolved. Was it?"</p><p><b>Blackout gives:</b> "done" decided by real checks, and a clear escalation with evidence when it can't finish.</p></div>
+      <div class="card"><span class="num">Oversight</span><h3>Risk and compliance</h3><p><b>Worry:</b> "Can we prove what the agent did, and that it was right?"</p><p><b>Blackout gives:</b> a frozen definition of done, receipts for every action, and a proof-of-done record per run.</p></div>
+    </div>
+  </section>
+
+  <section id="where" aria-labelledby="h-where">
+    <div class="head">
+      <span class="eyebrow">Use cases</span>
+      <h2 id="h-where">Anywhere doing it twice is worse than not doing it.</h2>
+    </div>
+    <div class="uses">
+      <div class="use"><h3>Refunds and credits</h3><p class="r"><b>Without:</b> a crash mid-batch, the restart refunds people twice.<br><b>With Blackout:</b> it checks the payment provider's receipt for the in-flight refund and skips it.</p></div>
+      <div class="use"><h3>Customer messaging</h3><p class="r"><b>Without:</b> the backlog resend hits half your list twice.<br><b>With Blackout:</b> each customer is messaged exactly once, verified against the sender's log.</p></div>
+      <div class="use"><h3>Payouts and billing runs</h3><p class="r"><b>Without:</b> a partial run leaves some accounts paid twice, some not at all.<br><b>With Blackout:</b> every account settled once, totals checked before "done".</p></div>
+      <div class="use"><h3>Infrastructure auto-fixes</h3><p class="r"><b>Without:</b> /health is green, so the bot closes the incident.<br><b>With Blackout:</b> it's done only when the real user path works.</p></div>
+      <div class="use"><h3>Data syncs and backfills</h3><p class="r"><b>Without:</b> a rerun duplicates rows downstream.<br><b>With Blackout:</b> every record moved once, checksums match.</p></div>
+      <div class="use"><h3>Coding and ops agents</h3><p class="r"><b>Without:</b> "tests pass" because the agent said so.<br><b>With Blackout:</b> code runs the checks; the agent's claim doesn't count.</p></div>
+    </div>
+    <div class="proof" aria-label="Measured results" style="margin-top:36px">
+      <div><span class="n ok">10/10</span><span class="l">jobs finished correctly with Blackout after a real mid-delivery crash</span></div>
+      <div><span class="n bad">0/10</span><span class="l">for the same AI agent without it: a customer messaged twice every time</span></div>
+      <div><span class="n">0</span><span class="l">false "done" claims accepted, across every measured run</span></div>
+      <div><span class="n">½¢</span><span class="l">AI inference per job on Crusoe, measured from real usage</span></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="head">
+      <span class="eyebrow">How it works</span>
+      <h2>Three rules, enforced in code.</h2>
+      <p class="lede">No new agent framework. Blackout wraps the actions that touch the outside world and holds the agent to a goal it can't quietly lower.</p>
+    </div>
+    <div class="grid3">
+      <div class="card"><span class="num">01</span><p class="rule">Define done first, then freeze it.</p><p>The model proposes a definition of done from a fixed vocabulary of checks. Blackout adds the checks it is not allowed to skip, hashes the contract and stores it where no agent can touch it.</p></div>
+      <div class="card"><span class="num">02</span><p class="rule">Write it down before you do it.</p><p>Every side effect gets a stable operation ID in a durable journal before it happens. If the worker dies, its replacement asks the outside system for that exact receipt instead of guessing. Unknown outcomes are escalated, never retried blindly.</p></div>
+      <div class="card"><span class="num">03</span><p class="rule">Only code says done.</p><p>A deterministic verifier, with no LLM, checks the real system against the frozen contract. Agent claims of success are ignored unless it agrees. No progress means replan, then escalate to a human with evidence.</p></div>
+    </div>
+  </section>
+
+  <section id="race">
+    <div class="head">
+      <span class="eyebrow">See it work</span>
+      <h2>Same AI agent. Same broken service. Same crash. One has Blackout.</h2>
+      <p class="lede">A simulated notification sender breaks at 2am with 10 customer messages queued. Two copies of the same Nemotron agent fix it, and we kill each one mid-delivery. Press play: this is a recorded live run, replayed at 2× speed.</p>
+    </div>
+    <div class="race"><iframe src="race.html" title="Blackout race replay" loading="lazy"></iframe></div>
+    <p class="note">Everything in the replay came from real processes: Nemotron agents on Crusoe, a real SIGKILL, a verifier reading the service's database. Run it live: <code>npm run web</code> from the repo.</p>
+  </section>
+
+  <section id="use">
+    <div class="head">
+      <span class="eyebrow">Use it in your agent</span>
+      <h2>Wrap the tools that touch the world. Keep your agent.</h2>
+      <p>Blackout is not a new agent framework. You keep your model and your prompts, and wrap the actions that have side effects. <span class="tag">Planned SDK shape</span> Today this logic lives in <code>src/adapter/tools.ts</code> and <code>src/controller/</code>; extracting it is the next step.</p>
+    </div>
+<pre><span class="k">import</span> { mission, sideEffect, check } <span class="k">from</span> <span class="s">"blackout"</span>;
+
+<span class="c">// 1. A side effect: Blackout journals the op ID before it runs,</span>
+<span class="c">//    and after a crash asks your system whether it already happened.</span>
+<span class="k">const</span> sendEmail = <span class="f">sideEffect</span>({
+  run: (op, msg) =&gt; mailer.send(msg, { idempotencyKey: op.id }),
+  receipt: (op) =&gt; mailer.lookup(op.id),          <span class="c">// "did op X happen?"</span>
+});
+
+<span class="c">// 2. The definition of done, checked by code, never by the model.</span>
+<span class="k">const</span> done = [
+  check.<span class="f">everyRecipient</span>(batch, (r) =&gt; inbox.count(r) === <span class="s">1</span>),
+  check.<span class="f">untouched</span>(alreadySent),
+];
+
+<span class="c">// 3. Run your agent. Workers can die; the mission keeps its promises.</span>
+<span class="k">await</span> <span class="f">mission</span>({ goal: <span class="s">"Send the backlog. Nobody gets it twice."</span>, tools: { sendEmail }, done,
+  model: <span class="s">"nvidia/Nemotron-3.5-Lightning-30B-A3B"</span>, budget: { usd: <span class="s">1</span> } });</pre>
+    <p class="note">Plugs into anything that can answer "did operation X happen?" by an ID you choose: Stripe idempotency keys, SQS FIFO deduplication IDs, a Postgres outbox table. Without that, Blackout marks the outcome unknown and asks a human. Two service profiles are built and tested today.</p>
+  </section>
+
+  <section id="crusoe">
+    <div class="infra">
+      <div class="head" style="margin:0">
+        <span class="eyebrow">Built on Crusoe + NVIDIA Nemotron</span>
+        <h2>Verification only works if it's cheap enough to always run.</h2>
+        <p class="lede">Every Blackout mission is two Nemotron agents making about 28 calls: writing the contract, diagnosing, repairing, deciding. On Crusoe Managed Inference that costs about half a cent, so checking everything is the default, not a luxury.</p>
+        <p>We picked the model by measuring, not by name. On the same crash mission, Nemotron 3.5 Lightning finished in the fewest turns, Nemotron 3 Super also finished at about six times the cost, and Nemotron 3 Nano did not make progress. Lightning drives every result on this page. When Crusoe's shared capacity was tight, Blackout rerouted within the Nemotron family and kept going.</p>
+      </div>
+      <div class="facts">
+        <div><span class="k">Model</span><span class="v"><b>Nemotron 3.5 Lightning</b><br>30B A3B, both agents, native tool calling</span></div>
+        <div><span class="k">Inference</span><span class="v"><b>Crusoe Managed Inference</b><br>OpenAI-compatible endpoint, zero glue code</span></div>
+        <div><span class="k">Cost / mission</span><span class="v"><b>≈ $0.005</b><br>from API usage counts × $0.05 / $0.20 per 1M tokens</span></div>
+        <div><span class="k">Live missions</span><span class="v"><b>60+</b><br>40 in the paired ablation, all reported in the repo</span></div>
+        <div><span class="k">Observed</span><span class="v"><b>40 req/min · 717 ms</b><br>first token, from Crusoe's own metrics API during our runs</span></div>
+        <div><span class="k">Fallback</span><span class="v"><b>Nemotron 3 Super</b><br>measured to complete the mission; used only on 429s</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="head">
+      <span class="eyebrow">Where it goes</span>
+      <h2>From a hackathon protocol to the reliability layer for agents.</h2>
+    </div>
+    <div class="road">
+      <div class="card now"><span class="when">Today</span><h3>Working protocol</h3><p>Journal, frozen contracts, receipt reconciliation, code verifier, budgets and escalation. Two service profiles, 60+ live missions, 18 tests.</p></div>
+      <div class="card"><span class="when">Next</span><h3>The SDK</h3><p>Extract <code>sideEffect</code>, <code>check</code> and <code>mission</code> so any agent framework can wrap its tools in a few lines.</p></div>
+      <div class="card"><span class="when">Then</span><h3>Real adapters</h3><p>Postgres outbox, Stripe test mode, email and SMS providers with idempotency keys, Kubernetes.</p></div>
+      <div class="card"><span class="when">Later</span><h3>Hosted mission ledger</h3><p>Proof-of-done records and escalation reports for every unattended agent run, for on-call and compliance teams.</p></div>
+    </div>
+  </section>
+
+  <section class="final">
+    <h2>Building agents that send, pay or provision?</h2>
+    <p class="lede">Blackout is open source. Star it, try the race, or open an issue to tell us what your agents touch. That decides which adapters we build first.</p>
+    <div class="ctas">
+      <a class="btn primary" href="https://github.com/AlvaroLuken/blackout">Star on GitHub</a>
+      <a class="btn ghost" href="https://github.com/AlvaroLuken/blackout/issues/new?title=Early%20access%3A%20my%20agents%20touch%20...">Request early access</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>Blackout · built by Alvaro Luken at the Recursive Agents Hackathon, San Francisco, Oct 17 2026 · MIT licensed.</span>
+    <span>All numbers on this page are measured from live runs and listed with caveats in <a href="https://github.com/AlvaroLuken/blackout/blob/main/results/RESULTS.md">results/RESULTS.md</a>. The service is simulated; the agents, crashes and verification are real.</span>
+  </footer>
+</div>
+</body>
+</html>
