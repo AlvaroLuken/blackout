@@ -164,7 +164,7 @@ td.hi { color: var(--ok); font-weight: 700; } td.lo { color: var(--bad); font-we
 footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
 @media (max-width: 900px) { .lanes { grid-template-columns: 1fr; } }
 /* Presenter view: readable from the back of the room. */
-body.presenter .brief, body.presenter .measured, body.presenter .crusoe, body.presenter footer, body.presenter .adapter, body.presenter .chips { display: none; }
+body.presenter .brief, body.presenter .measured, body.presenter footer, body.presenter .adapter, body.presenter .chips { display: none; }
 body.presenter .wrap { max-width: none; padding: 12px 18px; gap: 12px; }
 body.presenter .brand h1 { font-size: 40px; } body.presenter .brand p { font-size: 20px; }
 body.presenter .lane-head h2 { font-size: 34px; }
@@ -202,7 +202,6 @@ body.presenter .status { font-size: 15px; }
     <span class="spacer"></span>
     <span class="status" id="status">Ready.</span>
     <button class="ghost" id="warmup" type="button" title="One tiny Crusoe call to check the key and latency">Warm up</button>
-    <button class="ghost" id="presenter" type="button" aria-pressed="false" title="Shortcut: V">Presenter view</button>
     <button class="ghost" id="replay" type="button" title="Backup: replays the last recorded live run, clearly labelled">Replay last run</button>
     <button class="plug" id="plug" type="button" disabled title="Shortcut: P">Pull the plug (P)</button>
   </div>
@@ -520,12 +519,11 @@ $("plug").addEventListener("click", pullPlug);
 $("replay").addEventListener("click", () => fetch("/replay", { method: "POST" }));
 function togglePresenter() {
   const on = document.body.classList.toggle("presenter");
-  $("presenter").setAttribute("aria-pressed", String(on));
-  try { localStorage.setItem("blackout-presenter", on ? "1" : "0"); } catch {}
+  try { localStorage.setItem("blackout-presenter-v2", on ? "1" : "0"); } catch {}
 }
-$("presenter").addEventListener("click", togglePresenter);
 document.addEventListener("keydown", (e) => { if ((e.key === "v" || e.key === "V") && !e.metaKey && !e.ctrlKey && !e.target.closest?.("input")) togglePresenter(); });
-try { if (localStorage.getItem("blackout-presenter") === "1") togglePresenter(); } catch {}
+// Presenter view is the default; V toggles it.
+try { if (localStorage.getItem("blackout-presenter-v2") !== "0") togglePresenter(); } catch { togglePresenter(); }
 $("warmup").addEventListener("click", async () => {
   $("warmup").textContent = "Warming up…";
   const r = await (await fetch("/warmup", { method: "POST" })).json().catch(() => ({ ok: false }));
