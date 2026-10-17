@@ -394,7 +394,7 @@ function handle(msg) {
         const NAMES = { fresh_job_e2e: "a brand-new message goes through", all_scope_jobs_valid_output: "all 10 customers got the correct message", no_duplicate_deliveries: "nobody got a message twice", preexisting_outputs_intact: "the 3 already-sent messages are untouched", no_unaccounted_work: "nothing left half-finished", health_ok: "health check (liveness only)", no_errors_since_boot: "no errors since restart", expected_scope_size: "batch size as expected" };
         const ul = $(`checks-${msg.mode}`); ul.innerHTML = ""; ul.className = "checks on " + (ok ? "cert" : "report");
         const add = (cls, text) => { const li = document.createElement("li"); li.className = cls; li.textContent = text; ul.appendChild(li); };
-        add("h", `${ok ? "Proof of done" : "Escalation report · nothing claimed done"} · mission ${msg.mission ?? ""} · contract sha256:${(msg.hash ?? "").slice(0, 12)}`);
+        add("h", `${ok ? "Proof of done" : "Escalation report · nothing claimed done"}${msg.mission ? ` · mission ${msg.mission}` : ""} · contract sha256:${(msg.hash ?? "").slice(0, 12)}`);
         if (msg.facts?.goal) add("goal", `Goal: "${msg.facts.goal}"`);
         for (const c of msg.checks) {
           const li = document.createElement("li"); li.className = c.pass ? "pass" : "fail";
