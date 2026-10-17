@@ -83,7 +83,8 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
 
   const c = getClient();
   let lastErr: unknown;
-  for (let attempt = 0; attempt < 5; attempt++) {
+  const maxAttempts = Number(process.env.BLACKOUT_RETRIES ?? 5);
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     // Shared pacing: coordinator and worker processes draw from one per-minute budget.
     const rpm = Number(process.env.BLACKOUT_RPM ?? 40);
     for (let w = journal.reserveRequestSlot(rpm); w > 0; w = journal.reserveRequestSlot(rpm)) {
@@ -121,7 +122,7 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
       const status = e?.status;
       if (status === 429 || status === 503 || status === 502 || e?.name === "APIConnectionTimeoutError") {
         journal.event(missionId, actor, "inference_retry", { status: status ?? e?.name, attempt });
-        await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt + Math.random() * 1000));
+        await new Promise((r) => setTimeout(r, Math.min(20_000, 2000 * 2 ** attempt) + Math.random() * 1500));
         continue;
       }
       throw new InferenceUnavailable(`inference failed: ${status ?? ""} ${String(e?.message ?? e).slice(0, 200)}`);

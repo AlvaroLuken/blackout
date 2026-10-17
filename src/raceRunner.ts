@@ -114,12 +114,16 @@ export function armNextDelivery(mode: Mode) {
 }
 
 export function startRace(o: RaceOpts, emit: (e: RaceEvent) => void): { children: ChildProcess[] } {
-  const children = MODES.map((mode, i) => {
+  const children: ChildProcess[] = [];
+  MODES.forEach((mode, i) => setTimeout(() => children.push(launch(mode, i)), i * 2500));
+  return { children };
+
+  function launch(mode: Mode, i: number): ChildProcess {
     const varDir = varDirFor(mode);
     fs.rmSync(varDir, { recursive: true, force: true });
     const args = ["--import", "tsx", "--disable-warning=ExperimentalWarning", path.join(ROOT, "src/cli.ts"), "mission", "--mode", mode, "--profile", o.profile, "--fault", o.fault, "--kill-after", String(o.killAfter ?? 0), "--policy", o.policy, ...(o.inject ? ["--inject"] : [])];
     const child = spawn(process.execPath, args, {
-      env: { ...process.env, BLACKOUT_VAR_DIR: varDir, BLACKOUT_TARGET_PORT: String(7411 + i * 10), BLACKOUT_HARNESS_PORT: String(7412 + i * 10), BLACKOUT_RPM: "20", BLACKOUT_RESULTS_DIR: path.join(ROOT, "results", "race") },
+      env: { ...process.env, BLACKOUT_VAR_DIR: varDir, BLACKOUT_TARGET_PORT: String(7411 + i * 10), BLACKOUT_HARNESS_PORT: String(7412 + i * 10), BLACKOUT_RPM: "20", BLACKOUT_RETRIES: "9", BLACKOUT_RESULTS_DIR: path.join(ROOT, "results", "race") },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let buf = "";
@@ -148,6 +152,5 @@ export function startRace(o: RaceOpts, emit: (e: RaceEvent) => void): { children
     child.stderr!.on("data", onData);
     child.on("exit", () => emit({ type: "exit", mode }));
     return child;
-  });
-  return { children };
+  }
 }
