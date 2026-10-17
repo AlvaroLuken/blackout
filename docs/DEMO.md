@@ -4,7 +4,7 @@
 
 1. Restart `npm run web`, open http://localhost:7400, zoom so both lanes fill the screen.
 2. One warm-up race a few minutes before your slot (also checks Crusoe is answering).
-3. Backup: "Replay last run" plays the 1:51pm live run at 2× under a purple "RECORDED REPLAY, not live" banner.
+3. Backup: "Replay last run" plays the 2:24pm live run (79 s, almost all Lightning) at 2× under a purple "RECORDED REPLAY, not live" banner.
 4. Have a terminal ready with `npm run gateway:demo` output from earlier, for Q&A only.
 5. The public site (https://blackout-woad.vercel.app) goes in the submission. Don't demo it live.
 
@@ -26,7 +26,7 @@
 
 ### Replay rule (practice the line)
 
-If the **Crash** phase has not lit up by about **70 s**: "Crusoe is under load from every team here right now. Here's the live run from 1:51," then click **Replay last run**. The banner says it's a recording at 2×.
+If the **Crash** phase has not lit up by about **70 s**: "Crusoe is under load from every team here right now. Here's the live run from 2:24," then click **Replay last run**. The banner says it's a recording at 2×.
 
 If a lane shows "429 rate limit, switched to Nemotron 3 Super": "We hit a rate limit; Blackout reroutes within the Nemotron family and keeps going." Don't blame Crusoe.
 
