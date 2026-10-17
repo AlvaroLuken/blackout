@@ -5,6 +5,7 @@ import { resetTarget } from "./target/reset.ts";
 import { injectFault, armKill, disarm, FAULTS, type FaultName } from "./faults/harness.ts";
 import { freezeContract } from "./contract/contract.ts";
 import { snapshotScope, verify } from "./verifier/verifier.ts";
+import { runScenario, DEFAULT_GOAL } from "./scenario.ts";
 
 const [cmd, ...args] = process.argv.slice(2);
 
@@ -38,6 +39,19 @@ async function main() {
       for (const r of v.results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.kind.padEnd(28)} ${r.detail}`);
       console.log(v.pass ? "VERIFIED" : "NOT VERIFIED", JSON.stringify(v.progress));
       return;
+    }
+    case "mission":
+    case "demo": {
+      const flag = (n: string, d: string) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
+      const kill = flag("kill-after", cmd === "demo" ? "2" : "0");
+      const r = await runScenario({
+        fault: flag("fault", "bad_digest") as FaultName | "none",
+        killAfter: Number(kill) || null,
+        mode: flag("mode", "journal") as "journal" | "baseline",
+        policy: flag("policy", "llm") as "llm" | "test",
+        goal: flag("goal", DEFAULT_GOAL),
+      });
+      process.exit(r.status === "verified" ? 0 : 1);
     }
     default:
       console.error("usage: blackout <reset|fault|verify|mission|demo|eval>");
