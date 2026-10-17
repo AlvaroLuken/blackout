@@ -109,5 +109,24 @@ export class Journal {
   recordVerdict(missionId: string, v: { pass: boolean; progress: unknown; results: unknown }) {
     this.db.prepare("INSERT INTO verdicts (mission_id, ts, pass, progress, results) VALUES (?, ?, ?, ?, ?)").run(missionId, this.now(), v.pass ? 1 : 0, JSON.stringify(v.progress), JSON.stringify(v.results));
   }
+  // Shared request pacing across the controller and worker processes (they share
+  // one per-model, per-minute Crusoe limit). Returns ms to wait, or 0 after
+  // reserving a slot.
+  reserveRequestSlot(rpm: number): number {
+    this.db.exec("CREATE TABLE IF NOT EXISTS call_starts (ts INTEGER NOT NULL)");
+    this.db.exec("BEGIN IMMEDIATE");
+    try {
+      const now = Date.now();
+      this.db.prepare("DELETE FROM call_starts WHERE ts < ?").run(now - 60_000);
+      const rows = this.db.prepare("SELECT ts FROM call_starts ORDER BY ts").all() as { ts: number }[];
+      if (rows.length >= rpm) {
+        this.db.exec("COMMIT");
+        return rows[0].ts + 60_000 - now + 50;
+      }
+      this.db.prepare("INSERT INTO call_starts (ts) VALUES (?)").run(now);
+      this.db.exec("COMMIT");
+      return 0;
+    } catch (e) { this.db.exec("ROLLBACK"); throw e; }
+  }
   close() { this.db.close(); }
 }

@@ -21,13 +21,13 @@ loadEnv();
 // USD per 1M tokens, from the official hackathon model reference (Oct 2026).
 // Recheck against the live catalog; unknown models are recorded as cost unknown.
 export const PRICING: Record<string, { in: number; out: number }> = {
-  "nvidia/nemotron-3.5-lightning-30b-a3b": { in: 0.05, out: 0.2 },
-  "nvidia/Nemotron-3-Super-120B-A12B": { in: 0.3, out: 2.4 },
+  "nvidia/Nemotron-3.5-Lightning-30B-A3B": { in: 0.05, out: 0.2 }, // confirmed in live catalog by the crusoe session, Oct 17
+  "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": { in: 0.3, out: 2.4 },
   "nvidia/Nemotron-3-Nano-30B-A3B": { in: 0.05, out: 0.2 },
   "openai/gpt-oss-120b": { in: 0.05, out: 0.2 },
 };
 
-export const MODEL = process.env.BLACKOUT_MODEL ?? "nvidia/nemotron-3.5-lightning-30b-a3b";
+export const MODEL = process.env.BLACKOUT_MODEL ?? "nvidia/Nemotron-3.5-Lightning-30B-A3B";
 
 export type Limits = { maxUsd: number; maxCalls: number; maxTokens: number; deadline: number };
 export function limitsFromEnv(deadlineMs = 15 * 60_000): Limits {
@@ -79,7 +79,14 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
 
   const c = getClient();
   let lastErr: unknown;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    // Shared pacing: coordinator and worker processes draw from one per-minute budget.
+    const rpm = Number(process.env.BLACKOUT_RPM ?? 24);
+    for (let w = journal.reserveRequestSlot(rpm); w > 0; w = journal.reserveRequestSlot(rpm)) {
+      if (Date.now() + w > limits.deadline) throw new BudgetExceeded("mission time limit reached while rate limited");
+      journal.event(missionId, actor, "rate_paced", { wait_ms: w });
+      await new Promise((r) => setTimeout(r, w));
+    }
     const started = Date.now();
     try {
       const res = await c.chat.completions.create({
@@ -108,7 +115,7 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
       const status = e?.status;
       if (status === 429 || status === 503 || status === 502 || e?.name === "APIConnectionTimeoutError") {
         journal.event(missionId, actor, "inference_retry", { status: status ?? e?.name, attempt });
-        await new Promise((r) => setTimeout(r, 1500 * 2 ** attempt));
+        await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt + Math.random() * 1000));
         continue;
       }
       throw new InferenceUnavailable(`inference failed: ${status ?? ""} ${String(e?.message ?? e).slice(0, 200)}`);
