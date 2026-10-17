@@ -32,20 +32,25 @@ If a lane shows "429 rate limit, switched to Nemotron 3 Super": "We hit a rate l
 
 Optional proof that the page has no logic: close the tab mid-run and reopen it. The mission kept going.
 
-## One-minute video script (record from a fresh live run after 3pm)
+## One-minute video script (record at 4:15 from a fresh live run, Presenter view on)
 
-1. (0:00-0:08) "Agents say done. Code decides." Press Run the race.
-2. (0:08-0:18) Health 200 vs verifier FAIL. Contract frozen with hash.
-3. (0:18-0:30) FIX line and test job ✓ (cut the waiting).
-4. (0:30-0:40) Plug pulled. Both lanes flash; moment-of-truth cards.
-5. (0:40-0:52) Proof of done vs escalation report; click the duplicated customer.
-6. (0:52-1:00) Measured table 10/10 vs 0/10. "Ships today as an MCP gateway. Built today on Nemotron 3.5 Lightning and Crusoe."
+Before recording: restart `npm run web`, press **Warm up**, turn on **Presenter view** (V). Record the screen plus your voice in Loom. If the live run is slow, record the live run anyway and speed up the waiting in Loom's editor; say "sped up".
+
+| Time | Show | Say |
+|---|---|---|
+| 0:00 | Page title, press **Run the race** | "Built today at the Recursive Agents Hackathon: Blackout. Agents say done. Code decides." |
+| 0:05 | Both lanes: "/health 200 OK" then "verifier: FAIL 3/10" | "The service says it's healthy. Every real message is failing." |
+| 0:12 | FIX line, test job ✓ | "Nemotron on Crusoe finds the bad setting and fixes it, in both lanes." |
+| 0:20 | Press **P**; lanes flash; moment-of-truth cards | "We kill each worker right after it sends a message. Left, Blackout checks the receipt for that exact operation and skips it. Right, the same agent without Blackout sends it again." |
+| 0:35 | Verdict bars: VERIFIED vs ESCALATED; click the red customer | "Plain code checks every inbox. Customer 5 got it twice on the right. That 'done' is rejected." |
+| 0:45 | Scroll to the measured table | "Ten pairs: Blackout 10 of 10, the plain agent 0 of 10. About half a cent a mission." |
+| 0:53 | Site "Use it today" or README gateway section | "And it ships today as an MCP gateway: npx blackout-mcp. Nemotron 3.5 Lightning runs every agent." |
 
 ## One-sentence answers
 
 - **Who writes the verifier?** "Each target gets an adapter: tools, a 'did op X happen?' lookup, and output rules. The controller, journal and contract logic don't change; we run two service profiles and an MCP gateway on the same core."
 - **Isn't this just idempotency keys?** "Keys are one piece. Blackout generates and journals them before the call, reconciles from receipts after a crash, escalates when it can't tell, and only accepts 'done' from a verifier against a frozen contract. They compose."
-- **Why Nemotron?** "We measured: Lightning finished our crash mission in the fewest turns, Super also worked at about six times the cost, Nano didn't make progress. At half a cent a mission, verifying everything is affordable."
+- **Why Nemotron?** "We measured: Nano made no progress, Super works and is our fallback, Lightning works and is the fastest and cheapest. Lightning runs every agent. At half a cent a mission, verifying everything is affordable." (Say this once in the live demo too.)
 - **Couldn't the plain agent just check the receipts?** "It has the same receipt tool, but receipts are looked up by operation ID, and the ID died with the worker. Blackout writes the ID down before acting. Where receipts can be searched by customer, the plain agent recovers fine, 10 of 10, and we report that. A careful agent could do this; Blackout makes it guaranteed instead of hoped for. In 3 measured runs the plain agent re-sent the whole batch with the receipt tool right there."
 - **What if Blackout itself goes down?** "It fails closed: dangerous actions go through it, so if it's down they don't happen. You get a stalled job, not a double refund. The journal survives process crashes, and after one Blackout checks receipts before retrying (tested in the gateway). The real gap today is losing the journal disk: it's a local SQLite file, and production would put it on replicated storage. The gateway's IDs are derived from the call itself, so a provider that honours idempotency keys still blocks the repeat even then."
 - **How would you keep it running / could NemoClaw help?** "Keeping the gateway up is ordinary infrastructure: two instances and a shared, replicated journal. Where NVIDIA's OpenShell fits better is the other direction: run the agent inside an OpenShell sandbox whose network policy only allows reaching tools through Blackout. Then the agent can't bypass Blackout even if it tries. That's next, not built today."
