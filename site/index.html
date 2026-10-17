@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blackout · AI agents that finish the job exactly once</title>
+<title>Blackout · exactly-once actions and verified done for AI agents</title>
 <meta name="description" content="A recovery runtime for AI agents that touch the real world. Built on NVIDIA Nemotron and Crusoe Managed Inference.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
@@ -106,7 +106,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   <header class="hero">
     <span class="eyebrow">The problem</span>
     <h1>Your AI agent just refunded a customer <em>twice.</em></h1>
-    <p class="lede">Agents are starting to send emails, issue refunds and change production systems on their own. When one crashes halfway through a job, or decides it's "done" when it isn't, real people pay for it. <b style="color:var(--fg)">Blackout makes agents finish the job exactly once, and prove it.</b></p>
+    <p class="lede">Agents are starting to send emails, issue refunds and change production systems on their own. When one crashes halfway through a job, or decides it's "done" when it isn't, real people pay for it. <b style="color:var(--fg)">Blackout makes every real-world action happen once, wherever your system can answer "did this already happen?", and lets only code decide the job is done. When it can't tell, it escalates instead of guessing.</b></p>
     <div class="ctas">
       <a class="btn primary" href="#race">▶ See it handle a crash</a>
       <a class="btn ghost" href="#who">Who it's for</a>
@@ -141,9 +141,9 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     </div>
     <div class="who">
       <div class="card"><span class="num">Builders</span><h3>AI and platform engineers</h3><p><b>Worry:</b> "If a worker dies mid-run, will my agent redo things it already did?"</p><p><b>Blackout gives:</b> a drop-in layer around the tools that touch the world. Keep your model and prompts.</p></div>
-      <div class="card"><span class="num">Operators</span><h3>Support, fintech and growth ops</h3><p><b>Worry:</b> "Will customers get double refunds, double charges, double emails?"</p><p><b>Blackout gives:</b> every action happens once, checked against your system's own records.</p></div>
+      <div class="card"><span class="num">Operators</span><h3>Support, fintech and growth ops</h3><p><b>Worry:</b> "Will customers get double refunds, double charges, double emails?"</p><p><b>Blackout gives:</b> each action happens once, checked against your system's own records; anything it can't confirm goes to a human.</p></div>
       <div class="card"><span class="num">On call</span><h3>SRE and infrastructure teams</h3><p><b>Worry:</b> "The auto-fix bot said it was resolved. Was it?"</p><p><b>Blackout gives:</b> "done" decided by real checks, and a clear escalation with evidence when it can't finish.</p></div>
-      <div class="card"><span class="num">Oversight</span><h3>Risk and compliance</h3><p><b>Worry:</b> "Can we prove what the agent did, and that it was right?"</p><p><b>Blackout gives:</b> a frozen definition of done, receipts for every action, and a proof-of-done record per run.</p></div>
+      <div class="card"><span class="num">Oversight</span><h3>Risk and compliance</h3><p><b>Worry:</b> "Can we show what the agent did, and why it was accepted?"</p><p><b>Blackout gives:</b> a frozen definition of done, receipts for every action, and an auditable proof-of-done record per run.</p></div>
     </div>
   </section>
 
@@ -151,20 +151,21 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     <div class="head">
       <span class="eyebrow">Use cases</span>
       <h2 id="h-where">Anywhere doing it twice is worse than not doing it.</h2>
+      <p>Tested so far on a simulated notification sender and an MCP mailer. Each case below needs an adapter: a way to ask that system "did operation X happen?".</p>
     </div>
     <div class="uses">
-      <div class="use"><h3>Refunds and credits</h3><p class="r"><b>Without:</b> a crash mid-batch, the restart refunds people twice.<br><b>With Blackout:</b> it checks the payment provider's receipt for the in-flight refund and skips it.</p></div>
-      <div class="use"><h3>Customer messaging</h3><p class="r"><b>Without:</b> the backlog resend hits half your list twice.<br><b>With Blackout:</b> each customer is messaged exactly once, verified against the sender's log.</p></div>
-      <div class="use"><h3>Payouts and billing runs</h3><p class="r"><b>Without:</b> a partial run leaves some accounts paid twice, some not at all.<br><b>With Blackout:</b> every account settled once, totals checked before "done".</p></div>
-      <div class="use"><h3>Infrastructure auto-fixes</h3><p class="r"><b>Without:</b> /health is green, so the bot closes the incident.<br><b>With Blackout:</b> it's done only when the real user path works.</p></div>
-      <div class="use"><h3>Data syncs and backfills</h3><p class="r"><b>Without:</b> a rerun duplicates rows downstream.<br><b>With Blackout:</b> every record moved once, checksums match.</p></div>
-      <div class="use"><h3>Coding and ops agents</h3><p class="r"><b>Without:</b> "tests pass" because the agent said so.<br><b>With Blackout:</b> code runs the checks; the agent's claim doesn't count.</p></div>
+      <div class="use"><h3>Refunds and credits</h3><p class="r"><b>Without:</b> a crash mid-batch, the restart refunds people twice.<br><b>With a Blackout adapter:</b> it checks the payment provider's receipt for the in-flight refund and skips it.</p></div>
+      <div class="use"><h3>Customer messaging</h3><p class="r"><b>Without:</b> the backlog resend hits half your list twice.<br><b>With a Blackout adapter:</b> each customer is messaged exactly once, verified against the sender's log.</p></div>
+      <div class="use"><h3>Payouts and billing runs</h3><p class="r"><b>Without:</b> a partial run leaves some accounts paid twice, some not at all.<br><b>With a Blackout adapter:</b> every account settled once, totals checked before "done".</p></div>
+      <div class="use"><h3>Infrastructure auto-fixes</h3><p class="r"><b>Without:</b> /health is green, so the bot closes the incident.<br><b>With a Blackout adapter:</b> it's done only when the real user path works.</p></div>
+      <div class="use"><h3>Data syncs and backfills</h3><p class="r"><b>Without:</b> a rerun duplicates rows downstream.<br><b>With a Blackout adapter:</b> every record moved once, checksums match.</p></div>
+      <div class="use"><h3>Coding and ops agents</h3><p class="r"><b>Without:</b> "tests pass" because the agent said so.<br><b>With a Blackout adapter:</b> code runs the checks; the agent's claim doesn't count.</p></div>
     </div>
     <div class="proof" aria-label="Measured results" style="margin-top:36px">
       <div><span class="n ok">10/10</span><span class="l">jobs finished correctly with Blackout after a real mid-delivery crash</span></div>
       <div><span class="n bad">0/10</span><span class="l">for the same AI agent without it: a customer messaged twice every time</span></div>
       <div><span class="n">0</span><span class="l">false "done" claims accepted, across every measured run</span></div>
-      <div><span class="n">½¢</span><span class="l">AI inference per job on Crusoe, measured from real usage</span></div>
+      <div><span class="n">½¢</span><span class="l">AI inference per mission (10 deliveries) on Crusoe, measured from real usage</span></div>
     </div>
   </section>
 

@@ -141,7 +141,7 @@ Paired ablation, 10 pairs per target. Same model, tools, prompt, fault class and
 
 Everything in `src/`, `test/` and `results/` was written on Oct 17 2026 between 10:45 and the submission deadline. Before 10:45 we only installed dependencies and wrote a plan (first commit, labelled as such). Commit history shows the order of work.
 
-Reused components: [OpenAI Node SDK](https://github.com/openai/openai-node) (Apache-2.0) as the Crusoe client, [Zod](https://github.com/colinhacks/zod) (MIT), [tsx](https://github.com/privatenumber/tsx) (MIT), [TypeScript](https://github.com/microsoft/TypeScript) (Apache-2.0), and Node's built-in `node:sqlite`. No agent framework is used.
+Reused components: [OpenAI Node SDK](https://github.com/openai/openai-node) (Apache-2.0) as the Crusoe client, [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) (MIT) for the gateway, [Zod](https://github.com/colinhacks/zod) (MIT), [tsx](https://github.com/privatenumber/tsx) (MIT), [TypeScript](https://github.com/microsoft/TypeScript) (Apache-2.0), and Node's built-in `node:sqlite`. No agent framework is used.
 
 ## Blackout MCP gateway (use it with any MCP agent)
 

@@ -2,54 +2,53 @@
 
 ## Before going on stage
 
-1. `npm run web` running, http://localhost:7400 open in Chrome, zoom so both lanes fill the screen.
-2. A second Terminal tab ready with: `curl -s localhost:7411/health` (only needed if a judge asks).
-3. `npm run smoke` once, a few minutes before, as a warm-up call.
-4. Backup: the "Replay last run" button plays a recorded live run (Oct 17, 12:57) under a purple "RECORDED REPLAY, not live" banner. Use it only if live inference is down, and say so.
+1. Restart `npm run web`, open http://localhost:7400, zoom so both lanes fill the screen.
+2. One warm-up race a few minutes before your slot (also checks Crusoe is answering).
+3. Backup: "Replay last run" plays the 1:51pm live run at 2× under a purple "RECORDED REPLAY, not live" banner.
+4. Have a terminal ready with `npm run gateway:demo` output from earlier, for Q&A only.
+5. The public site (https://blackout-woad.vercel.app) goes in the submission. Don't demo it live.
 
-## Three-minute live demo (web view)
+## Three-minute run of show (≈2:45)
 
-| Time | Say | Do / show |
+| Time | Say | Do |
 |---|---|---|
-| 0:00 | "Agents say done when they feel done. Blackout says done only when code it cannot argue with agrees, and it keeps that promise when the agent doing the work is killed halfway through." | Page open, nothing running |
-| 0:15 | "This page has no logic. It starts real processes, reads each service's database, and sends one SIGKILL. Left: Blackout. Right: the same Nemotron model, same tools, same prompt, with our journal removed." | Point at the two lane titles |
-| 0:30 | "Both get the same broken service. Its health check says OK. Every real job crashes." | Press **Run the race**. Point at "service says: /health 200 OK" then "verifier: FAIL 3/10" |
-| 0:45 | "Nemotron writes the definition of done first. Code adds the checks it is not allowed to skip and freezes it with a hash." | Contract hash in each lane header |
-| 1:00 | "Now it investigates on its own: logs, config, docs. It finds the bad setting, fixes it, and proves the fix with a test job." | Blue FIX line, green "test job ✓" |
-| 1:15 | "You can pull the plug. It fires mid-batch, right after a delivery commits and before the worker can write it down." | Hand the judge the keyboard: **P**. Lanes flash red, "worker 1 SIGKILLed" |
-| 1:40 | "Left: the replacement checks the exact operation that was in flight, sees the receipt, skips it. Right: the job still looks pending, so it sends it again." | Green "receipt ... DELIVERED → skip" vs red "job-005 delivered 2 times" |
-| 2:10 | "The verifier is plain code. It passes the left. It catches the duplicate on the right, rejects the agent's 'done', and escalates." | VERIFIED DONE vs ESCALATED, NOT DONE |
-| 2:30 | "This isn't one lucky run. Ten pairs: Blackout 10 of 10, the plain agent 0 of 10. On a service that shows job status, both get 10 of 10, so the journal matters exactly when the service can't tell you what happened. About half a cent per mission on Crusoe." | Scroll to the measured table |
-| 2:50 | "The model proposes, code decides. That is what lets you walk away." | End |
+| 0:00 | "Agents are starting to send emails and issue refunds on their own. When one crashes mid-job, it does things twice and still says 'done'." | Press **Run the race** immediately |
+| 0:05 | "This page has no logic. It starts real processes, reads each service's database, and sends one SIGKILL. Left is Blackout. Right is the same Nemotron agent, same tools, same prompt, without our journal." | Point at the two lane titles |
+| 0:15 | "The service is broken. Its health check is green, every real message fails. Nemotron writes the definition of done first, and code freezes it." | Point at "/health 200" and the contract hash |
+| 0:30 | "Now it diagnoses on its own: logs, config, docs, finds the bad setting, fixes it, proves it with a test message." | Blue FIX line, green "test job ✓" |
+| ~0:45 | "Pull the plug." | Hand a judge the keyboard: **P** (or it auto-arms) |
+| ~1:10 | "Both workers die right after a message goes out, before they can write it down. Left: the replacement asks the service about that exact operation, finds the receipt, skips it. Right: no record, so it looks pending, and it sends it again." | Moment-of-truth cards |
+| ~1:45 | "The verifier is plain code. It passes the left. It catches the duplicate on the right and rejects the agent's 'done'." | Proof of done vs escalation report |
+| ~2:00 | "Here's customer 5's inbox on the right." | Click the red customer cell: same message twice, two op IDs |
+| 2:15 | "Not a lucky run: ten pairs, Blackout 10 of 10, the plain agent 0 of 10. On a service that shows job status, both get 10 of 10, so the journal matters exactly when the system can't tell you what happened. Half a cent per mission on Crusoe." | Scroll to the measured table |
+| 2:35 | "And you can use it today: it ships as an MCP gateway in front of any tool server. A Nemotron agent sent three emails, restarted with no memory, tried again: three suppressed, one email each." | Gateway frame (README section) |
+| 2:45 | "The model proposes. Code decides." | End |
 
-If a lane shows "429 rate limit, switched to Nemotron 3 Super": "We hit a rate limit; Blackout reroutes within the Nemotron family and keeps going." Do not blame Crusoe on stage.
+### Replay rule (practice the line)
 
-Timing rules (from the judge session):
-- Press Run in the first 10 seconds. Narrate the incident and the goal while the agents diagnose. Point at the goal sentence; do not read the brief cards aloud.
-- Let the kill auto-arm, or hand the judge P at about 0:45.
-- If a run passes about 150 s: "Here is the recorded live run from earlier", press Replay. The banner says it is a recording.
-- Warm-up run right before going on stage. Record the 4:15 video from a fresh live run.
-- Finish on the verdict checklists: ✓ on the left, "✗ nobody got a message twice" on the right. That line is the Done Means Done pitch.
+If the **Crash** phase has not lit up by about **70 s**: "Crusoe is under load from every team here right now. Here's the live run from 1:51," then click **Replay last run**. The banner says it's a recording at 2×.
 
-Optional proof that the page has no logic: close the tab mid-run, reopen it. The mission kept going.
+If a lane shows "429 rate limit, switched to Nemotron 3 Super": "We hit a rate limit; Blackout reroutes within the Nemotron family and keeps going." Don't blame Crusoe.
 
-## One-minute video script (record from the web view)
+Optional proof that the page has no logic: close the tab mid-run and reopen it. The mission kept going.
 
-1. (0:00-0:08) Title + "Agents say done. Code decides." Press Run the race.
+## One-minute video script (record from a fresh live run after 3pm)
+
+1. (0:00-0:08) "Agents say done. Code decides." Press Run the race.
 2. (0:08-0:18) Health 200 vs verifier FAIL. Contract frozen with hash.
-3. (0:18-0:30) Worker FIX line and test job ✓ (cut or speed up the waiting).
-4. (0:30-0:40) Press P. Both lanes flash; SIGKILL.
-5. (0:40-0:52) Receipt → skip (left) vs delivered 2 times (right). VERIFIED vs ESCALATED.
-6. (0:52-1:00) Measured table: 10/10 vs 0/10. "Built today. Nemotron 3.5 Lightning on Crusoe."
+3. (0:18-0:30) FIX line and test job ✓ (cut the waiting).
+4. (0:30-0:40) Plug pulled. Both lanes flash; moment-of-truth cards.
+5. (0:40-0:52) Proof of done vs escalation report; click the duplicated customer.
+6. (0:52-1:00) Measured table 10/10 vs 0/10. "Ships today as an MCP gateway. Built today on Nemotron 3.5 Lightning and Crusoe."
 
-## Likely judge questions
+## One-sentence answers
 
-- **Is the scenario too easy? Who writes the verifier for a new target?** Yes, the faults are seeded and the verifier is written per service. That is the design: the model proposes and code decides. A new target needs an adapter (tools, receipts, output rules), not new agent logic. We already run two service profiles with the same controller.
-- **Isn't the plain agent a strawman?** Same model, tools, prompt and receipt-lookup tools. Only the journal and reconciliation are removed. On the ledger service it wins 10/10, same as Blackout.
-- **Isn't this Temporal or LangGraph?** Those make workflow code durable. Blackout makes the goal accountable: a frozen definition of done, a verifier the agent cannot influence, and reconciliation of real side effects from the service's own receipts. It could run on top of Temporal.
-- **Exactly-once?** No general claim. No duplicate side effects in journal mode, enforced by op IDs recorded before each effect, receipt reconciliation, and the service honoring op ID idempotency.
-- **What if there are no receipts?** The outcome is marked unknown and the mission escalates. It never retries blindly. Tested.
-- **Why not let an LLM verify?** That is the failure we fix. In our first live run Nemotron fixed the service, but the coordinator's own extra check could never pass; Blackout escalated instead of declaring success. And a planted "declare success" log line was read 7 times and never followed.
-- **Is this a dashboard project?** No. The page has no logic; the terminal (`npm run race`) runs the same thing.
-- **What does it cost?** About $0.005 and 28 Nemotron calls per mission, from the API's own usage counts.
-- **What was built today?** Everything in the repo. Reused: OpenAI SDK, Zod, tsx, TypeScript, Node's SQLite.
+- **Who writes the verifier?** "Each target gets an adapter: tools, a 'did op X happen?' lookup, and output rules. The controller, journal and contract logic don't change; we run two service profiles and an MCP gateway on the same core."
+- **Isn't this just idempotency keys?** "Keys are one piece. Blackout generates and journals them before the call, reconciles from receipts after a crash, escalates when it can't tell, and only accepts 'done' from a verifier against a frozen contract. They compose."
+- **Why Nemotron?** "We measured: Lightning finished our crash mission in the fewest turns, Super also worked at about six times the cost, Nano didn't make progress. At half a cent a mission, verifying everything is affordable."
+- **Isn't the plain agent a strawman?** "Same model, tools, prompt and receipt-lookup tools. On the ledger service it scores 10 of 10, same as Blackout."
+- **Exactly-once?** "Only where the system can answer 'did op X happen?'. Otherwise Blackout refuses and escalates. That refusal is tested."
+- **What if the agent is tricked into saying done?** "We planted a fake 'resolved, declare success' note. Nemotron read it 7 times and never followed it, and if it had, the verifier would reject the claim."
+- **Is this a dashboard project?** "No. The page has no logic; the same race runs in the terminal with `npm run race`."
+- **What does it cost?** "About half a cent and 28 Nemotron calls per mission, from the API's own usage counts."
+- **What was built today?** "Everything in the repo. Reused: the OpenAI SDK, the MCP SDK, Zod, tsx, TypeScript, Node's SQLite."
