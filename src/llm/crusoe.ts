@@ -23,11 +23,16 @@ loadEnv();
 export const PRICING: Record<string, { in: number; out: number; cached?: number }> = {
   "nvidia/Nemotron-3.5-Lightning-30B-A3B": { in: 0.05, out: 0.2, cached: 0.03 }, // confirmed in live catalog by the crusoe session, Oct 17
   "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": { in: 0.3, out: 2.4 },
-  "nvidia/Nemotron-3-Nano-30B-A3B": { in: 0.05, out: 0.2 },
+  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": { in: 0.05, out: 0.2, cached: 0.03 },
   "openai/gpt-oss-120b": { in: 0.05, out: 0.2 },
 };
 
 export const MODEL = process.env.BLACKOUT_MODEL ?? "nvidia/Nemotron-3.5-Lightning-30B-A3B";
+// All-Nemotron reroute chain for when the shared primary deployment sheds load (429).
+// Measured Oct 17: Super (thinking off) completed the kill mission; Nano (thinking off) did not, so it is not in the chain.
+// Off unless BLACKOUT_FALLBACK=1. Every reroute is journaled and the served model is recorded per call.
+export const FALLBACKS = (process.env.BLACKOUT_FALLBACKS ?? "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B").split(",").filter(Boolean);
+const SHORT: Record<string, string> = { "nvidia/Nemotron-3.5-Lightning-30B-A3B": "Nemotron 3.5 Lightning", "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": "Nemotron 3 Nano", "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": "Nemotron 3 Super" };
 
 export type Limits = { maxUsd: number; maxCalls: number; maxTokens: number; deadline: number };
 export function limitsFromEnv(deadlineMs = 15 * 60_000): Limits {
@@ -84,7 +89,10 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
   const c = getClient();
   let lastErr: unknown;
   const maxAttempts = Number(process.env.BLACKOUT_RETRIES ?? 5);
+  const chain = process.env.BLACKOUT_FALLBACK === "1" ? [MODEL, ...FALLBACKS.filter((m) => m !== MODEL)] : [MODEL];
+  let mi = 0, consecutive429 = 0;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const model = chain[mi];
     // Shared pacing: coordinator and worker processes draw from one per-minute budget.
     const rpm = Number(process.env.BLACKOUT_RPM ?? 40);
     for (let w = journal.reserveRequestSlot(rpm); w > 0; w = journal.reserveRequestSlot(rpm)) {
@@ -95,24 +103,24 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
     const started = Date.now();
     try {
       const res = await c.chat.completions.create({
-        model: MODEL,
+        model,
         messages: args.messages,
         tools: args.tools,
         tool_choice: args.tools ? "auto" : undefined,
         max_tokens: args.max_tokens ?? 4096,
         temperature: 0.2,
         ...(args.json ? { response_format: { type: "json_object" as const } } : {}),
-        ...(args.thinking === false ? { chat_template_kwargs: { enable_thinking: false } } : {}),
+        ...(args.thinking === false || model !== MODEL || process.env.BLACKOUT_THINKING === "off" ? { chat_template_kwargs: { enable_thinking: false } } : {}),
       } as any);
       const u = res.usage;
       const choice = res.choices[0];
       journal.recordUsage(missionId, {
         actor,
-        model: res.model ?? MODEL,
+        model: res.model ?? model,
         prompt_tokens: u?.prompt_tokens ?? 0,
         completion_tokens: u?.completion_tokens ?? 0,
         cached_tokens: (u as any)?.prompt_tokens_details?.cached_tokens ?? 0,
-        est_usd: u ? estimateUsd(MODEL, u.prompt_tokens, u.completion_tokens, (u as any)?.prompt_tokens_details?.cached_tokens ?? 0) : null,
+        est_usd: u ? estimateUsd(model, u.prompt_tokens, u.completion_tokens, (u as any)?.prompt_tokens_details?.cached_tokens ?? 0) : null,
         latency_ms: Date.now() - started,
         finish_reason: choice?.finish_reason ?? "none",
       });
@@ -120,9 +128,18 @@ export async function chat(journal: Journal, missionId: string, actor: string, l
     } catch (e: any) {
       lastErr = e;
       const status = e?.status;
-      if (status === 429 || status === 503 || status === 502 || e?.name === "APIConnectionTimeoutError") {
-        journal.event(missionId, actor, "inference_retry", { status: status ?? e?.name, attempt });
-        await new Promise((r) => setTimeout(r, Math.min(20_000, 2000 * 2 ** attempt) + Math.random() * 1500));
+      if (status === 429 || status === 503 || status === 502 || /timeout|timed out/i.test(`${e?.name} ${e?.message}`)) {
+        journal.event(missionId, actor, "inference_retry", { status: status ?? e?.name, attempt, model });
+        // Rate limits and timeouts both count toward rerouting off a struggling deployment.
+        consecutive429 = status === 429 || !status ? consecutive429 + 1 : 0;
+        if (consecutive429 >= 2 && mi < chain.length - 1) {
+          mi++; consecutive429 = 0;
+          journal.event(missionId, actor, "rerouted", { from: model, to: chain[mi], reason: "429 from shared deployment" });
+          process.stdout.write(`[reroute] ${actor}: ${SHORT[model] ?? model} busy (429) -> ${SHORT[chain[mi]] ?? chain[mi]}\n`);
+          continue;
+        }
+        const base = chain.length > 1 ? 1000 + Math.random() * 2000 : Math.min(20_000, 2000 * 2 ** attempt) + Math.random() * 1500;
+        await new Promise((r) => setTimeout(r, base));
         continue;
       }
       throw new InferenceUnavailable(`inference failed: ${status ?? ""} ${String(e?.message ?? e).slice(0, 200)}`);

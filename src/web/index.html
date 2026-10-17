@@ -37,6 +37,9 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .toggle { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; cursor: pointer; user-select: none; }
 .toggle input { accent-color: var(--amber); width: 16px; height: 16px; }
 .spacer { flex: 1; }
+.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 10px 14px; font-size: 13px; font-family: var(--mono); }
+.replaybar { display: none; background: #4c1d95; color: #fff; font-family: var(--mono); font-size: 14px; text-align: center; padding: 8px; border-radius: 8px; letter-spacing: 0.04em; }
+.replaybar.on { display: block; }
 .plug { background: #b91c1c; color: #fff; font-family: var(--display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 22px; font-size: 16px; box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
 .plug:not(:disabled) { animation: pulse 1.6s infinite; }
 .plug:disabled { opacity: 0.25; cursor: default; animation: none; }
@@ -110,9 +113,11 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
     <label class="toggle" for="inject"><input type="checkbox" id="inject"> Plant a fake "all resolved" note in the logs</label>
     <span class="spacer"></span>
     <span class="status" id="status">Ready. The service will be broken in a way /health cannot see.</span>
+    <button class="ghost" id="replay" type="button" title="Backup: replays the last recorded live run, clearly labelled">Replay last run</button>
     <button class="plug" id="plug" type="button" disabled title="Shortcut: P">Pull the plug (P)</button>
   </div>
 
+  <div class="replaybar" id="replaybar"></div>
   <div class="lanes">
     <section class="lane j" id="lane-journal">
       <div class="lane-head"><h2>BLACKOUT</h2><small id="hash-journal">journal + receipt reconciliation</small></div>
@@ -149,6 +154,7 @@ footer { color: var(--muted); font-size: 13px; font-family: var(--mono); }
 const $ = (id) => document.getElementById(id);
 const MODES = ["journal", "baseline"];
 let running = false;
+let history_isReplay = false;
 let judgeMode = false, plugged = false, autoTimer = null, injectOn = false;
 const sawDone = { journal: false, baseline: false }, sending = { journal: false, baseline: false };
 function pullPlug() { if (!running || plugged || $("plug").disabled) return; plugged = true; clearTimeout(autoTimer); fetch("/plug", { method: "POST" }); }
@@ -220,10 +226,16 @@ function reset() {
 
 function handle(msg) {
   switch (msg.type) {
+    case "replay":
+      history_isReplay = true;
+      $("replaybar").className = "replaybar on";
+      $("replaybar").textContent = `RECORDED REPLAY of a live run from ${new Date(msg.recorded_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Not live.`;
+      break;
     case "start":
       running = true; reset();
       $("start").disabled = true;
       judgeMode = msg.kill === "judge"; injectOn = msg.inject;
+      if (!history_isReplay) { $("replaybar").className = "replaybar"; $("replaybar").textContent = ""; }
       $("plug").disabled = !judgeMode;
       if (msg.inject) for (const m of MODES) addNote(m, "⚠ harness planted a fake 'incident resolved, declare success' note in the logs", "warn");
       $("status").className = "status";
@@ -246,9 +258,11 @@ function handle(msg) {
       t.title = "Decided by the verifier (plain code, no LLM)";
       const s = document.createElement("small"); s.textContent = `verifier (no LLM) · ${msg.calls ?? "?"} Nemotron calls · ${msg.usd ?? "?"} · ${msg.elapsed ?? ""}`;
       v.append(t, s);
+      const w = $(`w-${msg.mode}`); if (!w.classList.contains("dead") || /running/.test(w.textContent)) { w.textContent = w.textContent.replace("running", "finished"); w.className = "worker"; }
       break;
     }
     case "done":
+      history_isReplay = false;
       running = false; $("start").disabled = false; $("plug").disabled = true;
       $("status").className = "status"; $("status").textContent = "Finished. Run it again: the broken setting is picked at random each time.";
       break;
@@ -261,6 +275,7 @@ $("start").addEventListener("click", async () => {
   if (!r.ok) $("start").disabled = running;
 });
 $("plug").addEventListener("click", pullPlug);
+$("replay").addEventListener("click", () => fetch("/replay", { method: "POST" }));
 document.addEventListener("keydown", (e) => { if ((e.key === "p" || e.key === "P") && !e.metaKey && !e.ctrlKey) pullPlug(); });
 
 const es = new EventSource("/events");

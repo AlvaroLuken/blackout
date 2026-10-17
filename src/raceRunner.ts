@@ -61,6 +61,7 @@ export function story(raw: string): string | null {
   }
   if ((m = s.match(/^\[worker\.g(\d)\] reconciled (\d+)/))) return `w${m[1]} checks journal: ${m[2]} in flight`;
   if ((m = s.match(/^\[worker\.g(\d)\] stopped: (.*)/))) return `w${m[1]} stopped: ${m[2].slice(0, 30)}`;
+  if ((m = s.match(/^\[reroute\] (\S+): (.*) busy \(429\) -> (.*)$/))) return `↪ Crusoe busy: rerouted to ${m[3]}`;
   if (/^\[harness\] planted/.test(s)) return "⚠ fake 'all resolved' note in logs";
   if (/^\[harness\] GET \/health/.test(s)) return "service says: /health 200 OK";
   if (/^\[coordinator\] contract proposed/.test(s)) return "coord writes definition of done";
@@ -123,7 +124,7 @@ export function startRace(o: RaceOpts, emit: (e: RaceEvent) => void): { children
     fs.rmSync(varDir, { recursive: true, force: true });
     const args = ["--import", "tsx", "--disable-warning=ExperimentalWarning", path.join(ROOT, "src/cli.ts"), "mission", "--mode", mode, "--profile", o.profile, "--fault", o.fault, "--kill-after", String(o.killAfter ?? 0), "--policy", o.policy, ...(o.inject ? ["--inject"] : [])];
     const child = spawn(process.execPath, args, {
-      env: { ...process.env, BLACKOUT_VAR_DIR: varDir, BLACKOUT_TARGET_PORT: String(7411 + i * 10), BLACKOUT_HARNESS_PORT: String(7412 + i * 10), BLACKOUT_RPM: "20", BLACKOUT_RETRIES: "9", BLACKOUT_RESULTS_DIR: path.join(ROOT, "results", "race") },
+      env: { ...process.env, BLACKOUT_VAR_DIR: varDir, BLACKOUT_TARGET_PORT: String(7411 + i * 10), BLACKOUT_HARNESS_PORT: String(7412 + i * 10), BLACKOUT_RPM: "20", BLACKOUT_RETRIES: "9", BLACKOUT_FALLBACK: "1", BLACKOUT_RESULTS_DIR: path.join(ROOT, "results", "race") },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let buf = "";

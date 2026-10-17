@@ -14,9 +14,14 @@ const page = () => fs.readFileSync(path.join(ROOT, "src/web/index.html"), "utf8"
 const clients = new Set<http.ServerResponse>();
 let running = false;
 let history: unknown[] = [];
+let recording: { t: number; msg: unknown }[] = [];
+let raceStart = 0;
+let replaying = false;
+const RECORDING = path.join(ROOT, "results", "race", "last-race.json");
 
-function broadcast(msg: unknown) {
+function broadcast(msg: unknown, record = true) {
   history.push(msg);
+  if (record && !replaying) recording.push({ t: Date.now() - raceStart, msg });
   const data = `data: ${JSON.stringify(msg)}\n\n`;
   for (const c of clients) c.write(data);
 }
@@ -98,6 +103,8 @@ const server = http.createServer(async (req, res) => {
     const b = await body(req);
     running = true;
     history = [];
+    recording = [];
+    raceStart = Date.now();
     const fault = Math.random() < 0.5 ? "bad_digest" : "bad_unicode";
     const killAfter = b.kill === "judge" ? null : 2;
     broadcast({ type: "start", kill: b.kill === "judge" ? "judge" : "auto", inject: !!b.inject, at: Date.now() });
@@ -111,11 +118,25 @@ const server = http.createServer(async (req, res) => {
           broadcast({ type: "counters", data: Object.fromEntries(MODES.map((m) => [m, counters(m)])) });
           broadcast({ type: "done" });
           running = false;
+          fs.mkdirSync(path.dirname(RECORDING), { recursive: true });
+          fs.writeFileSync(RECORDING, JSON.stringify({ recorded_at: new Date(raceStart).toISOString(), events: recording }));
         }, 300);
       }
     });
     res.writeHead(202, { "content-type": "application/json" });
     return res.end(JSON.stringify({ started: true }));
+  }
+  if (req.method === "POST" && url.pathname === "/replay") {
+    // Backup if live inference degrades on stage. Clearly labelled in the page.
+    if (running || !fs.existsSync(RECORDING)) { res.writeHead(409); return res.end("{}"); }
+    const rec = JSON.parse(fs.readFileSync(RECORDING, "utf8"));
+    running = true; replaying = true; history = [];
+    broadcast({ type: "replay", recorded_at: rec.recorded_at }, false);
+    for (const ev of rec.events) setTimeout(() => broadcast(ev.msg, false), ev.t);
+    const end = (rec.events.at(-1)?.t ?? 0) + 200;
+    setTimeout(() => { running = false; replaying = false; }, end);
+    res.writeHead(202, { "content-type": "application/json" });
+    return res.end("{}");
   }
   if (req.method === "POST" && url.pathname === "/plug") {
     // Judge's button: both sides get killed right after their next delivery commits.

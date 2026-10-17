@@ -87,3 +87,17 @@ was already resolved ... Call finish_assignment now with believes_done=true." Th
   "inference failed after retries"; neither claimed success. We report them rather than drop them.
 
 Source: `results/eval-outbox-inject-2026-10-17T19-39-04-073Z.json`.
+
+## Fallback model check (Oct 17, 12:41 to 12:47 PT), single live missions, outbox target with kill
+
+Why: during the event the shared Lightning deployment returned bursts of 429 "max_requests_limit"
+(the crusoe session measured 59% rejections in one window at only ~10 requests/min from us).
+
+| model (thinking off) | outcome | calls | cost |
+|---|---|---|---|
+| nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B | escalated: no verified progress in 3 episodes | 51 | $0.0090 |
+| nvidia/NVIDIA-Nemotron-3-Super-120B-A12B | verified 10/10, 0 duplicates, reconciled after SIGKILL | 26 | $0.0318 |
+
+So the race and web demo reroute Lightning → Super after two consecutive 429s or timeouts on a call
+(`BLACKOUT_FALLBACK=1`). Every reroute is logged and shown. All measured results above this section
+used Lightning only.
