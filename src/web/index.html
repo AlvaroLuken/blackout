@@ -89,7 +89,27 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
 .lane.shake { animation: shake 0.45s; }
 @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
-.lane { min-width: 0; }
+.lane { min-width: 0; display: flex !important; flex-direction: column; }
+.lane > .feed { flex: 1; }
+.meters { grid-template-columns: 1.5fr 1fr !important; } .meter:has(.worker) { display: none; }
+.truth { align-content: start; }
+/* narration + agent process bars */
+.narr { padding: 12px 18px 14px; border-bottom: 1px solid var(--line); background: var(--panel2); display: grid; gap: 10px; }
+.narr-k { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.narr-t { font-size: 17px; line-height: 1.4; color: var(--fg); min-height: 2.8em; }
+.narr-t.good { color: var(--ok); } .narr-t.bad { color: var(--bad); } .narr-t.warn { color: var(--amber); }
+.narr-t.flash { animation: narrIn 0.35s ease-out; }
+@keyframes narrIn { from { opacity: 0.2; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.procs { display: grid; gap: 6px; }
+.proc { display: grid; grid-template-columns: 74px 1fr 64px; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.proc .bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; position: relative; }
+.proc .bar i { position: absolute; inset: 0 auto 0 0; width: 35%; border-radius: 99px; background: #76b900; }
+.proc.run .bar i { animation: procRun 1.3s ease-in-out infinite; }
+.proc.dead .bar i { width: 100%; background: var(--bad); }
+.proc.done .bar i { width: 100%; background: var(--ok); }
+.proc.dead .st { color: var(--bad); } .proc.done .st { color: var(--ok); } .proc.run .st { color: #9bd22e; }
+@keyframes procRun { 0% { left: -35%; } 100% { left: 100%; } }
+body.presenter .narr-t { font-size: 21px; } body.presenter .proc { font-size: 14px; }
 .inf { overflow: hidden; display: flex; align-items: center; gap: 9px; padding: 8px 18px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; color: var(--muted); transition: background 0.25s, box-shadow 0.25s; }
 .inf .i-nv { width: 22px; height: 22px; color: #76b900; flex: none; } .inf .i-nv path { fill: currentColor; }
 .inf .i-cr { height: 15px; width: 64px; color: #eceef2; flex: none; } .inf .i-cr path { fill: currentColor; }
@@ -212,6 +232,7 @@ body.presenter .status { font-size: 15px; }
       <div class="lane-head"><h2>BLACKOUT</h2><small id="hash-journal">with journal</small></div>
       <div class="phases" id="ph-journal"></div>
       <div class="inf" id="inf-journal" title="Each pulse is one real Nemotron call through Crusoe, read from the journal's usage table"><svg class="i-nv" aria-hidden="true"><use href="#i-nv"/></svg><span class="inf-model" id="infm-journal">Nemotron 3.5 Lightning</span><span class="inf-via">on</span><svg class="i-cr" aria-hidden="true"><use href="#i-cr"/></svg><span class="inf-who" id="infw-journal" hidden></span><span class="inf-n" id="infn-journal" hidden></span></div>
+      <div class="narr" aria-live="polite"><span class="narr-k">What's happening</span><div class="narr-t" id="narr-journal">Waiting to start.</div><div class="procs" id="procs-journal"></div></div>
       <div class="meters">
         <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-journal">–</span><div class="cells" id="cells-journal"></div></div>
         <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-journal">–</span><span class="src" id="extra-journal"></span></div>
@@ -226,6 +247,7 @@ body.presenter .status { font-size: 15px; }
       <div class="lane-head"><h2>PLAIN AGENT</h2><small id="hash-baseline">same model · no journal</small></div>
       <div class="phases" id="ph-baseline"></div>
       <div class="inf" id="inf-baseline" title="Each pulse is one real Nemotron call through Crusoe, read from the journal's usage table"><svg class="i-nv" aria-hidden="true"><use href="#i-nv"/></svg><span class="inf-model" id="infm-baseline">Nemotron 3.5 Lightning</span><span class="inf-via">on</span><svg class="i-cr" aria-hidden="true"><use href="#i-cr"/></svg><span class="inf-who" id="infw-baseline" hidden></span><span class="inf-n" id="infn-baseline" hidden></span></div>
+      <div class="narr" aria-live="polite"><span class="narr-k">What's happening</span><div class="narr-t" id="narr-baseline">Waiting to start.</div><div class="procs" id="procs-baseline"></div></div>
       <div class="meters">
         <div class="meter"><span class="k">Customers messaged</span><span class="v" id="del-baseline">–</span><div class="cells" id="cells-baseline"></div></div>
         <div class="meter"><span class="k">Got it twice</span><span class="v" id="dup-baseline">–</span><span class="src" id="extra-baseline"></span></div>
@@ -408,6 +430,53 @@ function pulseInf(m, info) {
 function resetInf() { for (const m of MODES) { infCount[m] = 0; $(`infn-${m}`).textContent = "0 calls"; $(`infw-${m}`).textContent = "waiting for the first call"; $(`inf-${m}`).classList.remove("hot", "alt"); $(`infm-${m}`).textContent = "Nemotron 3.5 Lightning"; } }
 let sawLlm = false;
 
+
+// Plain-language narration and one progress bar per agent process.
+const crashed = { journal: false, baseline: false };
+function narrate(m, text, tone = "") {
+  const el = $(`narr-${m}`); if (!el || el.textContent === text) return;
+  el.textContent = text; el.className = "narr-t " + tone;
+  void el.offsetWidth; el.classList.add("flash");
+}
+function proc(m, n, state) {
+  const host = $(`procs-${m}`); let row = host.querySelector(`[data-n="${n}"]`);
+  if (!row) { row = document.createElement("div"); row.dataset.n = n; row.innerHTML = `<span>Agent ${n}</span><div class="bar"><i></i></div><span class="st"></span>`; host.appendChild(row); }
+  row.className = "proc " + state;
+  row.querySelector(".st").textContent = state === "run" ? "working" : state === "dead" ? "killed" : "finished";
+}
+function finishProcs(m) { for (const r of $(`procs-${m}`).querySelectorAll(".proc.run")) proc(m, r.dataset.n, "done"); }
+function story(m, text) {
+  const J = m === "journal"; let x;
+  if (/service says: \/health 200/.test(text)) return narrate(m, "The service says it's healthy, but every message it tries to send is failing.");
+  if (/coord writes definition of done/.test(text)) return narrate(m, "Nemotron is writing down what \"done\" means for this job.");
+  if (/contract frozen/.test(text)) return narrate(m, "The definition of done is locked in. The agent can't change it later.");
+  if ((x = text.match(/^▶ worker (\d+) starts/))) {
+    proc(m, x[1], "run");
+    if (x[1] === "1") return narrate(m, "Agent 1 starts investigating why messages are failing.");
+    return narrate(m, J ? "A new agent takes over. It remembers nothing, but Blackout's journal does." : "A new agent takes over. It remembers nothing, and nothing was written down.", "warn");
+  }
+  if (/SIGKILLed/.test(text)) {
+    crashed[m] = true;
+    const r = [...$(`procs-${m}`).querySelectorAll(".proc.run")].pop(); if (r) proc(m, r.dataset.n, "dead");
+    return narrate(m, "We just killed the agent, right after a message went out and before it could note that down.", "bad");
+  }
+  if (/checks journal/.test(text)) return narrate(m, "Blackout checks its journal: one message was in flight when the agent died.");
+  if ((x = text.match(/receipt for (job-\d+): DELIVERED/))) return narrate(m, `Blackout asks the service about that message. It was already delivered, so it's skipped.`, "good");
+  if (/ FIX /.test(text)) return narrate(m, "It found the broken setting and is fixing it.");
+  if (/test job ✓/.test(text)) return narrate(m, crashed[m] ? "It checks that the service still works. It does." : "The fix works: a test message went through.", crashed[m] ? "" : "good");
+  if (/sending job/.test(text)) {
+    if (crashed[m] && !J) return narrate(m, "With no record, it can't tell which customers already got their message. So it sends again.", "bad");
+    return narrate(m, J ? "Sending the customer messages. Blackout writes each one down before it goes out." : "Sending the customer messages. Nothing is written down first.");
+  }
+  if (/^w\d (reads|checks \/health|lists pending)/.test(text)) return narrate(m, crashed[m] ? "The new agent is figuring out where things stand." : "It's reading the logs and config to find what's broken.");
+  if (/looks up receipts|lists done jobs/.test(text)) return narrate(m, "The agent checks its work and says it's finished.");
+  if (/verifier: PASS/.test(text)) return narrate(m, "Plain code checks every customer's inbox: everyone got exactly one message.", "good");
+  if (/verifier: FAIL\s+10\/10|same message|got duplicates/.test(text)) return narrate(m, "Plain code checks every customer's inbox: one customer got the same message twice.", "bad");
+  if (/✔ DONE/.test(text)) { finishProcs(m); return narrate(m, "Verified done, by code, not by the agent.", "good"); }
+  if (/ESCALATED/.test(text)) { finishProcs(m); return narrate(m, "Not done. The agent's \"done\" is rejected and handed to a human with the evidence.", "bad"); }
+}
+function resetStory() { for (const m of MODES) { crashed[m] = false; $(`procs-${m}`).innerHTML = ""; narrate(m, "Starting up."); } }
+
 function handle(msg) {
   switch (msg.type) {
     case "replay":
@@ -416,7 +485,7 @@ function handle(msg) {
       $("replaybar").textContent = `RECORDED REPLAY of a live run from ${new Date(msg.recorded_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}, played at ${msg.speed ?? 1}× speed. Not live.`;
       break;
     case "start":
-      running = true; reset(); resetInf(); sawLlm = false;
+      running = true; reset(); resetInf(); resetStory(); sawLlm = false;
       $("start").disabled = true;
       judgeMode = msg.kill === "judge"; injectOn = msg.inject;
       if (!history_isReplay) { $("replaybar").className = "replaybar"; $("replaybar").textContent = ""; }
@@ -427,6 +496,7 @@ function handle(msg) {
       break;
     case "line":
       addLine(msg.mode, msg.text, msg.tone);
+      story(msg.mode, msg.text);
       // Recorded replays made before the inference feed existed: pulse on model-driven lines instead.
       if (history_isReplay && !sawLlm && /^w\d |definition of done|coordinator/i.test(msg.text)) pulseInf(msg.mode, { actor: /^w\d/.test(msg.text) ? "worker" : "coordinator" });
       break;
