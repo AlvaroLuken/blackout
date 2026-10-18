@@ -91,6 +91,9 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 .lane { min-width: 0; display: flex !important; flex-direction: column; }
 .lane > .feed { flex: 1; }
+/* lane tints: Blackout stays black, the plain agent gets a faint plum */
+.lane.j { --panel: #0b0c10; --panel2: #101218; background: var(--panel); }
+.lane.b { --panel: #161019; --panel2: #1d1522; --line: #33263b; background: var(--panel); border-color: #3a2a45; }
 .meters { grid-template-columns: 1.5fr 1fr !important; } .meter:has(.worker) { display: none; }
 .truth { align-content: start; }
 /* narration + agent process bars */
